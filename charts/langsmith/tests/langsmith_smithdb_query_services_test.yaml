@@ -105,6 +105,40 @@ tests:
             name: SMITHDB_QUERY__EXECUTION_CONFIG__DISTRIBUTED_RUN_STATS_QUERY_ENABLED
             value: "true"
 
+  - it: should give run-rules 2m request and query timeouts
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.mutations.enabled: true
+      smithdb.runRules.enabled: true
+      smithdb.statsQuery.enabled: true
+    template: smithdb/query-services-deployments.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__REQUEST_TIMEOUT
+            value: "2m"
+        documentIndex: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__EXECUTION_CONFIG__QUERY_TIMEOUT
+            value: "2m"
+        documentIndex: 1
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          any: true
+          content:
+            name: SMITHDB_QUERY__EXECUTION_CONFIG__QUERY_TIMEOUT
+        documentIndex: 0
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          any: true
+          content:
+            name: SMITHDB_QUERY__EXECUTION_CONFIG__QUERY_TIMEOUT
+        documentIndex: 2
+
   - it: should disable memory attribution on every separate query service
     values:
       - ./values/smithdb-enabled.yaml

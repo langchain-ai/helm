@@ -9,32 +9,8 @@ templates:
   - operator/config-map.yaml
   - platform-backend/deployment.yaml
 tests:
-  - it: does not embed managed tools in the platform backend when disabled
+  - it: embeds managed tools in the platform backend
     template: platform-backend/deployment.yaml
-    asserts:
-      - notContains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: MANAGED_TOOLS_EMBEDDED
-            value: "true"
-
-  - it: does not entitle organizations when disabled
-    template: config-map.yaml
-    asserts:
-      - notExists:
-          path: data.DEFAULT_ORG_FEATURE_LMT_ENABLED
-
-  - it: omits managed tools routes when disabled
-    template: frontend/config-map.yaml
-    asserts:
-      - notMatchRegex:
-          path: data["nginx.conf"]
-          pattern: 'managed-tools|agent-policies'
-
-  - it: embeds managed tools in the platform backend when enabled
-    template: platform-backend/deployment.yaml
-    set:
-      managedTools.enabled: true
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
@@ -42,10 +18,8 @@ tests:
             name: MANAGED_TOOLS_EMBEDDED
             value: "true"
 
-  - it: entitles organizations when enabled
+  - it: entitles every organization
     template: config-map.yaml
-    set:
-      managedTools.enabled: true
     asserts:
       - equal:
           path: data.DEFAULT_ORG_FEATURE_LMT_ENABLED
@@ -54,7 +28,6 @@ tests:
   - it: points at the tool server for built-in tools without the trigger server
     template: config-map.yaml
     set:
-      managedTools.enabled: true
       fleet.enabled: true
       fleetTriggerServer.enabled: false
     asserts:
@@ -64,10 +37,9 @@ tests:
       - notExists:
           path: data.TRIGGER_SERVER_ENDPOINT
 
-  - it: leaves the built-in tools URL unset when the tool server is disabled
+  - it: leaves the built-in tools URL unset when the tool server is not deployed
     template: config-map.yaml
     set:
-      managedTools.enabled: true
       fleet.enabled: true
       fleetToolServer.enabled: false
       fleetTriggerServer.enabled: false
@@ -77,8 +49,6 @@ tests:
 
   - it: routes managed tools requests to the platform backend
     template: frontend/config-map.yaml
-    set:
-      managedTools.enabled: true
     asserts:
       - matchRegex:
           path: data["nginx.conf"]
@@ -90,7 +60,6 @@ tests:
   - it: routes managed tools requests under a base path
     template: frontend/config-map.yaml
     set:
-      managedTools.enabled: true
       config.basePath: langsmith
     asserts:
       - matchRegex:

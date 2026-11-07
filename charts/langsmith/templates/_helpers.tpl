@@ -193,6 +193,22 @@ dnsConfig:
 {{- end -}}
 
 {{/*
+Allowed long-lived days as JSON. Fails at render time on values the backend refuses at startup.
+*/}}
+{{- define "langsmith.longlivedAllowedDays" -}}
+{{- $days := .Values.config.ttl.longlivedAllowedDays -}}
+{{- if gt (len $days) 10 -}}
+{{- fail "config.ttl.longlivedAllowedDays accepts at most 10 values" -}}
+{{- end -}}
+{{- range $days -}}
+{{- if lt (int .) 14 -}}
+{{- fail (printf "config.ttl.longlivedAllowedDays: %v is below the 14-day minimum" .) -}}
+{{- end -}}
+{{- end -}}
+{{- toJson $days -}}
+{{- end -}}
+
+{{/*
 Template containing common environment variables that are used by several services.
 */}}
 {{- define "langsmith.commonEnv" -}}
@@ -393,6 +409,10 @@ Template containing common environment variables that are used by several servic
   value: "true"
 - name: TRACE_TIER_TTL_DURATION_SEC_MAP
   value: "{ \"longlived\": {{ .Values.config.ttl.ttl_period_seconds.longlived }}, \"shortlived\": {{ .Values.config.ttl.ttl_period_seconds.shortlived }} }"
+{{- if .Values.config.ttl.longlivedAllowedDays }}
+- name: LONGLIVED_TTL_ALLOWED_DAYS
+  value: {{ include "langsmith.longlivedAllowedDays" . | quote }}
+{{- end }}
 {{- end }}
 {{- if .Values.config.workspaceScopeOrgInvitesEnabled }}
 - name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
@@ -629,8 +649,8 @@ valueFrom:
 {{- end }}
 
 {{/*
-Default per-pod ephemeral cache volume for a disk-using SmithDB component, sized from the tier.
-Args: root, component.
+Default per-pod ephemeral cache volume for a disk-using SmithDB component, sized from cacheSize or the tier.
+Args: root, component, optional cacheSize.
 */}}
 {{- define "langsmith.smithdb.defaultCacheVolume" -}}
 name: cache
@@ -643,17 +663,17 @@ ephemeral:
       {{- end }}
       resources:
         requests:
-          storage: {{ include "langsmith.smithdb.cacheSize" . }}
+          storage: {{ .cacheSize | default (include "langsmith.smithdb.cacheSize" .) }}
 {{- end }}
 
 {{/*
 Resolve volumes for a disk-using SmithDB component. The user's deployment.volumes list is used
 as given. When the container still mounts a volume named cache and the list does not define one,
 the default cache volume is prepended, so extra volumes can be added without restating the cache.
-Args: root, component.
+Args: root, component, optional config, optional cacheSize.
 */}}
 {{- define "langsmith.smithdb.volumes" -}}
-{{- $deployment := (index .root.Values.smithdb .component).deployment -}}
+{{- $deployment := .config | default (index .root.Values.smithdb .component).deployment -}}
 {{- $mountsCache := false -}}
 {{- range $deployment.volumeMounts -}}
 {{- if and (eq .mountPath "/data") (ne .name "cache") -}}
@@ -758,6 +778,46 @@ runs without a local SmithDB.
 {{- end }}
 
 {{/*
+JSON list of the smithdb.* keys of the rendered SmithDB service workloads.
+*/}}
+{{- define "langsmith.smithdb.metricsComponents" -}}
+{{- $components := list -}}
+{{- if include "langsmith.smithdb.unifiedTopology" . -}}
+{{- $components = list "unified" -}}
+{{- else if include "langsmith.smithdb.clusterTopology" . -}}
+{{- range $component := list "query" "mutations" "runRules" "statsQuery" "ingestion" "compaction" "compactionWorker" "clusterManager" -}}
+{{- if dig "enabled" true (index $.Values.smithdb $component) -}}
+{{- $components = append $components $component -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- toJson $components -}}
+{{- end }}
+
+{{/*
+Name of the headless Service that publishes one DNS record per pod of a SmithDB component.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.metricsServiceName" -}}
+{{- printf "%s-metrics" (include "langsmith.smithdb.componentName" . | trunc 55 | trimSuffix "-") -}}
+{{- end }}
+
+{{/*
+JSON map of SmithDB component name to its headless metrics Service URL, which the
+queue scrapes for self-hosted telemetry.
+*/}}
+{{- define "langsmith.smithdb.metricsEndpoints" -}}
+{{- $endpoints := dict -}}
+{{- range $component := include "langsmith.smithdb.metricsComponents" . | fromJsonArray -}}
+{{- $componentValues := index $.Values.smithdb $component -}}
+{{- $serviceName := include "langsmith.smithdb.metricsServiceName" (dict "root" $ "component" $component) -}}
+{{- $url := printf "http://%s.%s.svc.%s:%v" $serviceName ($.Values.namespace | default $.Release.Namespace) $.Values.clusterDomain $componentValues.containerPort -}}
+{{- $_ := set $endpoints ($componentValues.name | default $component) $url -}}
+{{- end -}}
+{{- toJson $endpoints -}}
+{{- end }}
+
+{{/*
 Name of the shared SmithDB service account.
 Args: root.
 */}}
@@ -848,6 +908,18 @@ Override in smithdb.commonEnv or a component's deployment.extraEnv.
 {{- define "langsmith.smithdb.queryEnv" -}}
 - name: SMITHDB_QUERY__MEMORY_ATTRIBUTION_ENABLED
   value: "false"
+{{- end }}
+
+{{/*
+Env the chart sets on the separate run-rules query service. Run-rule scans cover a rule's whole
+window, so they get longer request and query timeouts than interactive queries.
+Override in smithdb.commonEnv or smithdb.runRules.deployment.extraEnv.
+*/}}
+{{- define "langsmith.smithdb.runRulesEnv" -}}
+- name: SMITHDB_QUERY__REQUEST_TIMEOUT
+  value: "2m"
+- name: SMITHDB_QUERY__EXECUTION_CONFIG__QUERY_TIMEOUT
+  value: "2m"
 {{- end }}
 
 {{/*
@@ -1072,6 +1144,10 @@ Args: root, service, displayName, optional prefix (defaults to SMITHDB_<service>
   value: {{ $root.Values.smithdb.config.objectStore.bucket | quote }}
 - name: {{ $prefix }}__OBJECT_STORE__GCS__ROOT_FOLDER
   value: {{ $objectStoreRootFolder | quote }}
+{{- with $root.Values.smithdb.config.objectStore.gcs.endpoint }}
+- name: GOOGLE_BASE_URL
+  value: {{ trimSuffix "/" . | quote }}
+{{- end }}
 {{- else if eq $objectStoreType "azure" }}
 - name: {{ $prefix }}__OBJECT_STORE__AZURE__CONTAINER
   value: {{ $root.Values.smithdb.config.objectStore.bucket | quote }}

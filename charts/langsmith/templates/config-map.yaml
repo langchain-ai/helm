@@ -125,7 +125,7 @@ data:
   LLM_AUTH_PROXY_ISSUER: {{ .Values.config.llmAuthProxyIssuer | quote }}
   {{- end }}
   {{- $fleetToolServerDeployed := and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetToolServer.enabled }}
-  {{- if or (and .Values.fleet.enabled .Values.fleetTriggerServer.enabled) (and .Values.managedTools.enabled $fleetToolServerDeployed) }}
+  {{- if or (and .Values.fleet.enabled .Values.fleetTriggerServer.enabled) $fleetToolServerDeployed }}
   MCP_SERVER_URL: "http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetToolServer.service.port }}"
   {{- end }}
   {{- if and .Values.fleet.enabled .Values.fleetTriggerServer.enabled }}
@@ -159,6 +159,7 @@ data:
   ENABLE_POSTGRES_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
   ENABLE_REDIS_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
   ENABLE_CLICKHOUSE_METRICS_CRON: {{ and .Values.clickhouse.enabled .Values.config.telemetry.metrics | quote }}
+  ENABLE_SMITHDB_METRICS_CRON: {{ and (or .Values.smithdb.enabled (include "langsmith.smithdb.migrationEnabled" . | eq "true")) .Values.config.telemetry.metrics | quote }}
   BEACON_LOGGING_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.logs | quote }}
   BEACON_METRICS_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
   BEACON_TRACING_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.traces | quote }}
@@ -178,9 +179,8 @@ data:
   {{- if .Values.presidioAnalyzer.enabled }}
   DEFAULT_ORG_FEATURE_GATEWAY_PII_REDACTION_ENABLED: "true"
   {{- end }}
-  {{- if .Values.managedTools.enabled }}
+  # Every organization is entitled to Tool Gateway.
   DEFAULT_ORG_FEATURE_LMT_ENABLED: "true"
-  {{- end }}
   # Usage backfill export gating
   {{- if .Values.config.superAdmins }}
   USAGE_EXPORT_ADMIN_EMAILS: {{ .Values.config.superAdmins | toJson | quote }}

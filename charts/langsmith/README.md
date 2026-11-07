@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.58](https://img.shields.io/badge/Version-0.18.0--rc.58-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.62](https://img.shields.io/badge/Version-0.18.0--rc.62-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -65,7 +65,7 @@ When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSa
 
 ## SmithDB resource tiers
 
-`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount a volume named `cache` at `/data` as a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s.
+`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query and ingestion mount a volume named `cache` at `/data`; compaction worker and the migration Job mount it at `/tmp` for scratch files. Each is a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s. The migration Job's volume is 100Gi in every tier.
 
 Explicit component `resources` or `volumes` replace the tier values. Cache overrides must be named `cache` and use an `emptyDir` or inline ephemeral PVC; existing PVCs are unsupported. To cache on local SSD, set matching `emptyDir.sizeLimit` and `ephemeral-storage` requests and limits.
 
@@ -781,7 +781,6 @@ The operator deletes removed objects only after the deployment's rollout complet
 | istioGateway.labels | object | `{}` |  |
 | istioGateway.name | string | `"istio-gateway"` |  |
 | istioGateway.namespace | string | `"istio-system"` |  |
-| managedTools.enabled | bool | `false` |  |
 | nameOverride | string | `""` | Provide a name in place of `langsmith` |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | polly.apiServer.autoscaling.enabled | bool | `false` |  |
@@ -1190,6 +1189,7 @@ The operator deletes removed objects only after the deployment's rollout complet
 | smithdb.config.objectStore.azure.allowHttp | bool | `false` | Allow plain HTTP for endpoint overrides, such as local emulators. |
 | smithdb.config.objectStore.azure.endpoint | string | `""` | Optional Azure Blob service endpoint override. |
 | smithdb.config.objectStore.bucket | string | `""` |  |
+| smithdb.config.objectStore.gcs.endpoint | string | `""` | Optional GCS endpoint override, such as a sovereign cloud storage endpoint. A trailing slash is removed. |
 | smithdb.config.objectStore.s3.accessKeyIdSecretKey | string | `""` | Keys in smithdb.config.existingSecretName for static S3 credentials. Set both to "" when using ambient cloud identity, such as IRSA. |
 | smithdb.config.objectStore.s3.endpoint | string | `""` |  |
 | smithdb.config.objectStore.s3.kmsEncryptionEnabled | bool | `false` | Send SSE-KMS encryption headers on S3 writes. Same semantics as config.blobStorage.kmsEncryptionEnabled. |
@@ -1308,13 +1308,11 @@ The operator deletes removed objects only after the deployment's rollout complet
 | smithdb.migration.job.labels | object | `{}` |  |
 | smithdb.migration.job.nodeSelector | object | `{}` |  |
 | smithdb.migration.job.parallelism | int | `1` | migration pods. |
-| smithdb.migration.job.podSecurityContext | object | `{}` |  |
+| smithdb.migration.job.podSecurityContext.fsGroup | int | `1001` |  |
 | smithdb.migration.job.priorityClassName | string | `""` |  |
 | smithdb.migration.job.resources.limits.cpu | string | `"8"` |  |
-| smithdb.migration.job.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
 | smithdb.migration.job.resources.limits.memory | string | `"32Gi"` |  |
 | smithdb.migration.job.resources.requests.cpu | string | `"8"` |  |
-| smithdb.migration.job.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
 | smithdb.migration.job.resources.requests.memory | string | `"32Gi"` |  |
 | smithdb.migration.job.restartPolicy | string | `"Never"` |  |
 | smithdb.migration.job.securityContext | object | `{}` |  |
@@ -1324,7 +1322,8 @@ The operator deletes removed objects only after the deployment's rollout complet
 | smithdb.migration.job.tolerations | list | `[]` |  |
 | smithdb.migration.job.topologySpreadConstraints | list | `[]` |  |
 | smithdb.migration.job.ttlSecondsAfterFinished | int | `604800` | Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs. |
-| smithdb.migration.job.volumeMounts | list | `[]` |  |
+| smithdb.migration.job.volumeMounts[0].mountPath | string | `"/tmp"` |  |
+| smithdb.migration.job.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.migration.job.volumes | list | `[]` |  |
 | smithdb.migration.name | string | `"migration"` |  |
 | smithdb.migration.service | object | `{"annotations":{},"labels":{}}` | Headless Service in front of the migration Job pods, so each pod has a stable DNS record on containerPort. |
@@ -1761,7 +1760,8 @@ The operator deletes removed objects only after the deployment's rollout complet
 | config.telemetry.logs | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
 | config.telemetry.metrics | bool | `true` |  |
 | config.telemetry.traces | bool | `true` |  |
-| config.ttl | object | `{"enabled":true,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
+| config.ttl | object | `{"enabled":true,"longlivedAllowedDays":[],"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
+| config.ttl.longlivedAllowedDays | list | `[]` | Long-lived retention options in days, for SmithDB-only installs. Empty keeps the default options (30 to 400, up to ttl_period_seconds.longlived). At most 10 values, each at least 14. Every value is offered, also above ttl_period_seconds.longlived, which stays the default. Create a bucket lifecycle rule for each ttl_<N>d/ prefix, or blobs under it never expire. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
 | config.userOrgCreationDisabled | bool | `true` | Prevent organization creation by users. This includes admins. |
 | config.workspaceScopeOrgInvitesEnabled | bool | `false` | Enable Workspace Admins to invite users to the org and workspace. |

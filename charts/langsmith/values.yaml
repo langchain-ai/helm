@@ -321,14 +321,6 @@ sandboxes:
       labels: {}
       annotations: {}
 
-# Tool Gateway (managed tools). When enabled, platform-backend serves the
-# managed tools API at /api/v1/managed-tools and /api/v1/agent-policies, and
-# every organization is entitled to it. Built-in tools also need the Fleet tool
-# server. Requires a LangSmith version whose platform-backend supports
-# MANAGED_TOOLS_EMBEDDED.
-managedTools:
-  enabled: false
-
 fleet:
   enabled: false
   namePrefix: "standalone-fleet"
@@ -1241,6 +1233,11 @@ config:
       # -- 400 day longlived and 14 day shortlived
       longlived: "34560000"
       shortlived: "1209600"
+    # -- Long-lived retention options in days, for SmithDB-only installs. Empty keeps the default
+    # options (30 to 400, up to ttl_period_seconds.longlived). At most 10 values, each at least 14.
+    # Every value is offered, also above ttl_period_seconds.longlived, which stays the default.
+    # Create a bucket lifecycle rule for each ttl_<N>d/ prefix, or blobs under it never expire.
+    longlivedAllowedDays: []
 
   # Blob storage configuration
   # Optional. Used to store inputs, outputs, and errors in Blob Storage.
@@ -1523,6 +1520,9 @@ smithdb:
         kmsEncryptionEnabled: false
         # -- KMS key ARN for SSE-KMS. When empty, S3 encrypts with the AWS managed aws/s3 key, not the bucket default key.
         kmsKeyArn: ""
+      gcs:
+        # -- Optional GCS endpoint override, such as a sovereign cloud storage endpoint. A trailing slash is removed.
+        endpoint: ""
       azure:
         # -- Azure Storage account name. Required when type is azure.
         accountName: ""
@@ -2212,18 +2212,17 @@ smithdb:
       priorityClassName: ""
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       terminationGracePeriodSeconds: 120
       resources:
         requests:
           cpu: "8"
           memory: "32Gi"
-          ephemeral-storage: "100Gi"
         limits:
           cpu: "8"
           memory: "32Gi"
-          ephemeral-storage: "100Gi"
       # -- Runs taskdb schema migrations, then one-shot self-hosted migrate-all: discover tenants,
       # -- register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode.
       command:
@@ -2240,7 +2239,9 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumes: []
-      volumeMounts: []
+      volumeMounts:
+        - name: cache
+          mountPath: /tmp
       initContainers: []
     taskdb:
       postgres:
