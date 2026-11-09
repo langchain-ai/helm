@@ -2,8 +2,8 @@
 {{- if .Values.fleet.queue.enabled -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "langsmith.fleet.extraEnv" (dict "root" . "component" "queue") | fromYamlArray) .Values.fleet.queue.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
-{{- $volumes := concat .Values.commonVolumes .Values.fleet.queue.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
-{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.fleet.queue.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
+{{- $volumes := concat .Values.commonVolumes .Values.fleet.queue.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) (include "langsmith.fleet.agentAccessTokenVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.fleet.queue.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) (include "langsmith.fleet.agentAccessTokenVolumeMounts" . | fromYamlArray) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

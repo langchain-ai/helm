@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.63](https://img.shields.io/badge/Version-0.18.0--rc.63-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.22rc1](https://img.shields.io/badge/AppVersion-0.18.22rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.64](https://img.shields.io/badge/Version-0.18.0--rc.64-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.22rc1](https://img.shields.io/badge/AppVersion-0.18.22rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -110,6 +110,36 @@ Enabling the feature grants the operator SecretProviderClass `get`, `create`, `p
 Scope each workload identity's federation to the namespace and the full prefixed ServiceAccount name. For Azure Key Vault, install the Secrets Store CSI driver and Azure provider, and configure Azure Workload Identity and the federated identity credential. This chart does not install those prerequisites.
 
 The operator deletes removed objects only after the deployment's rollout completes and no pod or Deployment template still references them. It reports progress in the LGP `ExtraManifestsReady` condition. Turning the flag off freezes the objects and the stored configuration. Clear resources while the flag is on. Deleting a deployment garbage-collects its objects through owner references.
+
+## Fleet agent access tokens
+
+`fleet.agentAccessToken.enabled` defaults to `false`. Set it to `true` to give Fleet's pods agent access tokens: short-lived signed tokens that name the agent and the user it acts for. Each Fleet pod trades its own Kubernetes service account token for them at the platform backend, so no API key is involved. It needs `fleet.enabled=true` and `config.hostname`.
+
+**Coordinated upgrade required:** enable it only with platform backend and Fleet images that support agent access tokens. This chart does not change image tags.
+
+You provide the RSA private key that signs the tokens, as a JSON Web Key Set. One way to create it, with Node.js:
+
+```bash
+node -e 'const c=require("node:crypto"); const {privateKey}=c.generateKeyPairSync("rsa",{modulusLength:3072}); process.stdout.write(JSON.stringify({keys:[{...privateKey.export({format:"jwk"}),kid:c.randomUUID(),alg:"RS256",use:"sig"}]}))' > agent-access-token-jwks.json
+```
+
+Pass it with `--set-file fleet.agentAccessToken.signingJwks=agent-access-token-jwks.json`, and never commit the file. The chart stores the key set in its managed Secret as `agent_access_token_signing_jwks`. With `config.existingSecretName` or `config.disableSecretCreation`, put the key set in your Secret under that key instead, and leave `fleet.agentAccessToken.signingJwks` empty.
+
+When the feature is on, the chart:
+
+- mounts a service account token in the Fleet api-server and queue pods. Its audience is `https://<config.hostname>[/<config.basePath>]/api/v1/agent-auth`. It lasts 10 minutes, and the kubelet renews it before it expires.
+- tells the platform backend which service accounts belong to Fleet. They map to one deployment ID, derived from the release name and namespace, so it stays the same across upgrades. Fleet names the same ID when its sandboxes ask for tokens.
+- creates a ClusterRole and a ClusterRoleBinding for the platform backend. With them, the platform backend checks each pod token's signature against the cluster's service account keys (`/openid/v1/jwks`), then asks the Kubernetes API server to confirm the token with a TokenReview.
+
+If the cluster does not serve `/openid/v1/jwks`, the platform backend relies on the TokenReview alone and logs a warning.
+
+To grant that access yourself, set `platformBackend.rbac.create=false`. Then give the platform backend's service account `create` on `tokenreviews` in the `authentication.k8s.io` API group, and `get` on the non-resource URL `/openid/v1/jwks`.
+
+Each Fleet pod needs a service account of its own: keep `fleet.apiServer.serviceAccount.create` and `fleet.queue.serviceAccount.create` at `true`, or name accounts you created. The platform backend needs one too while the chart creates its ClusterRoleBinding, and it must keep `platformBackend.serviceAccount.automountServiceAccountToken=true`. The chart refuses to render otherwise.
+
+Systems that check the tokens, such as an egress gateway, fetch the public keys from `https://<config.hostname>[/<config.basePath>]/api/v1/agent-auth/.well-known/jwks.json`. Set `fleet.agentAccessToken.egressAudience` to the audience your gateway expects. Fleet then sends a token for that audience on its model and tool requests.
+
+To rotate the signing key, put the new key first in the set and keep the old key after it. The first key signs, and every key in the set verifies. Remove the old key once your gateways have fetched the new public keys and the last tokens signed with the old key have expired; tokens last 5 minutes. With the chart's managed Secret, an upgrade restarts the platform backend. With your own Secret, restart it yourself (`kubectl rollout restart`).
 
 ## General parameters
 
@@ -326,6 +356,9 @@ The operator deletes removed objects only after the deployment's rollout complet
 | engineInsightsAgent.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Insights Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | engineInsightsAgent.redis.statefulSet.volumeMounts | list | `[]` |  |
 | engineInsightsAgent.redis.statefulSet.volumes | list | `[]` |  |
+| fleet.agentAccessToken.egressAudience | string | `""` | Audience that your egress gateway checks in agent access tokens. Optional. |
+| fleet.agentAccessToken.enabled | bool | `false` | Give Fleet's pods signed agent access tokens. Each pod trades its Kubernetes service account token for short-lived tokens that name the agent and the user. Needs `config.hostname`. See the Fleet agent access tokens section. |
+| fleet.agentAccessToken.signingJwks | string | `""` | JSON Web Key Set with the RSA private key that signs agent access tokens. Stored in the chart-managed Secret as `agent_access_token_signing_jwks`. With `config.existingSecretName` or `config.disableSecretCreation`, add that key to your Secret instead. |
 | fleet.apiServer.autoscaling.enabled | bool | `false` |  |
 | fleet.apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | fleet.apiServer.autoscaling.keda.enabled | bool | `false` |  |
@@ -2650,6 +2683,9 @@ The operator deletes removed objects only after the deployment's rollout complet
 | platformBackend.pdb.enabled | bool | `false` |  |
 | platformBackend.pdb.labels | object | `{}` |  |
 | platformBackend.pdb.minAvailable | int | `1` |  |
+| platformBackend.rbac.annotations | object | `{}` |  |
+| platformBackend.rbac.create | bool | `true` | Create the ClusterRole and ClusterRoleBinding that let platform-backend check Fleet's pod tokens: create TokenReviews and read the cluster's service account keys. Used only with `fleet.agentAccessToken.enabled`. Set to false to grant that access yourself. |
+| platformBackend.rbac.labels | object | `{}` |  |
 | platformBackend.rollout | object | `{"enabled":false,"strategy":{"canary":{"steps":[{"setWeight":100}]}}}` | ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/ |
 | platformBackend.rollout.strategy | object | `{"canary":{"steps":[{"setWeight":100}]}}` | Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/ |
 | platformBackend.service.annotations | object | `{}` |  |
