@@ -127,10 +127,11 @@ When the feature is on, the chart:
 - mounts a service account token in the Fleet api-server and queue pods. Its audience is `https://<config.hostname>[/<config.basePath>]/api/v1/agent-auth`. It lasts 10 minutes, and the kubelet renews it before it expires.
 - tells the platform backend which service accounts belong to Fleet. They map to one deployment ID, derived from the release name and namespace, so it stays the same across upgrades. Fleet names the same ID when its sandboxes ask for tokens.
 - creates a ClusterRole and a ClusterRoleBinding for the platform backend. With them, the platform backend checks each pod token's signature against the cluster's service account keys (`/openid/v1/jwks`), then asks the Kubernetes API server to confirm the token with a TokenReview.
+- creates a Role and a RoleBinding in the release namespace. With them, the platform backend reads the pod each token names, then its ReplicaSet and its Deployment, and accepts the token only when Fleet's own Deployment runs that pod. A pod that merely runs as a Fleet service account gets no token.
 
 If the cluster does not serve `/openid/v1/jwks`, the platform backend relies on the TokenReview alone and logs a warning.
 
-To grant that access yourself, set `platformBackend.rbac.create=false`. Then give the platform backend's service account `create` on `tokenreviews` in the `authentication.k8s.io` API group, and `get` on the non-resource URL `/openid/v1/jwks`.
+To grant that access yourself, set `platformBackend.rbac.create=false`. Then give the platform backend's service account `create` on `tokenreviews` in the `authentication.k8s.io` API group and `get` on the non-resource URL `/openid/v1/jwks` across the cluster, and `get` on `pods`, and on `replicasets` and `deployments` in the `apps` API group, in the release namespace.
 
 Each Fleet pod needs a service account of its own: keep `fleet.apiServer.serviceAccount.create` and `fleet.queue.serviceAccount.create` at `true`, or name accounts you created. The platform backend needs one too while the chart creates its ClusterRoleBinding, and it must keep `platformBackend.serviceAccount.automountServiceAccountToken=true`. The chart refuses to render otherwise.
 

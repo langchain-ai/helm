@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.64](https://img.shields.io/badge/Version-0.18.0--rc.64-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.22rc1](https://img.shields.io/badge/AppVersion-0.18.22rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.65](https://img.shields.io/badge/Version-0.18.0--rc.65-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.22rc1](https://img.shields.io/badge/AppVersion-0.18.22rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -130,10 +130,11 @@ When the feature is on, the chart:
 - mounts a service account token in the Fleet api-server and queue pods. Its audience is `https://<config.hostname>[/<config.basePath>]/api/v1/agent-auth`. It lasts 10 minutes, and the kubelet renews it before it expires.
 - tells the platform backend which service accounts belong to Fleet. They map to one deployment ID, derived from the release name and namespace, so it stays the same across upgrades. Fleet names the same ID when its sandboxes ask for tokens.
 - creates a ClusterRole and a ClusterRoleBinding for the platform backend. With them, the platform backend checks each pod token's signature against the cluster's service account keys (`/openid/v1/jwks`), then asks the Kubernetes API server to confirm the token with a TokenReview.
+- creates a Role and a RoleBinding in the release namespace. With them, the platform backend reads the pod each token names, then its ReplicaSet and its Deployment, and accepts the token only when Fleet's own Deployment runs that pod. A pod that merely runs as a Fleet service account gets no token.
 
 If the cluster does not serve `/openid/v1/jwks`, the platform backend relies on the TokenReview alone and logs a warning.
 
-To grant that access yourself, set `platformBackend.rbac.create=false`. Then give the platform backend's service account `create` on `tokenreviews` in the `authentication.k8s.io` API group, and `get` on the non-resource URL `/openid/v1/jwks`.
+To grant that access yourself, set `platformBackend.rbac.create=false`. Then give the platform backend's service account `create` on `tokenreviews` in the `authentication.k8s.io` API group and `get` on the non-resource URL `/openid/v1/jwks` across the cluster, and `get` on `pods`, and on `replicasets` and `deployments` in the `apps` API group, in the release namespace.
 
 Each Fleet pod needs a service account of its own: keep `fleet.apiServer.serviceAccount.create` and `fleet.queue.serviceAccount.create` at `true`, or name accounts you created. The platform backend needs one too while the chart creates its ClusterRoleBinding, and it must keep `platformBackend.serviceAccount.automountServiceAccountToken=true`. The chart refuses to render otherwise.
 
@@ -2684,7 +2685,7 @@ To rotate the signing key, put the new key first in the set and keep the old key
 | platformBackend.pdb.labels | object | `{}` |  |
 | platformBackend.pdb.minAvailable | int | `1` |  |
 | platformBackend.rbac.annotations | object | `{}` |  |
-| platformBackend.rbac.create | bool | `true` | Create the ClusterRole and ClusterRoleBinding that let platform-backend check Fleet's pod tokens: create TokenReviews and read the cluster's service account keys. Used only with `fleet.agentAccessToken.enabled`. Set to false to grant that access yourself. |
+| platformBackend.rbac.create | bool | `true` | Create the RBAC that lets platform-backend check Fleet's pod tokens: a ClusterRole and ClusterRoleBinding to create TokenReviews and read the cluster's service account keys, and a Role and RoleBinding to read pods, ReplicaSets and Deployments in the release namespace. Used only with `fleet.agentAccessToken.enabled`. Set to false to grant that access yourself. |
 | platformBackend.rbac.labels | object | `{}` |  |
 | platformBackend.rollout | object | `{"enabled":false,"strategy":{"canary":{"steps":[{"setWeight":100}]}}}` | ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/ |
 | platformBackend.rollout.strategy | object | `{"canary":{"steps":[{"setWeight":100}]}}` | Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/ |
