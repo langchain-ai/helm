@@ -414,7 +414,7 @@ To rotate the signing key, put the new key first in the set and keep the old key
 | fleet.apiServer.serviceAccount.labels | object | `{}` |  |
 | fleet.apiServer.serviceAccount.name | string | `""` |  |
 | fleet.egressProxy.noProxy | list | `[]` | Hosts or domain suffixes to reach directly, besides in-cluster services and config.hostname. CIDR ranges aren't supported. |
-| fleet.egressProxy.url | string | `""` | Proxy for HTTPS egress from the Fleet runtime, tool server and trigger server, such as `http://proxy.corp:3128`. |
+| fleet.egressProxy.url | string | `""` | Proxy for HTTPS egress from the Fleet runtime, tool server and trigger server, such as `http://proxy.corp:3128`, without credentials. |
 | fleet.enableTracing | bool | `true` |  |
 | fleet.enabled | bool | `false` |  |
 | fleet.encryptionKey | string | `""` |  |
