@@ -4,7 +4,6 @@ templates:
   - agent-features/fleet/queue/deployment.yaml
   - agent-features/fleet/tool-server/deployment.yaml
   - agent-features/fleet/trigger-server/deployment.yaml
-  - backend/deployment.yaml
   - secrets.yaml
   - config-map.yaml
   - frontend/config-map.yaml
@@ -39,9 +38,9 @@ tests:
           any: true
         template: agent-features/fleet/tool-server/deployment.yaml
 
-  - it: should route every Fleet pod through the proxy in the chart-managed secret
+  - it: should route every Fleet pod through the proxy
     set:
-      fleet.egressProxy.url: http://svc-user:p%40ss@proxy.corp.internal:3128
+      fleet.egressProxy.url: http://proxy.corp.internal:3128
       fleet.egressProxy.noProxy:
         - git.corp.internal
         - .corp.internal
@@ -51,36 +50,36 @@ tests:
           content:
             name: HTTPS_PROXY
             valueFrom:
-              secretKeyRef:
-                name: RELEASE-NAME-langsmith-secrets
-                key: fleet_egress_proxy_url
+              configMapKeyRef:
+                name: RELEASE-NAME-langsmith-config
+                key: FLEET_EGRESS_PROXY_URL
         template: agent-features/fleet/api-server/deployment.yaml
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: HTTPS_PROXY
             valueFrom:
-              secretKeyRef:
-                name: RELEASE-NAME-langsmith-secrets
-                key: fleet_egress_proxy_url
+              configMapKeyRef:
+                name: RELEASE-NAME-langsmith-config
+                key: FLEET_EGRESS_PROXY_URL
         template: agent-features/fleet/queue/deployment.yaml
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: HTTPS_PROXY
             valueFrom:
-              secretKeyRef:
-                name: RELEASE-NAME-langsmith-secrets
-                key: fleet_egress_proxy_url
+              configMapKeyRef:
+                name: RELEASE-NAME-langsmith-config
+                key: FLEET_EGRESS_PROXY_URL
         template: agent-features/fleet/tool-server/deployment.yaml
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: HTTPS_PROXY
             valueFrom:
-              secretKeyRef:
-                name: RELEASE-NAME-langsmith-secrets
-                key: fleet_egress_proxy_url
+              configMapKeyRef:
+                name: RELEASE-NAME-langsmith-config
+                key: FLEET_EGRESS_PROXY_URL
         template: agent-features/fleet/trigger-server/deployment.yaml
       - contains:
           path: spec.template.spec.containers[0].env
@@ -89,9 +88,9 @@ tests:
             value: localhost,127.0.0.1,.svc.cluster.local,git.corp.internal,.corp.internal
         template: agent-features/fleet/api-server/deployment.yaml
       - equal:
-          path: data.fleet_egress_proxy_url
-          value: aHR0cDovL3N2Yy11c2VyOnAlNDBzc0Bwcm94eS5jb3JwLmludGVybmFsOjMxMjg=
-        template: secrets.yaml
+          path: data.FLEET_EGRESS_PROXY_URL
+          value: http://proxy.corp.internal:3128
+        template: config-map.yaml
 
   - it: should keep the install's own hostname off the proxy
     set:
@@ -105,65 +104,11 @@ tests:
             name: NO_PROXY
             value: localhost,127.0.0.1,.svc.cluster.local,langsmith.corp.example
 
-  - it: should leave the backend's egress alone by default
-    set:
-      fleet.egressProxy.url: http://proxy.corp.internal:3128
-    template: backend/deployment.yaml
-    asserts:
-      - notContains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: HTTPS_PROXY
-          any: true
-
-  - it: should route the backend through the proxy when includeBackend is set
-    set:
-      fleet.egressProxy.url: http://proxy.corp.internal:3128
-      fleet.egressProxy.includeBackend: true
-    template: backend/deployment.yaml
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: HTTPS_PROXY
-            valueFrom:
-              secretKeyRef:
-                name: RELEASE-NAME-langsmith-secrets
-                key: fleet_egress_proxy_url
-
-  - it: should leave the backend's egress alone when Fleet is disabled
-    set:
-      fleet.enabled: false
-      fleet.egressProxy.url: http://proxy.corp.internal:3128
-      fleet.egressProxy.includeBackend: true
-    template: backend/deployment.yaml
-    asserts:
-      - notContains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: HTTPS_PROXY
-          any: true
-
-  - it: should not store a proxy URL in the chart-managed secret by default
-    template: secrets.yaml
+  - it: should leave the proxy URL out of the ConfigMap by default
+    template: config-map.yaml
     asserts:
       - notExists:
-          path: data.fleet_egress_proxy_url
-
-  - it: should read the proxy URL from an existing secret
-    set:
-      config.existingSecretName: langsmith-secrets
-      fleet.egressProxy.secretKey: corp_proxy_url
-    template: agent-features/fleet/queue/deployment.yaml
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: HTTPS_PROXY
-            valueFrom:
-              secretKeyRef:
-                name: langsmith-secrets
-                key: corp_proxy_url
+          path: data.FLEET_EGRESS_PROXY_URL
 
   - it: should point requests and httplib2 at the custom CA when a proxy is set
     set:

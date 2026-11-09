@@ -91,20 +91,3 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "images.fleetTriggerServerImage is deprecated: this workload now runs on the consolidated backend image. Configure images.backendImage instead (and mirror only that image)."
-
-  - it: should fail when fleet.egressProxy.url is set with an existing secret
-    set:
-      config.existingSecretName: "langsmith-secrets"
-      config.oauth.enabled: true
-      config.authType: "oauth"
-      fleet.egressProxy.url: "http://proxy.corp.internal:3128"
-    asserts:
-      - failedTemplate:
-          errorMessage: "fleet.egressProxy.url cannot be used when config.existingSecretName or config.disableSecretCreation is set. Add the proxy URL to your Secret and set fleet.egressProxy.secretKey to its key instead."
-
-  - it: should fail when fleet.egressProxy.secretKey is set with the chart-managed secret
-    set:
-      fleet.egressProxy.secretKey: "corp_proxy_url"
-    asserts:
-      - failedTemplate:
-          errorMessage: "fleet.egressProxy.secretKey names a key in config.existingSecretName. With the chart-managed Secret, set fleet.egressProxy.url instead."

@@ -1577,33 +1577,21 @@ Extra env vars for fleet api-server and queue pods.
 {{- end -}}
 
 {{/*
-Key in the LangSmith app Secret holding fleet.egressProxy's URL; empty when no proxy is configured.
-*/}}
-{{- define "langsmith.fleet.egressProxySecretKey" -}}
-{{- $proxy := .Values.fleet.egressProxy | default dict -}}
-{{- if or .Values.config.existingSecretName .Values.config.disableSecretCreation -}}
-{{- $proxy.secretKey -}}
-{{- else if $proxy.url -}}
-fleet_egress_proxy_url
-{{- end -}}
-{{- end -}}
-
-{{/*
-Proxy env for the Fleet runtime, tool server and trigger server pods, and the backend with fleet.egressProxy.includeBackend. With config.customCa, the clients that ignore SSL_CERT_FILE (requests and httplib2) get the same bundle.
+Proxy env for the Fleet runtime, tool server and trigger server pods. With config.customCa, the clients that ignore SSL_CERT_FILE (requests and httplib2) get the same bundle.
 */}}
 {{- define "langsmith.fleet.egressProxyEnv" -}}
-{{- $key := include "langsmith.fleet.egressProxySecretKey" . -}}
-{{- if $key -}}
+{{- $proxy := .Values.fleet.egressProxy | default dict -}}
+{{- if $proxy.url -}}
 {{- $noProxy := list "localhost" "127.0.0.1" (printf ".svc.%s" .Values.clusterDomain) -}}
 {{- if .Values.config.hostname -}}
 {{- $noProxy = append $noProxy (urlParse (include "langsmith.hostnameWithProtocol" .)).hostname -}}
 {{- end -}}
-{{- $noProxy = concat $noProxy ((.Values.fleet.egressProxy | default dict).noProxy | default list) -}}
+{{- $noProxy = concat $noProxy ($proxy.noProxy | default list) -}}
 - name: HTTPS_PROXY
   valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.secretsName" . }}
-      key: {{ $key }}
+    configMapKeyRef:
+      name: {{ include "langsmith.fullname" . }}-config
+      key: FLEET_EGRESS_PROXY_URL
 - name: NO_PROXY
   value: {{ join "," $noProxy | quote }}
 {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
