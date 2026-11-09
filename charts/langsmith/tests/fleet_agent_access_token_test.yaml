@@ -80,6 +80,31 @@ tests:
             name: AGENT_ACCESS_TOKEN_FLEET_WORKLOADS
             value: '{"system:serviceaccount:langsmith:ls-langsmith-standalone-fleet-api-server":"ls-langsmith-standalone-fleet-api-server"}'
 
+  - it: names on platform-backend the Deployments that Fleet runs
+    templates:
+      - templates/platform-backend/deployment.yaml
+      - templates/agent-features/fleet/api-server/deployment.yaml
+      - templates/agent-features/fleet/queue/deployment.yaml
+    set:
+      fleet.namePrefix: fl
+      fleet.apiServer.name: api
+      fleet.queue.name: worker
+    asserts:
+      - equal:
+          path: metadata.name
+          value: ls-langsmith-fl-api
+        template: templates/agent-features/fleet/api-server/deployment.yaml
+      - equal:
+          path: metadata.name
+          value: ls-langsmith-fl-worker
+        template: templates/agent-features/fleet/queue/deployment.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_FLEET_WORKLOADS
+            value: '{"system:serviceaccount:langsmith:ls-langsmith-fl-api":"ls-langsmith-fl-api","system:serviceaccount:langsmith:ls-langsmith-fl-worker":"ls-langsmith-fl-worker"}'
+        template: templates/platform-backend/deployment.yaml
+
   - it: derives the deployment ID from the namespace
     template: templates/platform-backend/deployment.yaml
     set:
