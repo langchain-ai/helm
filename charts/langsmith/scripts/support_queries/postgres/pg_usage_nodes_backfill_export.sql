@@ -3,6 +3,7 @@
 -- and sets backfilled_at to the current timestamp.
 -- Every pending row is stamped, so the update script closes them all out, but rows
 -- with no nodes and no runs bill nothing and are left out of the export.
+-- Non-numeric node or run values are kept rather than failing the query.
 
 WITH backfill_info AS (
     SELECT
@@ -37,6 +38,14 @@ SELECT
     :'customer_name' AS customer_name
 FROM backfill_txns bt
 LEFT JOIN tenants t ON bt.tenant_id = t.id
-WHERE COALESCE((bt.measures->>'langgraph.platform.nodes')::numeric, 0) > 0
-   OR COALESCE((bt.measures->>'langgraph.platform.runs')::numeric, 0) > 0
+WHERE CASE jsonb_typeof(bt.measures->'langgraph.platform.nodes')
+         WHEN 'number' THEN (bt.measures->>'langgraph.platform.nodes')::numeric > 0
+         WHEN 'null' THEN false
+         ELSE jsonb_typeof(bt.measures->'langgraph.platform.nodes') IS NOT NULL
+       END
+    OR CASE jsonb_typeof(bt.measures->'langgraph.platform.runs')
+         WHEN 'number' THEN (bt.measures->>'langgraph.platform.runs')::numeric > 0
+         WHEN 'null' THEN false
+         ELSE jsonb_typeof(bt.measures->'langgraph.platform.runs') IS NOT NULL
+       END
 ORDER BY bt.received_at DESC;
