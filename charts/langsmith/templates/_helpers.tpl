@@ -1528,6 +1528,7 @@ Extra env vars for fleet api-server and queue pods.
 {{- $out = append $out (dict "name" "FLEET_AGENT_ACCESS_TOKEN_EGRESS_AUDIENCE" "value" .) -}}
 {{- end -}}
 {{- end -}}
+{{- $out = concat $out (include "langsmith.fleet.egressProxyEnv" $root | fromYamlArray) }}
 {{- toYaml $out }}
 {{- end -}}
 
@@ -1600,6 +1601,33 @@ annotations:
 {{- $mounts = append $mounts (dict "name" "agent-auth-pod-token" "mountPath" "/var/run/secrets/agent-auth" "readOnly" true) -}}
 {{- end -}}
 {{ $mounts | toYaml }}
+{{- end -}}
+
+{{/*
+Proxy env for the Fleet runtime, tool server and trigger server pods. With config.customCa, the clients that ignore SSL_CERT_FILE (requests and httplib2) get the same bundle.
+*/}}
+{{- define "langsmith.fleet.egressProxyEnv" -}}
+{{- $proxy := .Values.fleet.egressProxy | default dict -}}
+{{- if $proxy.url -}}
+{{- $noProxy := list "localhost" "127.0.0.1" (printf ".svc.%s" .Values.clusterDomain) -}}
+{{- if .Values.config.hostname -}}
+{{- $noProxy = append $noProxy (urlParse (include "langsmith.hostnameWithProtocol" .)).hostname -}}
+{{- end -}}
+{{- $noProxy = concat $noProxy ($proxy.noProxy | default list) -}}
+- name: HTTPS_PROXY
+  valueFrom:
+    configMapKeyRef:
+      name: {{ include "langsmith.fullname" . }}-config
+      key: FLEET_EGRESS_PROXY_URL
+- name: NO_PROXY
+  value: {{ join "," $noProxy | quote }}
+{{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
+- name: REQUESTS_CA_BUNDLE
+  value: /etc/ssl/certs/custom-ca-certificates.crt
+- name: HTTPLIB2_CA_CERTS
+  value: /etc/ssl/certs/custom-ca-certificates.crt
+{{- end }}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -2075,6 +2103,9 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 - name: "PORT"
   value: "{{ .Values.fleetToolServer.containerPort }}"
 {{- include "agentBuilderOAuthEnvVars" . }}
+{{- with include "langsmith.fleet.egressProxyEnv" . }}
+{{ . }}
+{{- end }}
 {{- end -}}
 
 {{- define "fleetTriggerServerEnvVars" -}}
@@ -2107,6 +2138,9 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- if $slackBotId }}
 - name: "AGENT_BUILDER_SLACK_BOT_ID"
   value: {{ $slackBotId | quote }}
+{{- end }}
+{{- with include "langsmith.fleet.egressProxyEnv" . }}
+{{ . }}
 {{- end }}
 {{- end -}}
 

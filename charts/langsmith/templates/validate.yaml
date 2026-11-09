@@ -54,6 +54,10 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 {{- end -}}
+{{- /* The proxy URL is stored in a plaintext ConfigMap, so refuse credentials even when optional validation is skipped. */ -}}
+{{- if contains "@" ((.Values.fleet.egressProxy | default dict).url | default "") -}}
+{{- fail "fleet.egressProxy.url must not contain credentials: it is stored in a ConfigMap. For a proxy that needs a password, leave it empty and set HTTPS_PROXY and NO_PROXY from a Secret in each Fleet deployment's extraEnv." -}}
+{{- end -}}
 {{- if not .Values.config.skipValidation -}}
 
 {{- /* Validate deprecated fleet server value keys */ -}}

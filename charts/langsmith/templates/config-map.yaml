@@ -131,6 +131,9 @@ data:
   {{- if and .Values.fleet.enabled .Values.fleetTriggerServer.enabled }}
   TRIGGER_SERVER_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetTriggerServer.service.port }}"
   {{- end }}
+  {{- with (.Values.fleet.egressProxy | default dict).url }}
+  FLEET_EGRESS_PROXY_URL: {{ . | quote }}
+  {{- end }}
   {{- if .Values.config.deployment.enabled }}
   {{- if not .Values.frontend.enabled }}
   HOST_LANGCHAIN_API_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }}/api/v1"

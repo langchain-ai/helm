@@ -326,6 +326,11 @@ fleet:
   namePrefix: "standalone-fleet"
   enableTracing: true
   encryptionKey: ""
+  egressProxy:
+    # -- Proxy for HTTPS egress from the Fleet runtime, tool server and trigger server, such as `http://proxy.corp:3128`, without credentials.
+    url: ""
+    # -- Hosts or domain suffixes to reach directly, besides in-cluster services and config.hostname. CIDR ranges aren't supported.
+    noProxy: []
   oauth:
     providerOrgId: ""
     googleOAuthProvider: ""
