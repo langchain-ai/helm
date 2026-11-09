@@ -65,21 +65,21 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.20rc1"
+    tag: "0.18.22rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.20rc1"
+    tag: "0.18.22rc1"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.18.20rc1"
+    tag: "0.18.22rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.18.20rc1"
+    tag: "0.18.22rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -103,15 +103,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.18.20rc1"
+    tag: "0.18.22rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.18.20rc1"
+    tag: "0.18.22rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.18.20rc1"
+    tag: "0.18.22rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -122,7 +122,7 @@ images:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
     # -- Release tag, kept equal to the chart's appVersion and the other LangSmith image tags so the release bump moves them together, including on a Helm upgrade that reuses the previous values. An empty tag also resolves to the appVersion.
-    tag: "0.18.20rc1"
+    tag: "0.18.22rc1"
   # The images the operator gives each agent deployment's Redis and PostgreSQL
   # (operator.templates.redis and operator.templates.db). They follow
   # images.registry like the rest; the tag is the image's own, not the chart's.
@@ -337,6 +337,13 @@ fleet:
     salesforceOAuthProvider: ""
     slackSigningSecret: ""
     slackBotId: ""
+  agentAccessToken:
+    # -- Give Fleet's pods signed agent access tokens. Each pod trades its Kubernetes service account token for short-lived tokens that name the agent and the user. Needs `config.hostname`. See the Fleet agent access tokens section.
+    enabled: false
+    # -- JSON Web Key Set with the RSA private key that signs agent access tokens. Stored in the chart-managed Secret as `agent_access_token_signing_jwks`. With `config.existingSecretName` or `config.disableSecretCreation`, add that key to your Secret instead.
+    signingJwks: ""
+    # -- Audience that your egress gateway checks in agent access tokens. Optional.
+    egressAudience: ""
   apiServer:
     name: "api-server"
     containerPort: 8000
@@ -1233,6 +1240,11 @@ config:
       # -- 400 day longlived and 14 day shortlived
       longlived: "34560000"
       shortlived: "1209600"
+    # -- Long-lived retention options in days, for SmithDB-only installs. Empty keeps the default
+    # options (30 to 400, up to ttl_period_seconds.longlived). At most 10 values, each at least 14.
+    # Every value is offered, also above ttl_period_seconds.longlived, which stays the default.
+    # Create a bucket lifecycle rule for each ttl_<N>d/ prefix, or blobs under it never expire.
+    longlivedAllowedDays: []
 
   # Blob storage configuration
   # Optional. Used to store inputs, outputs, and errors in Blob Storage.
@@ -3256,6 +3268,11 @@ platformBackend:
     labels: {}
     annotations: {}
     automountServiceAccountToken: true
+  rbac:
+    # -- Create the ClusterRole and ClusterRoleBinding that let platform-backend check Fleet's pod tokens: create TokenReviews and read the cluster's service account keys. Used only with `fleet.agentAccessToken.enabled`. Set to false to grant that access yourself.
+    create: true
+    labels: {}
+    annotations: {}
 
 operator:
   name: "operator"
