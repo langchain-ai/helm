@@ -222,6 +222,16 @@ Environment variables used to default agent server checkpointers without overrid
 {{- end -}}
 {{- end -}}
 
+{{- define "langGraphCloud.validateApiExposure" -}}
+{{- $external := or (ne .Values.apiServer.service.type "ClusterIP") .Values.ingress.enabled .Values.gateway.enabled .Values.istioGateway.enabled -}}
+{{- if and $external (not .Values.config.auth.enabled) -}}
+{{- fail "External API exposure requires config.auth.enabled=true; use a ClusterIP service without ingress for unauthenticated internal access." -}}
+{{- end -}}
+{{- if and $external (or (empty .Values.config.auth.langSmithAuthEndpoint) (empty .Values.config.auth.langSmithTenantId)) -}}
+{{- fail "External API exposure requires config.auth.langSmithAuthEndpoint and config.auth.langSmithTenantId." -}}
+{{- end -}}
+{{- end -}}
+
 {{/*
 Validates that at most one ingress mechanism is enabled and that required fields are set.
 Set config.skipValidation to true to bypass these checks (e.g. for Ingress + Gateway

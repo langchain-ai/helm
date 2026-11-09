@@ -295,11 +295,11 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 
     ```bash
     NAME                         TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                     AGE
-    langgraph-cloud-api-server   LoadBalancer   172.20.59.8      <ip>         80:30176/TCP,443:31693/TCP   67s
+    langgraph-cloud-api-server   ClusterIP      172.20.59.8      <none>       80/TCP,443/TCP               67s
     langgraph-cloud-postgres     ClusterIP      172.20.91.2      <none>       6379/TCP                     7m22s
     ```
 
-3. Visit the `ip/docs` for the `langgraph-cloud-api-server` service on your browser
+2. Run `kubectl port-forward svc/langgraph-cloud-api-server 8080:80`, then open `http://localhost:8080/docs`.
 
     The LangGraph Cloud docs UI should be visible/operational
 
@@ -312,10 +312,11 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 2. How can we backup our application?
     - Currently, we rely on PVCs/PV to power storage for our application. We strongly encourage setting up `Persistent Volume` backups or moving to a managed service for `Postgres` to support disaster recovery
 3. How does load balancing work/ingress work?
-    - Currently, our application spins up one load balancer using a k8s service of type `LoadBalancer` for our frontend. If you do not want to setup a load balancer you can simply port-forward the frontend and use that as your external ip for the application.
+    - The API Server defaults to an internal `ClusterIP` service. Use port-forwarding for local access. A `LoadBalancer`, `NodePort`, or ingress requires authentication.
     - We also have an option for the chart to provision an ingress resource for the application.
 4. How can we authenticate to the application?
-    - You can use LangSmith authentication to authenticate to the application. You can find more information on how to setup LangSmith in the LangSmith documentation.
+    - Before enabling external access, set `config.auth.enabled: true`, `config.auth.langSmithAuthEndpoint`, and `config.auth.langSmithTenantId`. External exposure without these settings fails chart rendering, including when `config.skipValidation` is enabled. Existing externally exposed installations must configure authentication before upgrading.
+    - Without authentication, anyone who can reach the API can read and modify application state and execute graphs. Do not expose an unauthenticated internal service through a proxy or tunnel.
 5. How can I use External `Postgres`?
     - You can configure external postgres using the external sections in the `values.yaml` file. You will need to provide the connection url/params for the postgres instance. Look at the configuration above example for more information.
 6. What networking configuration is needed  for the application?
@@ -567,7 +568,7 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | apiServer.service.labels | object | `{}` |  |
 | apiServer.service.loadBalancerIP | string | `""` |  |
 | apiServer.service.loadBalancerSourceRanges | list | `[]` |  |
-| apiServer.service.type | string | `"LoadBalancer"` |  |
+| apiServer.service.type | string | `"ClusterIP"` |  |
 | apiServer.serviceAccount.annotations | object | `{}` |  |
 | apiServer.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | apiServer.serviceAccount.create | bool | `true` |  |
