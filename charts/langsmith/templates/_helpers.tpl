@@ -1550,13 +1550,40 @@ Extra env vars for fleet api-server and queue pods.
 {{- end -}}
 
 {{- define "langsmith.fleet.agentAccessTokenServiceAccounts" -}}
-{{- $namespace := .Values.namespace | default .Release.Namespace -}}
 {{- $deploymentId := include "langsmith.fleet.deploymentId" . -}}
 {{- $accounts := dict -}}
-{{- range $name := include "langsmith.fleet.serviceAccountNames" . | fromYaml -}}
-{{- $_ := set $accounts (printf "system:serviceaccount:%s:%s" $namespace $name) $deploymentId -}}
+{{- range $username := include "langsmith.fleet.agentAccessTokenWorkloads" . | fromJson | keys -}}
+{{- $_ := set $accounts $username $deploymentId -}}
 {{- end -}}
 {{- toJson $accounts -}}
+{{- end -}}
+
+{{- define "langsmith.fleet.agentAccessTokenWorkloads" -}}
+{{- $namespace := .Values.namespace | default .Release.Namespace -}}
+{{- $fleet := include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") -}}
+{{- $workloads := dict -}}
+{{- range $component, $serviceAccount := include "langsmith.fleet.serviceAccountNames" . | fromYaml -}}
+{{- $_ := set $workloads (printf "system:serviceaccount:%s:%s" $namespace $serviceAccount) (printf "%s-%s" $fleet (index $.Values.fleet $component).name) -}}
+{{- end -}}
+{{- toJson $workloads -}}
+{{- end -}}
+
+{{- define "langsmith.platformBackend.podTokenReviewName" -}}
+{{- printf "%s-%s-pod-token-review" (.Values.namespace | default .Release.Namespace) (include "langsmith.fullname" .) -}}
+{{- end -}}
+
+{{- define "langsmith.platformBackend.podTokenReviewMetadata" -}}
+name: {{ include "langsmith.platformBackend.podTokenReviewName" . }}
+labels:
+  {{- include "langsmith.labels" . | nindent 2 }}
+  {{- with .Values.platformBackend.rbac.labels }}
+    {{- toYaml . | nindent 2 }}
+  {{- end }}
+annotations:
+  {{- include "langsmith.annotations" . | nindent 2 }}
+  {{- with .Values.platformBackend.rbac.annotations }}
+    {{- toYaml . | nindent 2 }}
+  {{- end }}
 {{- end -}}
 
 {{- define "langsmith.fleet.agentAccessTokenVolumes" -}}

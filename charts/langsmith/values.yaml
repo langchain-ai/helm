@@ -3274,7 +3274,7 @@ platformBackend:
     annotations: {}
     automountServiceAccountToken: true
   rbac:
-    # -- Create the ClusterRole and ClusterRoleBinding that let platform-backend check Fleet's pod tokens: create TokenReviews and read the cluster's service account keys. Used only with `fleet.agentAccessToken.enabled`. Set to false to grant that access yourself.
+    # -- Create the RBAC that lets platform-backend check Fleet's pod tokens: a ClusterRole and ClusterRoleBinding to create TokenReviews and read the cluster's service account keys, and a Role and RoleBinding to read pods, ReplicaSets and Deployments in the release namespace. Used only with `fleet.agentAccessToken.enabled`. Set to false to grant that access yourself.
     create: true
     labels: {}
     annotations: {}

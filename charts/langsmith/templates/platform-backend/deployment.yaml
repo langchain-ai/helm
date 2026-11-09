@@ -80,6 +80,8 @@
   value: {{ include "langsmith.fleet.deploymentId" . | quote }}
 - name: AGENT_ACCESS_TOKEN_FLEET_SERVICE_ACCOUNTS
   value: {{ include "langsmith.fleet.agentAccessTokenServiceAccounts" . | quote }}
+- name: AGENT_ACCESS_TOKEN_FLEET_WORKLOADS
+  value: {{ include "langsmith.fleet.agentAccessTokenWorkloads" . | quote }}
 - name: AGENT_ACCESS_TOKEN_POD_TOKEN_REVIEW_ENABLED
   value: "true"
 {{- with .Values.fleet.agentAccessToken.egressAudience }}

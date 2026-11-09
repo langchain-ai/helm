@@ -58,6 +58,53 @@ tests:
             name: AGENT_ACCESS_TOKEN_FLEET_SERVICE_ACCOUNTS
             value: '{"system:serviceaccount:langsmith:ls-langsmith-standalone-fleet-api-server":"40216ff2-ada0-84f6-81fc-474438ef6923"}'
 
+  - it: names the Deployment that runs each Fleet service account on platform-backend
+    template: templates/platform-backend/deployment.yaml
+    set:
+      fleet.apiServer.serviceAccount.name: fleet-api
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_FLEET_WORKLOADS
+            value: '{"system:serviceaccount:langsmith:fleet-api":"ls-langsmith-standalone-fleet-api-server","system:serviceaccount:langsmith:ls-langsmith-standalone-fleet-queue":"ls-langsmith-standalone-fleet-queue"}'
+
+  - it: leaves the queue out of the workloads when the queue is off
+    template: templates/platform-backend/deployment.yaml
+    set:
+      fleet.queue.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_FLEET_WORKLOADS
+            value: '{"system:serviceaccount:langsmith:ls-langsmith-standalone-fleet-api-server":"ls-langsmith-standalone-fleet-api-server"}'
+
+  - it: names on platform-backend the Deployments that Fleet runs
+    templates:
+      - templates/platform-backend/deployment.yaml
+      - templates/agent-features/fleet/api-server/deployment.yaml
+      - templates/agent-features/fleet/queue/deployment.yaml
+    set:
+      fleet.namePrefix: fl
+      fleet.apiServer.name: api
+      fleet.queue.name: worker
+    asserts:
+      - equal:
+          path: metadata.name
+          value: ls-langsmith-fl-api
+        template: templates/agent-features/fleet/api-server/deployment.yaml
+      - equal:
+          path: metadata.name
+          value: ls-langsmith-fl-worker
+        template: templates/agent-features/fleet/queue/deployment.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_FLEET_WORKLOADS
+            value: '{"system:serviceaccount:langsmith:ls-langsmith-fl-api":"ls-langsmith-fl-api","system:serviceaccount:langsmith:ls-langsmith-fl-worker":"ls-langsmith-fl-worker"}'
+        template: templates/platform-backend/deployment.yaml
+
   - it: derives the deployment ID from the namespace
     template: templates/platform-backend/deployment.yaml
     set:
@@ -318,7 +365,7 @@ tests:
     template: templates/platform-backend/rbac.yaml
     asserts:
       - hasDocuments:
-          count: 2
+          count: 4
       - isKind:
           of: ClusterRole
         documentIndex: 0
@@ -362,6 +409,55 @@ tests:
             name: langsmith-ls-langsmith-pod-token-review
         documentIndex: 1
 
+  - it: lets platform-backend read the pod, ReplicaSet and Deployment behind a pod token in its namespace
+    template: templates/platform-backend/rbac.yaml
+    asserts:
+      - isKind:
+          of: Role
+        documentIndex: 2
+      - equal:
+          path: metadata.namespace
+          value: langsmith
+        documentIndex: 2
+      - equal:
+          path: rules
+          value:
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+              verbs:
+                - get
+            - apiGroups:
+                - apps
+              resources:
+                - replicasets
+                - deployments
+              verbs:
+                - get
+        documentIndex: 2
+      - isKind:
+          of: RoleBinding
+        documentIndex: 3
+      - equal:
+          path: metadata.namespace
+          value: langsmith
+        documentIndex: 3
+      - equal:
+          path: subjects
+          value:
+            - kind: ServiceAccount
+              name: ls-langsmith-platform-backend
+              namespace: langsmith
+        documentIndex: 3
+      - equal:
+          path: roleRef
+          value:
+            apiGroup: rbac.authorization.k8s.io
+            kind: Role
+            name: langsmith-ls-langsmith-pod-token-review
+        documentIndex: 3
+
   - it: names the cluster role after the namespace so two installs never share it
     template: templates/platform-backend/rbac.yaml
     set:
@@ -375,7 +471,7 @@ tests:
           value: other
         documentIndex: 1
 
-  - it: adds platformBackend.rbac labels and annotations to the cluster role and its binding
+  - it: adds platformBackend.rbac labels and annotations to every RBAC object
     template: templates/platform-backend/rbac.yaml
     set:
       platformBackend.rbac.labels.team: platform
@@ -388,7 +484,7 @@ tests:
           path: metadata.annotations.owner
           value: platform
 
-  - it: leaves the cluster role to the admin when platformBackend.rbac.create is false
+  - it: leaves all RBAC to the admin when platformBackend.rbac.create is false
     template: templates/platform-backend/rbac.yaml
     set:
       platformBackend.rbac.create: false
@@ -396,7 +492,7 @@ tests:
       - hasDocuments:
           count: 0
 
-  - it: creates no cluster role when the switch is off
+  - it: creates no RBAC when the switch is off
     template: templates/platform-backend/rbac.yaml
     set:
       fleet.agentAccessToken.enabled: false
@@ -459,6 +555,17 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "fleet.agentAccessToken.enabled needs a service account of its own for each Fleet pod. Set fleet.queue.serviceAccount.create to true, or set fleet.queue.serviceAccount.name."
+
+  - it: refuses one service account shared by the Fleet api-server and queue
+    template: templates/validate.yaml
+    set:
+      fleet.apiServer.serviceAccount.create: false
+      fleet.apiServer.serviceAccount.name: fleet
+      fleet.queue.serviceAccount.create: false
+      fleet.queue.serviceAccount.name: fleet
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.agentAccessToken.enabled needs a service account of its own for each Fleet pod, because platform-backend accepts the pod tokens of a service account from one Deployment only. fleet.apiServer and fleet.queue both use \"fleet\"."
 
   - it: accepts a service account the admin created
     template: templates/validate.yaml

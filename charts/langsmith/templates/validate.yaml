@@ -761,10 +761,15 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
 {{- fail "fleet.agentAccessToken.signingJwks must be a JSON Web Key Set: a JSON object with a keys list." -}}
 {{- end -}}
 {{- end -}}
+{{- $componentOf := dict -}}
 {{- range $component, $name := include "langsmith.fleet.serviceAccountNames" . | fromYaml -}}
 {{- if eq $name "default" -}}
 {{- fail (printf "fleet.agentAccessToken.enabled needs a service account of its own for each Fleet pod. Set fleet.%s.serviceAccount.create to true, or set fleet.%s.serviceAccount.name." $component $component) -}}
 {{- end -}}
+{{- with index $componentOf $name -}}
+{{- fail (printf "fleet.agentAccessToken.enabled needs a service account of its own for each Fleet pod, because platform-backend accepts the pod tokens of a service account from one Deployment only. fleet.%s and fleet.%s both use %q." . $component $name) -}}
+{{- end -}}
+{{- $_ := set $componentOf $name $component -}}
 {{- end -}}
 {{- if and .Values.platformBackend.rbac.create (eq (include "platformBackend.serviceAccountName" .) "default") -}}
 {{- fail "fleet.agentAccessToken.enabled needs a service account of its own for platform-backend, because the chart grants it cluster access to review pod tokens. Set platformBackend.serviceAccount.create to true, set platformBackend.serviceAccount.name, or set platformBackend.rbac.create to false and grant that access yourself." -}}
