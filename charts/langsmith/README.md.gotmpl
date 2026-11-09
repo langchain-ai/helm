@@ -133,7 +133,7 @@ If the cluster does not serve `/openid/v1/jwks`, the platform backend relies on 
 
 To grant that access yourself, set `platformBackend.rbac.create=false`. Then give the platform backend's service account `create` on `tokenreviews` in the `authentication.k8s.io` API group and `get` on the non-resource URL `/openid/v1/jwks` across the cluster, and `get` on `pods`, and on `replicasets` and `deployments` in the `apps` API group, in the release namespace.
 
-Each Fleet pod needs a service account of its own: keep `fleet.apiServer.serviceAccount.create` and `fleet.queue.serviceAccount.create` at `true`, or name accounts you created. The platform backend needs one too while the chart creates its ClusterRoleBinding, and it must keep `platformBackend.serviceAccount.automountServiceAccountToken=true`. The chart refuses to render otherwise.
+Each Fleet pod needs a service account of its own, because the platform backend accepts each account's tokens from one Deployment only: keep `fleet.apiServer.serviceAccount.create` and `fleet.queue.serviceAccount.create` at `true`, or name a different account you created for each. The platform backend needs one too while the chart creates its ClusterRoleBinding, and it must keep `platformBackend.serviceAccount.automountServiceAccountToken=true`. The chart refuses to render otherwise.
 
 Systems that check the tokens, such as an egress gateway, fetch the public keys from `https://<config.hostname>[/<config.basePath>]/api/v1/agent-auth/.well-known/jwks.json`. Set `fleet.agentAccessToken.egressAudience` to the audience your gateway expects. Fleet then sends a token for that audience on its model and tool requests.
 

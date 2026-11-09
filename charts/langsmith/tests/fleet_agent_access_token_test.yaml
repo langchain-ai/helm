@@ -446,7 +446,7 @@ tests:
           value: other
         documentIndex: 1
 
-  - it: adds platformBackend.rbac labels and annotations to the cluster role and its binding
+  - it: adds platformBackend.rbac labels and annotations to every RBAC object
     template: templates/platform-backend/rbac.yaml
     set:
       platformBackend.rbac.labels.team: platform
@@ -459,7 +459,7 @@ tests:
           path: metadata.annotations.owner
           value: platform
 
-  - it: leaves the cluster role to the admin when platformBackend.rbac.create is false
+  - it: leaves all RBAC to the admin when platformBackend.rbac.create is false
     template: templates/platform-backend/rbac.yaml
     set:
       platformBackend.rbac.create: false
@@ -467,7 +467,7 @@ tests:
       - hasDocuments:
           count: 0
 
-  - it: creates no cluster role when the switch is off
+  - it: creates no RBAC when the switch is off
     template: templates/platform-backend/rbac.yaml
     set:
       fleet.agentAccessToken.enabled: false
@@ -530,6 +530,17 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "fleet.agentAccessToken.enabled needs a service account of its own for each Fleet pod. Set fleet.queue.serviceAccount.create to true, or set fleet.queue.serviceAccount.name."
+
+  - it: refuses one service account shared by the Fleet api-server and queue
+    template: templates/validate.yaml
+    set:
+      fleet.apiServer.serviceAccount.create: false
+      fleet.apiServer.serviceAccount.name: fleet
+      fleet.queue.serviceAccount.create: false
+      fleet.queue.serviceAccount.name: fleet
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.agentAccessToken.enabled needs a service account of its own for each Fleet pod, because platform-backend accepts the pod tokens of a service account from one Deployment only. fleet.apiServer and fleet.queue both use \"fleet\"."
 
   - it: accepts a service account the admin created
     template: templates/validate.yaml

@@ -1549,11 +1549,10 @@ Extra env vars for fleet api-server and queue pods.
 {{- end -}}
 
 {{- define "langsmith.fleet.agentAccessTokenServiceAccounts" -}}
-{{- $namespace := .Values.namespace | default .Release.Namespace -}}
 {{- $deploymentId := include "langsmith.fleet.deploymentId" . -}}
 {{- $accounts := dict -}}
-{{- range $name := include "langsmith.fleet.serviceAccountNames" . | fromYaml -}}
-{{- $_ := set $accounts (printf "system:serviceaccount:%s:%s" $namespace $name) $deploymentId -}}
+{{- range $username := include "langsmith.fleet.agentAccessTokenWorkloads" . | fromJson | keys -}}
+{{- $_ := set $accounts $username $deploymentId -}}
 {{- end -}}
 {{- toJson $accounts -}}
 {{- end -}}
