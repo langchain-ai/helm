@@ -80,6 +80,9 @@ data:
         {{- end }}
 
         server_name  localhost;
+        if ($request_method = GET) {
+            rewrite ^/{{ .Values.config.basePath }}/(api/v1/)?usage-limits/?$ /{{ .Values.config.basePath }}/api/v1/platform/usage-limits last;
+        }
         client_max_body_size {{ .Values.frontend.maxBodySize }};
         large_client_header_buffers {{ .Values.frontend.largeClientHeaderBuffers }};
         client_header_buffer_size {{ .Values.frontend.clientHeaderBufferSize }};
@@ -801,6 +804,9 @@ data:
         {{- end }}
 
         server_name  localhost;
+        if ($request_method = GET) {
+            rewrite ^/(api/v1/)?usage-limits/?$ /api/v1/platform/usage-limits last;
+        }
         client_max_body_size {{ .Values.frontend.maxBodySize }};
         large_client_header_buffers {{ .Values.frontend.largeClientHeaderBuffers }};
         client_header_buffer_size {{ .Values.frontend.clientHeaderBufferSize }};
