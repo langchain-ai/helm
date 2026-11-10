@@ -143,10 +143,10 @@ images:
   # images.registry like the rest; the tag is the image's own, not the chart's.
   deploymentRedisImage:
     repository: "docker.io/redis"
-    tag: "7"
+    tag: "7.4.12-bookworm"
   deploymentDbImage:
     repository: "docker.io/pgvector/pgvector"
-    tag: "pg15"
+    tag: "0.8.7-pg15-bookworm"
 
 ingress:
   enabled: false
