@@ -21,3 +21,26 @@ tests:
     asserts:
       - notMatchRegexRaw:
           pattern: Sandboxes use an external runtime
+
+  - it: should tell installs that add sandbox clusters what to run and in which order
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: https://langsmith.example.com
+      sandboxes.clusters.incluster.enabled: true
+      sandboxes.clusters.b.hostIngressEndpoint: https://sandbox-b.example.com
+      sandboxes.clusters.b.serviceAuth.secretKey: sandbox_b_service_auth
+    asserts:
+      - matchRegexRaw:
+          pattern: "this install adds the sandbox clusters b\\."
+      - matchRegexRaw:
+          pattern: "- b: key sandbox_b_service_auth, stored under the runtime chart's serviceAuth.secretKey"
+      - matchRegexRaw:
+          pattern: "Added clusters start cordoned: activate one before sending sandboxes to it, and move default: true to it only after it is active\\."
+
+  - it: should not mention added sandbox clusters without them
+    values:
+      - ./values/sandboxes-enabled.yaml
+    asserts:
+      - notMatchRegexRaw:
+          pattern: adds the sandbox clusters

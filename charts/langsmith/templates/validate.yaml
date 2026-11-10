@@ -283,6 +283,142 @@ service-to-service calls and must not leave this cluster. */ -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
+{{- /* Added sandbox clusters (sandboxes.clusters). Each runs its own
+langsmith-sandbox release in its own cluster, is reached through its own https
+host ingress, and signs with its own service-auth key, which only platform-backend
+and ingest-queue receive. */ -}}
+{{- $clusters := .Values.sandboxes.clusters | default dict -}}
+{{- if not (kindIs "map" $clusters) -}}
+{{- fail "sandboxes.clusters must be a map from cluster name to its settings." -}}
+{{- end -}}
+{{- if $clusters -}}
+{{- $hasIncluster := hasKey $clusters "incluster" -}}
+{{- $incluster := $clusters.incluster | default dict -}}
+{{- if and $external $hasIncluster -}}
+{{- fail "sandboxes.clusters.incluster cannot be set with sandboxes.external.enabled: the external runtime is already this install's own cluster." -}}
+{{- end -}}
+{{- if not (kindIs "map" $incluster) -}}
+{{- fail "sandboxes.clusters.incluster takes only enabled and default: it is this install's in-cluster sandbox cluster, configured by the other sandboxes values." -}}
+{{- end -}}
+{{- range $key, $_ := $incluster -}}
+{{- if not (has $key (list "enabled" "default")) -}}
+{{- fail "sandboxes.clusters.incluster takes only enabled and default: it is this install's in-cluster sandbox cluster, configured by the other sandboxes values." -}}
+{{- end -}}
+{{- end -}}
+{{- if and (hasKey $incluster "enabled") (not (kindIs "bool" $incluster.enabled)) -}}
+{{- fail "sandboxes.clusters.incluster.enabled must be true or false." -}}
+{{- end -}}
+{{- if and (hasKey $incluster "default") (not (kindIs "bool" $incluster.default)) -}}
+{{- fail "sandboxes.clusters.incluster.default must be true or false." -}}
+{{- end -}}
+{{- if and (not $external) (not (hasKey $incluster "enabled")) -}}
+{{- fail "sandboxes.clusters is set, so set sandboxes.clusters.incluster.enabled explicitly: true keeps today's in-cluster sandbox cluster; false removes it and stops its sandboxes." -}}
+{{- end -}}
+{{- $inclusterOn := and (not $external) ($incluster.enabled | default false) -}}
+{{- if and $incluster.default (not $inclusterOn) -}}
+{{- fail "sandboxes.clusters.incluster.default needs sandboxes.clusters.incluster.enabled: true." -}}
+{{- end -}}
+{{- $names := include "langsmith.sandboxes.addedClusterNames" . | fromJsonArray -}}
+{{- if and (not $external) (not $inclusterOn) (not $names) -}}
+{{- fail "sandboxes.clusters.incluster.enabled is false and sandboxes.clusters lists no other cluster, so this install would have no sandbox cluster." -}}
+{{- end -}}
+{{- if $names -}}
+{{- if not .Values.config.hostname -}}
+{{- fail "config.hostname is required when sandboxes.clusters lists an added cluster, so its sandbox-host can reach the LangSmith API." -}}
+{{- end -}}
+{{- if regexMatch "^(?:[a-zA-Z][a-zA-Z0-9+.-]*://)?(?:localhost|127\\.0\\.0\\.1|\\[::1\\])(?::[0-9]+)?(?:/.*)?$" .Values.config.hostname -}}
+{{- fail "config.hostname must be externally reachable when sandboxes.clusters lists an added cluster." -}}
+{{- end -}}
+{{- if regexMatch "\\.svc(\\.[a-zA-Z0-9.-]+)?(:[0-9]+)?(/.*)?$" .Values.config.hostname -}}
+{{- fail "config.hostname must not be an in-cluster service address when sandboxes.clusters lists an added cluster." -}}
+{{- end -}}
+{{- end -}}
+{{- /* Key names resolve as the own entry's do: an empty own secretKey is api_key_salt. */ -}}
+{{- $ownAuth := .Values.sandboxes.serviceAuth | default dict -}}
+{{- $ownKeys := list ($ownAuth.secretKey | default "api_key_salt" | toString) -}}
+{{- if $ownAuth.previousSecretKey -}}
+{{- $ownKeys = append $ownKeys (toString $ownAuth.previousSecretKey) -}}
+{{- end -}}
+{{- $ownEndpoint := .Values.sandboxes.external.hostIngressEndpoint | default "" | lower -}}
+{{- $ownName := .Values.sandboxes.clusterName | default "" -}}
+{{- $keyOwners := dict -}}
+{{- $endpointOwners := dict -}}
+{{- $defaults := ternary 1 0 (eq (toString $incluster.default) "true") -}}
+{{- range $name := $names -}}
+{{- if or (gt (len $name) 63) (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" $name)) -}}
+{{- fail (printf "sandboxes.clusters.%s must be a DNS label: up to 63 lowercase letters, digits or hyphens, starting and ending with a letter or digit." $name) -}}
+{{- end -}}
+{{- if and $ownName (eq $name $ownName) -}}
+{{- fail (printf "sandboxes.clusters.%s uses this install's own cluster name (sandboxes.clusterName); configure that cluster with sandboxes.clusters.incluster or sandboxes.external instead." $name) -}}
+{{- end -}}
+{{- $cluster := index $clusters $name -}}
+{{- if not (kindIs "map" $cluster) -}}
+{{- fail (printf "sandboxes.clusters.%s takes only hostIngressEndpoint, serviceAuth and default." $name) -}}
+{{- end -}}
+{{- range $key, $_ := $cluster -}}
+{{- if not (has $key (list "hostIngressEndpoint" "serviceAuth" "default")) -}}
+{{- fail (printf "sandboxes.clusters.%s takes only hostIngressEndpoint, serviceAuth and default." $name) -}}
+{{- end -}}
+{{- end -}}
+{{- if and (hasKey $cluster "default") (not (kindIs "bool" $cluster.default)) -}}
+{{- fail (printf "sandboxes.clusters.%s.default must be true or false." $name) -}}
+{{- end -}}
+{{- if $cluster.default -}}
+{{- $defaults = add1 $defaults -}}
+{{- end -}}
+{{- $endpoint := $cluster.hostIngressEndpoint | default "" | toString -}}
+{{- if not (regexMatch "^https://[^/?#]+$" $endpoint) -}}
+{{- fail (printf "sandboxes.clusters.%s.hostIngressEndpoint must be an https:// origin without a path, query string, or fragment." $name) -}}
+{{- end -}}
+{{- if not $.Values.config.existingSecretName -}}
+{{- fail (printf "sandboxes.clusters.%s needs config.existingSecretName: an added cluster's service-auth key must come from an existing Secret." $name) -}}
+{{- end -}}
+{{- $auth := $cluster.serviceAuth | default dict -}}
+{{- if not (kindIs "map" $auth) -}}
+{{- fail (printf "sandboxes.clusters.%s.serviceAuth takes only secretKey and previousSecretKey." $name) -}}
+{{- end -}}
+{{- range $key, $_ := $auth -}}
+{{- if not (has $key (list "secretKey" "previousSecretKey")) -}}
+{{- fail (printf "sandboxes.clusters.%s.serviceAuth takes only secretKey and previousSecretKey." $name) -}}
+{{- end -}}
+{{- end -}}
+{{- $secretKey := $auth.secretKey | default "" | toString -}}
+{{- if or (not $secretKey) (eq $secretKey "api_key_salt") -}}
+{{- fail (printf "sandboxes.clusters.%s.serviceAuth.secretKey must name a dedicated key in config.existingSecretName, not api_key_salt." $name) -}}
+{{- end -}}
+{{- $previousKey := $auth.previousSecretKey | default "" | toString -}}
+{{- if eq $previousKey "api_key_salt" -}}
+{{- fail (printf "sandboxes.clusters.%s.serviceAuth.previousSecretKey must name a dedicated key in config.existingSecretName, not api_key_salt." $name) -}}
+{{- end -}}
+{{- $keys := list $secretKey -}}
+{{- if and $previousKey (ne $previousKey $secretKey) -}}
+{{- $keys = append $keys $previousKey -}}
+{{- end -}}
+{{- range $key := $keys -}}
+{{- if has $key $ownKeys -}}
+{{- fail (printf "sandboxes.clusters.%s uses the service-auth key '%s' of this install's own sandbox cluster; each cluster needs its own." $name $key) -}}
+{{- end -}}
+{{- if hasKey $keyOwners $key -}}
+{{- fail (printf "sandboxes.clusters.%s and sandboxes.clusters.%s use the same service-auth key '%s'; each cluster needs its own." (get $keyOwners $key) $name $key) -}}
+{{- end -}}
+{{- $_ := set $keyOwners $key $name -}}
+{{- end -}}
+{{- $endpointKey := lower $endpoint -}}
+{{- if and $ownEndpoint (eq $endpointKey $ownEndpoint) -}}
+{{- fail (printf "sandboxes.clusters.%s uses the hostIngressEndpoint of this install's own sandbox cluster (sandboxes.external.hostIngressEndpoint); each cluster needs its own." $name) -}}
+{{- end -}}
+{{- if hasKey $endpointOwners $endpointKey -}}
+{{- fail (printf "sandboxes.clusters.%s and sandboxes.clusters.%s use the same hostIngressEndpoint '%s'; each cluster needs its own." (get $endpointOwners $endpointKey) $name $endpoint) -}}
+{{- end -}}
+{{- $_ := set $endpointOwners $endpointKey $name -}}
+{{- end -}}
+{{- if gt $defaults 1 -}}
+{{- fail "Only one entry in sandboxes.clusters may set default: true." -}}
+{{- end -}}
+{{- if and (not $external) (not $inclusterOn) (ge (len $names) 2) (eq $defaults 0) -}}
+{{- fail (printf "sandboxes.clusters lists %d clusters and no in-cluster cluster, so mark one with default: true." (len $names)) -}}
+{{- end -}}
+{{- end -}}
 {{- /* These configure sandbox-host, which this release does not render in
 an external runtime. Fail rather than accept settings that would do nothing. */ -}}
 {{- if $external -}}
@@ -294,7 +430,7 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
 {{- fail "sandboxes.juicefs.redis.iamAuthProvider has no effect when sandboxes.external.enabled is true. Set juicefs.redis.iamAuthProvider in the langsmith-sandbox chart instead." -}}
 {{- end -}}
 {{- end -}}
-{{- if not $external -}}
+{{- if eq (include "langsmith.sandboxes.inclusterEnabled" .) "true" -}}
 {{- if not .Values.images.sandboxHostImage.repository -}}
 {{- fail "images.sandboxHostImage.repository is required when sandboxes.enabled is true." -}}
 {{- end -}}

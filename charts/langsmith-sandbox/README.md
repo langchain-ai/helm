@@ -1,6 +1,6 @@
 # langsmith-sandbox
 
-![Version: 0.18.0-rc.6](https://img.shields.io/badge/Version-0.18.0--rc.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.25rc1](https://img.shields.io/badge/AppVersion-0.18.25rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.7](https://img.shields.io/badge/Version-0.18.0--rc.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.25rc1](https://img.shields.io/badge/AppVersion-0.18.25rc1-informational?style=flat-square)
 
 Helm chart to deploy the LangSmith sandbox runtime in a dedicated Kubernetes cluster.
 
@@ -40,7 +40,7 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
   - Sandbox nodes must reach `config.endpoint` on its port through every load balancer allowlist and egress firewall, and reach the JuiceFS Redis and object storage.
 - **`config.endpoint`:** `https://<LangSmith hostname>[/<base path>]/api`.
 - **Secrets:** create a minimal Secret in the sandbox namespace and set `config.existingSecretName`. Never copy the whole LangSmith application Secret. It holds:
-  - the sandbox service-auth secret under `serviceAuth.secretKey` (default `sandbox_service_auth_secret`). Use a dedicated random value, never the LangSmith `api_key_salt`, which signs LangSmith's other service calls; the `langsmith` chart refuses `sandboxes.external.enabled` without one. Its value must equal the control plane's: `sandbox_service_auth_secret` in the `langsmith` chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in your `config.existingSecretName`. During a rotation, also set `serviceAuth.previousSecretKey`.
+  - the sandbox service-auth secret under `serviceAuth.secretKey` (default `sandbox_service_auth_secret`). Use a dedicated random value, never the LangSmith `api_key_salt`, which signs LangSmith's other service calls; the `langsmith` chart refuses `sandboxes.external.enabled` without one. Its value must equal the control plane's: `sandbox_service_auth_secret` in the `langsmith` chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in your `config.existingSecretName`. For a sandbox cluster added to an install with the `langsmith` chart's `sandboxes.clusters.<name>`, it must instead equal the value of the key `sandboxes.clusters.<name>.serviceAuth.secretKey` names, and differ from every other cluster's. During a rotation, also set `serviceAuth.previousSecretKey`.
   - the callback signing JWK under `config.callbackSigningJwkSecretKey`, identical to the control plane's. It is an Ed25519 private JWK; one way to generate it with OpenSSL:
 
     ```bash
@@ -185,7 +185,7 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 | sandboxHost.serviceAccount.labels | object | `{}` | Extra ServiceAccount labels. |
 | sandboxHost.serviceAccount.name | string | `""` | ServiceAccount name. Defaults to the sandbox-host fullname. Set it explicitly when an IAM role trust policy or a federated credential names it. |
 | serviceAuth.previousSecretKey | string | `""` | Optional key in config.existingSecretName containing the previous service-auth key during rotation. |
-| serviceAuth.secretKey | string | `"sandbox_service_auth_secret"` | Key in config.existingSecretName holding the sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET): a dedicated random value, never the LangSmith api_key_salt. Its value must equal the control plane's: `sandbox_service_auth_secret` in the langsmith chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in its config.existingSecretName. |
+| serviceAuth.secretKey | string | `"sandbox_service_auth_secret"` | Key in config.existingSecretName holding the sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET): a dedicated random value, never the LangSmith api_key_salt. Its value must equal the control plane's: `sandbox_service_auth_secret` in the langsmith chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in its config.existingSecretName. For a cluster added with the langsmith chart's `sandboxes.clusters.<name>`, it must equal the value of the key `sandboxes.clusters.<name>.serviceAuth.secretKey` names, and differ from every other cluster's. |
 | workloadIdentity.aws.roleArn | string | `""` | IAM role assumed through IRSA. Required when provider is aws. |
 | workloadIdentity.azure.clientId | string | `""` | Client ID of the user-assigned managed identity. Required when provider is azure. |
 | workloadIdentity.azure.tenantId | string | `""` | Optional Entra tenant ID; defaults to the cluster's tenant. |

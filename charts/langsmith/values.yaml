@@ -181,6 +181,21 @@ sandboxes:
   serviceUrlBaseUrl: ""
   # -- Name of the sandbox runtime cluster this install uses, set as SANDBOX_K8S_CLUSTER_NAME on platform-backend and ingest-queue. Empty keeps the default, `incluster`. Choose it at install time: renaming hides every existing sandbox, private registry and host record. Do not also set SANDBOX_K8S_CLUSTER_NAME through extraEnv.
   clusterName: ""
+  # -- Sandbox clusters this install adds, keyed by cluster name (a DNS label). Each added cluster runs its own langsmith-sandbox release in its own cluster and is reached through that release's https host ingress, with its own service-auth secret. The reserved key `incluster` is this install's in-cluster sandbox runtime and takes only `enabled` and `default`; set `incluster.enabled` explicitly whenever you add a cluster without sandboxes.external (true keeps today's in-cluster runtime, false removes it and stops its sandboxes). Do not set incluster with sandboxes.external.enabled. Added clusters start cordoned: activate one before sending sandboxes to it, and move `default: true` to it only after that. At most one entry may set `default: true`; with incluster disabled and two or more added clusters, one must.
+  # @default -- `{}`
+  clusters: {}
+  # incluster:
+  #   enabled: true
+  # b:
+  #   # https origin of the added cluster's sandbox-host ingress, without a path.
+  #   hostIngressEndpoint: https://sandbox-b.example.com
+  #   serviceAuth:
+  #     # Key in config.existingSecretName holding this cluster's own service-auth secret. Its value must equal the langsmith-sandbox release's serviceAuth secret for this cluster, and differ from every other cluster's.
+  #     secretKey: sandbox_b_service_auth
+  #     # Optional key holding the previous secret during a rotation.
+  #     previousSecretKey: ""
+  #   # Optional: send creates that name no cluster and reference no data here.
+  #   default: false
   quotas:
     maxCpuCores: 200
     maxMemoryGb: 400

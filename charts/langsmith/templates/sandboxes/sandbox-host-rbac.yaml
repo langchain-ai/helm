@@ -1,4 +1,4 @@
-{{- if and .Values.sandboxes.enabled (not .Values.sandboxes.external.enabled) .Values.sandboxes.sandboxHost.rbac.create }}
+{{- if and (eq (include "langsmith.sandboxes.inclusterEnabled" .) "true") .Values.sandboxes.sandboxHost.rbac.create }}
 {{- $rbac := .Values.sandboxes.sandboxHost.rbac }}
 {{- include "langsmithSandbox.render.rbac" (dict
   "name" (printf "%s-%s" (include "langsmith.fullname" .) .Values.sandboxes.sandboxHost.name)
