@@ -1,0 +1,34 @@
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_db77177b30ee1c::t_f5f122b4bf9fb6 360-385,389-409
+  s_db77177b30ee1c::t_ed89f97e395d78 386-388
+charts/langsmith/README.md.gotmpl
+  s_db77177b30ee1c::t_51cbb0719a63d4 64
+charts/langsmith/templates/smithdb/migration-job.yaml
+  s_db77177b30ee1c::t_b9c86b7561580d 356
+charts/langsmith/values.yaml
+  s_db77177b30ee1c::t_76d23cdb9686ce 2207-2208
+  s_db77177b30ee1c::t_adb24964d415d6 2234-2237
+charts/langsmith/templates/_helpers.tpl
+  s_db77177b30ee1c::t_56ae8974d0603a 632-634,647,651-655,658
+charts/langsmith/README.md
+  s_db77177b30ee1c::t_e609e6df9531df 68,1310
+  s_db77177b30ee1c::t_222344fc84d054 3,1324
+charts/langsmith/Chart.yaml
+  s_db77177b30ee1c::t_8bccdddc705698 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "51c882ca6dd81a54d692cac7341e5964c2b05106",
+  "prompts": {},
+  "sessions": {
+    "s_db77177b30ee1c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4aba594b-7de2-44d5-a2f6-858482915b09",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

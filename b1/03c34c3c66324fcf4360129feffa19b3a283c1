@@ -1,0 +1,21 @@
+charts/langsmith/tests/frontend_nginx_test.yaml
+  s_654b51cdb04438::t_3e76ddc64b607f 41
+charts/langsmith/templates/frontend/config-map.yaml
+  s_654b51cdb04438::t_3e76ddc64b607f 484
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b103c34c3c66324fcf4360129feffa19b3a283c1",
+  "prompts": {},
+  "sessions": {
+    "s_654b51cdb04438": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a14279-8028-7ed1-b850-d83650510a39",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Colin Francis <colin.francis@langchain.dev>"
+    }
+  }
+}
