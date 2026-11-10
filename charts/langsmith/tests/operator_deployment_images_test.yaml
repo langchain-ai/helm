@@ -9,7 +9,7 @@ suite: operator per-deployment Redis and Postgres images
 templates:
   - templates/operator/config-map.yaml
 tests:
-  - it: should keep today's images and no pull secrets by default
+  - it: should use pinned datastore images and no pull secrets by default
     set:
       config.deployment.enabled: true
       config.hostname: https://langsmith.example.com
@@ -18,10 +18,10 @@ tests:
     asserts:
       - matchRegex:
           path: data["redis-deployment.yaml.tmpl"]
-          pattern: "image: docker.io/redis:7\n"
+          pattern: "image: docker.io/redis:7.4.12-bookworm\n"
       - matchRegex:
           path: data["database-statefulset.yaml.tmpl"]
-          pattern: "image: docker.io/pgvector/pgvector:pg15\n"
+          pattern: "image: docker.io/pgvector/pgvector:0.8.7-pg15-bookworm\n"
       - notMatchRegex:
           path: data["deployment.yaml.tmpl"]
           pattern: imagePullSecrets
@@ -42,10 +42,10 @@ tests:
     asserts:
       - matchRegex:
           path: data["redis-deployment.yaml.tmpl"]
-          pattern: "image: mirror.example.com/docker.io/redis:7\n"
+          pattern: "image: mirror.example.com/docker.io/redis:7.4.12-bookworm\n"
       - matchRegex:
           path: data["database-statefulset.yaml.tmpl"]
-          pattern: "image: mirror.example.com/docker.io/pgvector/pgvector:pg15\n"
+          pattern: "image: mirror.example.com/docker.io/pgvector/pgvector:0.8.7-pg15-bookworm\n"
 
   - it: should take a repository and tag per image
     set:
