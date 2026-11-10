@@ -3242,7 +3242,7 @@ operator:
             enableServiceLinks: false
             containers:
             - name: redis
-              image: docker.io/redis:7
+              image: docker.io/redis:7.4.12-bookworm
               ports:
               - containerPort: 6379
                 name: redis
@@ -3278,7 +3278,7 @@ operator:
           spec:
             containers:
             - name: postgres
-              image: pgvector/pgvector:pg15
+              image: pgvector/pgvector:0.8.7-pg15-bookworm
               ports:
               - containerPort: 5432
               command: ["docker-entrypoint.sh"]
