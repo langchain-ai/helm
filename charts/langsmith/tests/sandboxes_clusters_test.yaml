@@ -1,6 +1,13 @@
 suite: sandbox clusters added to one install
 templates:
   - validate.yaml
+  # Read by the Deployments' checksum annotations.
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
   - backend/deployment.yaml
   - queue/deployment.yaml
   - frontend/deployment.yaml
