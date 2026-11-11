@@ -10,6 +10,14 @@ For a safe disposable `kind` workflow, see [LOCAL_DEVELOPMENT.md](./LOCAL_DEVELO
 
 ## Deploying LangGraph Cloud with Helm
 
+### PostgreSQL for production
+
+Use external PostgreSQL for production, including standalone Agent Server deployments. The bundled PostgreSQL instance is for development and testing. It defaults to the `postgres` user and `postgres` password; `postgres.external.user` and `postgres.external.password` also control these bundled credentials.
+
+Set `postgres.external.enabled: true` and provide a full `postgres.external.connectionUrl` with unique credentials and TLS enabled. Prefer `sslmode=verify-full` and configure trusted certificates for both the API server and queue. For credentials managed outside Helm values, set `postgres.external.existingSecretName` to a Secret containing the full URL under `postgres_connection_url`. You must still enable external PostgreSQL to disable the bundled instance.
+
+URLs built from separate host, port, user, password, and database values use `sslmode=disable`. Full connection URLs and existing Secrets preserve your TLS settings. See the [production storage guidance](https://docs.langchain.com/langsmith/self-hosted#storage-services) for the broader external storage recommendation.
+
 ### Prerequisites
 
 Ensure you have the following tools/items ready.
@@ -32,7 +40,7 @@ Ensure you have the following tools/items ready.
     1. You can use the [langgraph-cli](https://langchain-ai.github.io/langgraph/cloud/reference/cli/) to build your own image.
 1. SSL(optional)
     1. This should be attachable to a load balancer that the chart will provision
-1. External Postgres(optional).
+1. External PostgreSQL (required for production).
     1. You can configure external Postgres using the `values.yaml` file. You will need to provide a connection url for your postgres.
     2. We only official support Postgres versions >= 14.
 
@@ -124,7 +132,7 @@ config:
 postgres:
   external:
     enabled: true
-    connectionUrl: "postgres://postgres:postgres@postgres-host.com:5432/postgres?sslmode=disable"
+    connectionUrl: "postgres://<user>:<password>@<host>:5432/<database>?sslmode=verify-full"
 ```
 
 ### Bundled MongoDB checkpointer
