@@ -1,0 +1,27 @@
+charts/langsmith/Chart.yaml
+  s_b412152dd266c1::t_2f551120869b9f 8
+charts/langsmith/README.md
+  s_b412152dd266c1::t_af4aecfc3251ef 3,1795
+charts/langsmith/templates/config-map.yaml
+  s_b412152dd266c1::t_3753886ee958a0 187,190
+charts/langsmith/tests/super_admins_test.yaml
+  s_b412152dd266c1::t_df60886ef111a1 1-25
+charts/langsmith/values.yaml
+  s_b412152dd266c1::t_59d78daff87062 1185-1189
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "71e41954d936356b4c456314c60457f02458c98b",
+  "prompts": {},
+  "sessions": {
+    "s_b412152dd266c1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "409012e1-233b-4507-b85f-ab61673f3897",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
