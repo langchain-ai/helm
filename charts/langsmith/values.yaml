@@ -1182,9 +1182,11 @@ config:
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
     initialOrgAdminPassword: ""
     jwtSecret: ""
-  # -- Email addresses of super admins who can export usage data.
-  # These are the only users allowed to use the usage backfill export
-  # unless orgAdminsInstallationUsageExportEnabled is set.
+  # -- Email addresses of the installation's super admins. With the
+  # organization's installation operations permission, they can view instance
+  # health, restart backfills, and create organizations when organization
+  # creation is disabled. They are also the only users allowed to use the
+  # usage backfill export unless orgAdminsInstallationUsageExportEnabled is set.
   superAdmins: []
   # -- When true, any org admin can use the usage backfill export.
   orgAdminsInstallationUsageExportEnabled: false
