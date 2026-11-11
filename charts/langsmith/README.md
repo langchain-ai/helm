@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.69](https://img.shields.io/badge/Version-0.18.0--rc.69-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.25rc1](https://img.shields.io/badge/AppVersion-0.18.25rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.71](https://img.shields.io/badge/Version-0.18.0--rc.71-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.25rc1](https://img.shields.io/badge/AppVersion-0.18.25rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1792,7 +1792,7 @@ To rotate the signing key, put the new key first in the set and keep the old key
 | config.settings.redisRunsExpirySeconds | string | `"21600"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
 | config.signingJwks | string | `""` | Ed25519/OKP JWKS (JSON) signing the OAuth AS / remote MCP (and LLM-auth-proxy) tokens; public keys are served at /.well-known/jwks.json. Set it here (stored in the chart secret) or as key `langsmith_signing_jwks` in config.existingSecretName. The remote MCP server / OAuth AS stay inert until this is set. |
 | config.skipValidation | bool | `false` | Skip validation checks in validate.yaml. Used by AWS Marketplace for helm template verification. |
-| config.superAdmins | list | `[]` | Email addresses of super admins who can export usage data. These are the only users allowed to use the usage backfill export unless orgAdminsInstallationUsageExportEnabled is set. |
+| config.superAdmins | list | `[]` | Email addresses of the installation's super admins. With the organization's installation operations permission, they can view instance health, restart backfills, and create organizations when organization creation is disabled. They are also the only users allowed to use the usage backfill export unless orgAdminsInstallationUsageExportEnabled is set. |
 | config.telemetry.logs | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
 | config.telemetry.metrics | bool | `true` |  |
 | config.telemetry.traces | bool | `true` |  |

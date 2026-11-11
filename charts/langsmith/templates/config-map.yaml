@@ -184,9 +184,10 @@ data:
   {{- end }}
   # Every organization is entitled to Tool Gateway.
   DEFAULT_ORG_FEATURE_LMT_ENABLED: "true"
-  # Usage backfill export gating
+  # Instance admins: usage backfill export and installation-level operations
   {{- if .Values.config.superAdmins }}
   USAGE_EXPORT_ADMIN_EMAILS: {{ .Values.config.superAdmins | toJson | quote }}
+  INSTANCE_ADMIN_EMAILS: {{ .Values.config.superAdmins | toJson | quote }}
   {{- end }}
   ORG_ADMINS_INSTALLATION_USAGE_EXPORT_ENABLED: {{ .Values.config.orgAdminsInstallationUsageExportEnabled | quote }}
   # Security - CORS configuration
