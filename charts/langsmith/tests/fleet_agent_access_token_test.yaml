@@ -1,0 +1,608 @@
+suite: fleet agent access tokens
+release:
+  name: ls
+  namespace: langsmith
+set:
+  insights.enabled: false
+  polly.enabled: false
+  config.langsmithLicenseKey: "lic"
+  config.apiKeySalt: "salt"
+  config.oauth.enabled: true
+  config.authType: "oauth"
+  config.hostname: "langsmith.example.com"
+  fleet.enabled: true
+  fleet.encryptionKey: "fleet-key"
+  fleet.agentAccessToken.enabled: true
+  fleet.agentAccessToken.signingJwks: '{"keys":[{"kid":"test"}]}'
+tests:
+  - it: maps each Fleet service account to one deployment ID on platform-backend
+    template: templates/platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_FLEET_SERVICE_ACCOUNTS
+            value: '{"system:serviceaccount:langsmith:ls-langsmith-standalone-fleet-api-server":"40216ff2-ada0-84f6-81fc-474438ef6923","system:serviceaccount:langsmith:ls-langsmith-standalone-fleet-queue":"40216ff2-ada0-84f6-81fc-474438ef6923"}'
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_EGRESS_AUDIENCES
+          any: true
+
+  - it: lists Fleet's deployment ID on platform-backend
+    template: templates/platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_FLEET_DEPLOYMENT_IDS
+            value: 40216ff2-ada0-84f6-81fc-474438ef6923
+
+  - it: asks the Kubernetes API server to review pod tokens
+    template: templates/platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_POD_TOKEN_REVIEW_ENABLED
+            value: "true"
+
+  - it: leaves the queue out of the map when the queue is off
+    template: templates/platform-backend/deployment.yaml
+    set:
+      fleet.queue.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_FLEET_SERVICE_ACCOUNTS
+            value: '{"system:serviceaccount:langsmith:ls-langsmith-standalone-fleet-api-server":"40216ff2-ada0-84f6-81fc-474438ef6923"}'
+
+  - it: names the Deployment that runs each Fleet service account on platform-backend
+    template: templates/platform-backend/deployment.yaml
+    set:
+      fleet.apiServer.serviceAccount.name: fleet-api
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_FLEET_WORKLOADS
+            value: '{"system:serviceaccount:langsmith:fleet-api":"ls-langsmith-standalone-fleet-api-server","system:serviceaccount:langsmith:ls-langsmith-standalone-fleet-queue":"ls-langsmith-standalone-fleet-queue"}'
+
+  - it: leaves the queue out of the workloads when the queue is off
+    template: templates/platform-backend/deployment.yaml
+    set:
+      fleet.queue.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_FLEET_WORKLOADS
+            value: '{"system:serviceaccount:langsmith:ls-langsmith-standalone-fleet-api-server":"ls-langsmith-standalone-fleet-api-server"}'
+
+  - it: names on platform-backend the Deployments that Fleet runs
+    templates:
+      - templates/platform-backend/deployment.yaml
+      - templates/agent-features/fleet/api-server/deployment.yaml
+      - templates/agent-features/fleet/queue/deployment.yaml
+    set:
+      fleet.namePrefix: fl
+      fleet.apiServer.name: api
+      fleet.queue.name: worker
+    asserts:
+      - equal:
+          path: metadata.name
+          value: ls-langsmith-fl-api
+        template: templates/agent-features/fleet/api-server/deployment.yaml
+      - equal:
+          path: metadata.name
+          value: ls-langsmith-fl-worker
+        template: templates/agent-features/fleet/queue/deployment.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_FLEET_WORKLOADS
+            value: '{"system:serviceaccount:langsmith:ls-langsmith-fl-api":"ls-langsmith-fl-api","system:serviceaccount:langsmith:ls-langsmith-fl-worker":"ls-langsmith-fl-worker"}'
+        template: templates/platform-backend/deployment.yaml
+
+  - it: derives the deployment ID from the namespace
+    template: templates/platform-backend/deployment.yaml
+    set:
+      namespace: other
+      fleet.queue.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_FLEET_SERVICE_ACCOUNTS
+            value: '{"system:serviceaccount:other:ls-langsmith-standalone-fleet-api-server":"ca290ec9-7e50-8857-8106-6007bd2c6b06"}'
+
+  - it: derives the deployment ID from the release name
+    template: templates/platform-backend/deployment.yaml
+    release:
+      name: other
+    set:
+      fleet.queue.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_FLEET_SERVICE_ACCOUNTS
+            value: '{"system:serviceaccount:langsmith:other-langsmith-standalone-fleet-api-server":"fa060c6f-17de-81f7-8bd3-d21110fa12e0"}'
+
+  - it: reads the signing JWKS from the chart-managed Secret
+    template: templates/platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_SIGNING_JWKS
+            valueFrom:
+              secretKeyRef:
+                name: ls-langsmith-secrets
+                key: agent_access_token_signing_jwks
+
+  - it: reads the signing JWKS from config.existingSecretName when set
+    template: templates/platform-backend/deployment.yaml
+    set:
+      config.existingSecretName: "langsmith-existing-secrets"
+      fleet.agentAccessToken.signingJwks: ""
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_SIGNING_JWKS
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-existing-secrets
+                key: agent_access_token_signing_jwks
+
+  - it: passes the egress audience to platform-backend when set
+    template: templates/platform-backend/deployment.yaml
+    set:
+      fleet.agentAccessToken.egressAudience: "egress.example.com"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_EGRESS_AUDIENCES
+            value: egress.example.com
+
+  - it: leaves platform-backend unchanged when the switch is off
+    template: templates/platform-backend/deployment.yaml
+    set:
+      fleet.agentAccessToken.enabled: false
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_SIGNING_JWKS
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_FLEET_SERVICE_ACCOUNTS
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_FLEET_DEPLOYMENT_IDS
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_POD_TOKEN_REVIEW_ENABLED
+          any: true
+
+  - it: leaves platform-backend unchanged when Fleet is off
+    template: templates/platform-backend/deployment.yaml
+    set:
+      fleet.enabled: false
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_ACCESS_TOKEN_SIGNING_JWKS
+          any: true
+
+  - it: stores the signing JWKS in the chart-managed Secret
+    template: templates/secrets.yaml
+    asserts:
+      - equal:
+          path: data.agent_access_token_signing_jwks
+          value: eyJrZXlzIjpbeyJraWQiOiJ0ZXN0In1dfQ==
+
+  - it: leaves the Secret unchanged when the switch is off
+    template: templates/secrets.yaml
+    set:
+      fleet.agentAccessToken.enabled: false
+    asserts:
+      - notExists:
+          path: data.agent_access_token_signing_jwks
+
+  - it: mounts a pod token for Agent Auth on the Fleet api-server
+    template: templates/agent-features/fleet/api-server/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: agent-auth-pod-token
+            projected:
+              sources:
+                - serviceAccountToken:
+                    audience: https://langsmith.example.com/api/v1/agent-auth
+                    expirationSeconds: 600
+                    path: token
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: agent-auth-pod-token
+            mountPath: /var/run/secrets/agent-auth
+            readOnly: true
+
+  - it: tells the Fleet api-server where the pod token is and how to reach Agent Auth
+    template: templates/agent-features/fleet/api-server/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FLEET_AGENT_ACCESS_TOKEN_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FLEET_AGENT_AUTH_POD_TOKEN_PATH
+            value: /var/run/secrets/agent-auth/token
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FLEET_AGENT_ACCESS_TOKEN_IN_CLUSTER_HTTP_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLUSTER_DOMAIN
+            value: cluster.local
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FLEET_AGENT_ACCESS_TOKEN_EGRESS_AUDIENCE
+          any: true
+
+  - it: names the same deployment ID in Fleet's sandbox callbacks
+    template: templates/agent-features/fleet/api-server/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FLEET_AGENT_ACCESS_TOKEN_DEPLOYMENT_ID
+            value: 40216ff2-ada0-84f6-81fc-474438ef6923
+
+  - it: gives the Fleet queue the same pod token and env
+    template: templates/agent-features/fleet/queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: agent-auth-pod-token
+            projected:
+              sources:
+                - serviceAccountToken:
+                    audience: https://langsmith.example.com/api/v1/agent-auth
+                    expirationSeconds: 600
+                    path: token
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: agent-auth-pod-token
+            mountPath: /var/run/secrets/agent-auth
+            readOnly: true
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FLEET_AGENT_AUTH_POD_TOKEN_PATH
+            value: /var/run/secrets/agent-auth/token
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FLEET_AGENT_ACCESS_TOKEN_DEPLOYMENT_ID
+            value: 40216ff2-ada0-84f6-81fc-474438ef6923
+
+  - it: puts config.basePath in the pod token audience
+    template: templates/agent-features/fleet/api-server/deployment.yaml
+    set:
+      config.basePath: "langsmith"
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: agent-auth-pod-token
+            projected:
+              sources:
+                - serviceAccountToken:
+                    audience: https://langsmith.example.com/langsmith/api/v1/agent-auth
+                    expirationSeconds: 600
+                    path: token
+
+  - it: follows clusterDomain in CLUSTER_DOMAIN
+    template: templates/agent-features/fleet/api-server/deployment.yaml
+    set:
+      clusterDomain: "corp.example"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLUSTER_DOMAIN
+            value: corp.example
+
+  - it: passes the egress audience to Fleet when set
+    template: templates/agent-features/fleet/api-server/deployment.yaml
+    set:
+      fleet.agentAccessToken.egressAudience: "egress.example.com"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FLEET_AGENT_ACCESS_TOKEN_EGRESS_AUDIENCE
+            value: egress.example.com
+
+  - it: leaves the Fleet pods unchanged when the switch is off
+    template: templates/agent-features/fleet/api-server/deployment.yaml
+    set:
+      fleet.agentAccessToken.enabled: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.volumes
+      - notExists:
+          path: spec.template.spec.containers[0].volumeMounts
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FLEET_AGENT_ACCESS_TOKEN_ENABLED
+          any: true
+
+  - it: lets platform-backend review pod tokens and read the cluster's service account keys
+    template: templates/platform-backend/rbac.yaml
+    asserts:
+      - hasDocuments:
+          count: 4
+      - isKind:
+          of: ClusterRole
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: langsmith-ls-langsmith-pod-token-review
+        documentIndex: 0
+      - equal:
+          path: rules
+          value:
+            - apiGroups:
+                - authentication.k8s.io
+              resources:
+                - tokenreviews
+              verbs:
+                - create
+            - nonResourceURLs:
+                - /openid/v1/jwks
+              verbs:
+                - get
+        documentIndex: 0
+      - isKind:
+          of: ClusterRoleBinding
+        documentIndex: 1
+      - equal:
+          path: metadata.name
+          value: langsmith-ls-langsmith-pod-token-review
+        documentIndex: 1
+      - equal:
+          path: subjects
+          value:
+            - kind: ServiceAccount
+              name: ls-langsmith-platform-backend
+              namespace: langsmith
+        documentIndex: 1
+      - equal:
+          path: roleRef
+          value:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: langsmith-ls-langsmith-pod-token-review
+        documentIndex: 1
+
+  - it: lets platform-backend read the pod, ReplicaSet and Deployment behind a pod token in its namespace
+    template: templates/platform-backend/rbac.yaml
+    asserts:
+      - isKind:
+          of: Role
+        documentIndex: 2
+      - equal:
+          path: metadata.namespace
+          value: langsmith
+        documentIndex: 2
+      - equal:
+          path: rules
+          value:
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+              verbs:
+                - get
+            - apiGroups:
+                - apps
+              resources:
+                - replicasets
+                - deployments
+              verbs:
+                - get
+        documentIndex: 2
+      - isKind:
+          of: RoleBinding
+        documentIndex: 3
+      - equal:
+          path: metadata.namespace
+          value: langsmith
+        documentIndex: 3
+      - equal:
+          path: subjects
+          value:
+            - kind: ServiceAccount
+              name: ls-langsmith-platform-backend
+              namespace: langsmith
+        documentIndex: 3
+      - equal:
+          path: roleRef
+          value:
+            apiGroup: rbac.authorization.k8s.io
+            kind: Role
+            name: langsmith-ls-langsmith-pod-token-review
+        documentIndex: 3
+
+  - it: names the cluster role after the namespace so two installs never share it
+    template: templates/platform-backend/rbac.yaml
+    set:
+      namespace: other
+    asserts:
+      - equal:
+          path: metadata.name
+          value: other-ls-langsmith-pod-token-review
+      - equal:
+          path: subjects[0].namespace
+          value: other
+        documentIndex: 1
+
+  - it: adds platformBackend.rbac labels and annotations to every RBAC object
+    template: templates/platform-backend/rbac.yaml
+    set:
+      platformBackend.rbac.labels.team: platform
+      platformBackend.rbac.annotations.owner: platform
+    asserts:
+      - equal:
+          path: metadata.labels.team
+          value: platform
+      - equal:
+          path: metadata.annotations.owner
+          value: platform
+
+  - it: leaves all RBAC to the admin when platformBackend.rbac.create is false
+    template: templates/platform-backend/rbac.yaml
+    set:
+      platformBackend.rbac.create: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: creates no RBAC when the switch is off
+    template: templates/platform-backend/rbac.yaml
+    set:
+      fleet.agentAccessToken.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: requires config.hostname
+    template: templates/validate.yaml
+    set:
+      config.hostname: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.hostname is required when fleet.agentAccessToken.enabled is true."
+
+  - it: requires the signing JWKS when the chart manages the Secret
+    template: templates/validate.yaml
+    set:
+      fleet.agentAccessToken.signingJwks: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.agentAccessToken.signingJwks is required when fleet.agentAccessToken.enabled is true and the chart manages the LangSmith app Secret. With config.existingSecretName or config.disableSecretCreation, add key agent_access_token_signing_jwks to your Secret instead."
+
+  - it: refuses an inline signing JWKS with config.existingSecretName
+    template: templates/validate.yaml
+    set:
+      config.existingSecretName: "langsmith-existing-secrets"
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.agentAccessToken.signingJwks cannot be used with config.existingSecretName or config.disableSecretCreation. Add key agent_access_token_signing_jwks to your Secret instead."
+
+  - it: refuses an inline signing JWKS with config.disableSecretCreation
+    template: templates/validate.yaml
+    set:
+      config.disableSecretCreation: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.agentAccessToken.signingJwks cannot be used with config.existingSecretName or config.disableSecretCreation. Add key agent_access_token_signing_jwks to your Secret instead."
+
+  - it: refuses a signing JWKS that is not a key set
+    template: templates/validate.yaml
+    set:
+      fleet.agentAccessToken.signingJwks: '{"kty":"RSA","kid":"test"}'
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.agentAccessToken.signingJwks must be a JSON Web Key Set: a JSON object with a keys list."
+
+  - it: refuses the namespace default service account for the Fleet api-server
+    template: templates/validate.yaml
+    set:
+      fleet.apiServer.serviceAccount.create: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.agentAccessToken.enabled needs a service account of its own for each Fleet pod. Set fleet.apiServer.serviceAccount.create to true, or set fleet.apiServer.serviceAccount.name."
+
+  - it: refuses the namespace default service account for the Fleet queue
+    template: templates/validate.yaml
+    set:
+      fleet.queue.serviceAccount.create: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.agentAccessToken.enabled needs a service account of its own for each Fleet pod. Set fleet.queue.serviceAccount.create to true, or set fleet.queue.serviceAccount.name."
+
+  - it: refuses one service account shared by the Fleet api-server and queue
+    template: templates/validate.yaml
+    set:
+      fleet.apiServer.serviceAccount.create: false
+      fleet.apiServer.serviceAccount.name: fleet
+      fleet.queue.serviceAccount.create: false
+      fleet.queue.serviceAccount.name: fleet
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.agentAccessToken.enabled needs a service account of its own for each Fleet pod, because platform-backend accepts the pod tokens of a service account from one Deployment only. fleet.apiServer and fleet.queue both use \"fleet\"."
+
+  - it: accepts a service account the admin created
+    template: templates/validate.yaml
+    set:
+      fleet.apiServer.serviceAccount.create: false
+      fleet.apiServer.serviceAccount.name: "fleet-api-server"
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: refuses to bind the cluster role to the namespace default service account
+    template: templates/validate.yaml
+    set:
+      platformBackend.serviceAccount.create: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.agentAccessToken.enabled needs a service account of its own for platform-backend, because the chart grants it cluster access to review pod tokens. Set platformBackend.serviceAccount.create to true, set platformBackend.serviceAccount.name, or set platformBackend.rbac.create to false and grant that access yourself."
+
+  - it: accepts the namespace default service account when the admin grants the cluster access
+    template: templates/validate.yaml
+    set:
+      platformBackend.serviceAccount.create: false
+      platformBackend.rbac.create: false
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: requires the platform-backend service account token
+    template: templates/validate.yaml
+    set:
+      platformBackend.serviceAccount.automountServiceAccountToken: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.agentAccessToken.enabled requires platformBackend.serviceAccount.automountServiceAccountToken to be true: platform-backend calls the Kubernetes API to check Fleet's pod tokens."
+
+  - it: skips the checks when Fleet is off
+    template: templates/validate.yaml
+    set:
+      fleet.enabled: false
+      fleet.agentAccessToken.signingJwks: ""
+    asserts:
+      - notFailedTemplate: {}

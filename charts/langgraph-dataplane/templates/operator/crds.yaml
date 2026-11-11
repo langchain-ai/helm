@@ -1193,6 +1193,36 @@ spec:
                     description: Enabled indicates if autoscaling should be enabled.
                       If not enabled you must set replicas on the deployment
                     type: boolean
+                  httpScaling:
+                    description: |-
+                      HTTPScaling opts the API server into KEDA HTTP add-on based scaling,
+                      enabling scale-to-zero driven by in-flight HTTP requests. Requires
+                      KEDA_HTTP_ENABLED=true on the operator and an installed keda-http-add-on
+                      interceptor in the cluster. When paired with ServerSpec.InlineQueue the
+                      operator emits a single ScaledObject combining the HTTP trigger with a
+                      Postgres queue-depth trigger so either signal wakes the pod.
+                    properties:
+                      coldStartTimeoutSeconds:
+                        description: |-
+                          ColdStartTimeoutSeconds caps how long the KEDA HTTP interceptor will
+                          hold a client connection waiting for the backing workload to scale up
+                          from zero. After it elapses the client receives the interceptor's
+                          default 502. Maps to InterceptorRoute.spec.timeouts.readiness.
+                          Defaults to 60.
+                        format: int32
+                        minimum: 1
+                        type: integer
+                      enabled:
+                        default: false
+                        type: boolean
+                      scaledownPeriodSeconds:
+                        description: |-
+                          ScaledownPeriodSeconds is how long to wait after the last request before
+                          scaling back to min replicas. Maps to the operator-owned ScaledObject's
+                          cooldownPeriod. Defaults to 86400 (1 day).
+                        format: int32
+                        type: integer
+                    type: object
                   maxReplicas:
                     description: MaxReplicas is the maximum number of replicas
                     format: int32
@@ -1424,6 +1454,19 @@ spec:
                 required:
                 - enabled
                 type: object
+                x-kubernetes-validations:
+                - message: 'cpuTarget.enabled=false has no effect with httpScaling:
+                    HTTP scale-to-zero does not use a CPU trigger'
+                  rule: '!(has(self.enabled) && self.enabled && has(self.autoscalerType)
+                    && self.autoscalerType == ''KEDA'' && has(self.httpScaling) &&
+                    has(self.httpScaling.enabled) && self.httpScaling.enabled && has(self.cpuTarget)
+                    && has(self.cpuTarget.enabled) && !self.cpuTarget.enabled)'
+                - message: 'behavior and queueBehavior have no effect with httpScaling:
+                    use httpScaling.scaledownPeriodSeconds to delay scaling to zero'
+                  rule: '!(has(self.enabled) && self.enabled && has(self.autoscalerType)
+                    && self.autoscalerType == ''KEDA'' && has(self.httpScaling) &&
+                    has(self.httpScaling.enabled) && self.httpScaling.enabled && (has(self.behavior)
+                    || has(self.queueBehavior)))'
               database:
                 description: Database configuration. Optional. If not set you must
                   bring your own database
@@ -1522,6 +1565,22 @@ spec:
                 additionalProperties:
                   type: string
                 type: object
+              multiTenancy:
+                description: |-
+                  MultiTenancy configures shared-instance database provisioning.
+                  When enabled, the operator creates a logical database and dedicated roles
+                  on a shared physical Postgres instance instead of a per-LGP StatefulSet.
+                  Mutually exclusive with Database.Enabled — enforced at reconcile time.
+                properties:
+                  enabled:
+                    default: false
+                    description: |-
+                      Enabled toggles multi-tenant database provisioning for this LGP.
+                      When true, the operator creates a logical database and two roles
+                      (one application/superuser role, one KEDA-read role) on the shared
+                      Postgres instance configured at the operator level.
+                    type: boolean
+                type: object
               nodeSelector:
                 additionalProperties:
                   type: string
@@ -1601,6 +1660,82 @@ spec:
                   annotations:
                     additionalProperties:
                       type: string
+                    type: object
+                  coreAPISidecar:
+                    default: false
+                    description: |-
+                      CoreAPISidecar extracts the core-api gRPC server into its own
+                      container, present in every pod that runs api-server or queue-server.
+                      When off, core-api runs as a sibling process inside each main
+                      container.
+                    type: boolean
+                  coreApiImage:
+                    description: |-
+                      CoreAPIImageName overrides the image for the core-api sidecar when
+                      CoreAPISidecar is on. Unset leaves the sidecar on the same image as
+                      the api-server (the template default).
+                    type: string
+                  coreResources:
+                    description: |-
+                      CoreResources sets resource requests/limits on the core-api sidecar
+                      when CoreAPISidecar is on. Unset leaves the container with no
+                      requests or limits.
+                    properties:
+                      claims:
+                        description: |-
+                          Claims lists the names of resources, defined in spec.resourceClaims,
+                          that are used by this container.
+
+                          This field depends on the
+                          DynamicResourceAllocation feature gate.
+
+                          This field is immutable. It can only be set for containers.
+                        items:
+                          description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                          properties:
+                            name:
+                              description: |-
+                                Name must match the name of one entry in pod.spec.resourceClaims of
+                                the Pod where this field is used. It makes that resource available
+                                inside a container.
+                              type: string
+                            request:
+                              description: |-
+                                Request is the name chosen for a request in the referenced claim.
+                                If empty, everything from the claim is made available, otherwise
+                                only the result of this request.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                        x-kubernetes-list-map-keys:
+                        - name
+                        x-kubernetes-list-type: map
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Limits describes the maximum amount of compute resources allowed.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Requests describes the minimum amount of compute resources required.
+                          If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
+                          otherwise to an implementation-defined value. Requests cannot exceed Limits.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                        type: object
                     type: object
                   env:
                     items:
@@ -3172,6 +3307,13 @@ spec:
                       - name
                       type: object
                     type: array
+                  inlineQueue:
+                    default: false
+                    description: |-
+                      InlineQueue runs the queue worker as a sibling container in the
+                      api-server pod and skips the standalone queue Deployment (and its
+                      HPA / ScaledObject). Requires CoreAPISidecar=true.
+                    type: boolean
                   labels:
                     additionalProperties:
                       type: string

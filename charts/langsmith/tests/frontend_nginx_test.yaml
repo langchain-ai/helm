@@ -2,6 +2,20 @@ suite: frontend nginx routing and request buffering
 templates:
   - frontend/config-map.yaml
 tests:
+  - it: routes only workspace usage-limit GETs to Go without a base path
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'if \(\$request_method = GET\) \{\s*rewrite \^/\(api/v1/\)\?usage-limits/\?\$ /api/v1/platform/usage-limits last;\s*\}'
+
+  - it: routes only workspace usage-limit GETs to Go with a base path
+    set:
+      config.basePath: langsmith
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'if \(\$request_method = GET\) \{\s*rewrite \^/langsmith/\(api/v1/\)\?usage-limits/\?\$ /langsmith/api/v1/platform/usage-limits last;\s*\}'
+
   - it: does not expose channel setup when Fleet is disabled
     asserts:
       - notMatchRegex:

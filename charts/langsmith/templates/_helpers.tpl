@@ -1516,7 +1516,118 @@ Extra env vars for fleet api-server and queue pods.
 {{- if $feature.enableTracing }}
 {{- $out = append $out (dict "name" "TENANT_AWARE_TRACING_ENABLED" "value" "true") }}
 {{- end }}
+{{- if $feature.agentAccessToken.enabled -}}
+{{- $out = concat $out (list
+  (dict "name" "FLEET_AGENT_ACCESS_TOKEN_ENABLED" "value" "true")
+  (dict "name" "FLEET_AGENT_ACCESS_TOKEN_DEPLOYMENT_ID" "value" (include "langsmith.fleet.deploymentId" $root))
+  (dict "name" "FLEET_AGENT_AUTH_POD_TOKEN_PATH" "value" "/var/run/secrets/agent-auth/token")
+  (dict "name" "FLEET_AGENT_ACCESS_TOKEN_IN_CLUSTER_HTTP_ENABLED" "value" "true")
+  (dict "name" "CLUSTER_DOMAIN" "value" $root.Values.clusterDomain)
+) -}}
+{{- with $feature.agentAccessToken.egressAudience -}}
+{{- $out = append $out (dict "name" "FLEET_AGENT_ACCESS_TOKEN_EGRESS_AUDIENCE" "value" .) -}}
+{{- end -}}
+{{- end -}}
+{{- $out = concat $out (include "langsmith.fleet.egressProxyEnv" $root | fromYamlArray) }}
 {{- toYaml $out }}
+{{- end -}}
+
+{{- define "langsmith.fleet.agentAccessTokenEnabled" -}}
+{{- and .Values.fleet.enabled .Values.fleet.agentAccessToken.enabled -}}
+{{- end -}}
+
+{{- define "langsmith.fleet.serviceAccountNames" -}}
+{{- $names := dict "apiServer" (include "fleetApiServer.serviceAccountName" .) -}}
+{{- if .Values.fleet.queue.enabled -}}
+{{- $_ := set $names "queue" (include "fleetQueue.serviceAccountName" .) -}}
+{{- end -}}
+{{- toYaml $names -}}
+{{- end -}}
+
+{{- define "langsmith.fleet.deploymentId" -}}
+{{- $hash := sha256sum (printf "%s/%s" (.Values.namespace | default .Release.Namespace) .Release.Name) -}}
+{{- printf "%s-%s-8%s-8%s-%s" (substr 0 8 $hash) (substr 8 12 $hash) (substr 12 15 $hash) (substr 15 18 $hash) (substr 18 30 $hash) -}}
+{{- end -}}
+
+{{- define "langsmith.fleet.agentAccessTokenServiceAccounts" -}}
+{{- $deploymentId := include "langsmith.fleet.deploymentId" . -}}
+{{- $accounts := dict -}}
+{{- range $username := include "langsmith.fleet.agentAccessTokenWorkloads" . | fromJson | keys -}}
+{{- $_ := set $accounts $username $deploymentId -}}
+{{- end -}}
+{{- toJson $accounts -}}
+{{- end -}}
+
+{{- define "langsmith.fleet.agentAccessTokenWorkloads" -}}
+{{- $namespace := .Values.namespace | default .Release.Namespace -}}
+{{- $fleet := include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") -}}
+{{- $workloads := dict -}}
+{{- range $component, $serviceAccount := include "langsmith.fleet.serviceAccountNames" . | fromYaml -}}
+{{- $_ := set $workloads (printf "system:serviceaccount:%s:%s" $namespace $serviceAccount) (printf "%s-%s" $fleet (index $.Values.fleet $component).name) -}}
+{{- end -}}
+{{- toJson $workloads -}}
+{{- end -}}
+
+{{- define "langsmith.platformBackend.podTokenReviewName" -}}
+{{- printf "%s-%s-pod-token-review" (.Values.namespace | default .Release.Namespace) (include "langsmith.fullname" .) -}}
+{{- end -}}
+
+{{- define "langsmith.platformBackend.podTokenReviewMetadata" -}}
+name: {{ include "langsmith.platformBackend.podTokenReviewName" . }}
+labels:
+  {{- include "langsmith.labels" . | nindent 2 }}
+  {{- with .Values.platformBackend.rbac.labels }}
+    {{- toYaml . | nindent 2 }}
+  {{- end }}
+annotations:
+  {{- include "langsmith.annotations" . | nindent 2 }}
+  {{- with .Values.platformBackend.rbac.annotations }}
+    {{- toYaml . | nindent 2 }}
+  {{- end }}
+{{- end -}}
+
+{{- define "langsmith.fleet.agentAccessTokenVolumes" -}}
+{{- $volumes := list -}}
+{{- if .Values.fleet.agentAccessToken.enabled -}}
+{{- $podToken := dict "audience" (printf "%s/v1/agent-auth" (include "langsmith.oauthAsIssuer" .)) "expirationSeconds" 600 "path" "token" -}}
+{{- $volumes = append $volumes (dict "name" "agent-auth-pod-token" "projected" (dict "sources" (list (dict "serviceAccountToken" $podToken)))) -}}
+{{- end -}}
+{{ $volumes | toYaml }}
+{{- end -}}
+
+{{- define "langsmith.fleet.agentAccessTokenVolumeMounts" -}}
+{{- $mounts := list -}}
+{{- if .Values.fleet.agentAccessToken.enabled -}}
+{{- $mounts = append $mounts (dict "name" "agent-auth-pod-token" "mountPath" "/var/run/secrets/agent-auth" "readOnly" true) -}}
+{{- end -}}
+{{ $mounts | toYaml }}
+{{- end -}}
+
+{{/*
+Proxy env for the Fleet runtime, tool server and trigger server pods. With config.customCa, the clients that ignore SSL_CERT_FILE (requests and httplib2) get the same bundle.
+*/}}
+{{- define "langsmith.fleet.egressProxyEnv" -}}
+{{- $proxy := .Values.fleet.egressProxy | default dict -}}
+{{- if $proxy.url -}}
+{{- $noProxy := list "localhost" "127.0.0.1" (printf ".svc.%s" .Values.clusterDomain) -}}
+{{- if .Values.config.hostname -}}
+{{- $noProxy = append $noProxy (urlParse (include "langsmith.hostnameWithProtocol" .)).hostname -}}
+{{- end -}}
+{{- $noProxy = concat $noProxy ($proxy.noProxy | default list) -}}
+- name: HTTPS_PROXY
+  valueFrom:
+    configMapKeyRef:
+      name: {{ include "langsmith.fullname" . }}-config
+      key: FLEET_EGRESS_PROXY_URL
+- name: NO_PROXY
+  value: {{ join "," $noProxy | quote }}
+{{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
+- name: REQUESTS_CA_BUNDLE
+  value: /etc/ssl/certs/custom-ca-certificates.crt
+- name: HTTPLIB2_CA_CERTS
+  value: /etc/ssl/certs/custom-ca-certificates.crt
+{{- end }}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -1992,6 +2103,9 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 - name: "PORT"
   value: "{{ .Values.fleetToolServer.containerPort }}"
 {{- include "agentBuilderOAuthEnvVars" . }}
+{{- with include "langsmith.fleet.egressProxyEnv" . }}
+{{ . }}
+{{- end }}
 {{- end -}}
 
 {{- define "fleetTriggerServerEnvVars" -}}
@@ -2024,6 +2138,9 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- if $slackBotId }}
 - name: "AGENT_BUILDER_SLACK_BOT_ID"
   value: {{ $slackBotId | quote }}
+{{- end }}
+{{- with include "langsmith.fleet.egressProxyEnv" . }}
+{{ . }}
 {{- end }}
 {{- end -}}
 
