@@ -1,0 +1,33 @@
+suite: Redis memory cap
+templates:
+  - redis/deployment.yaml
+tests:
+  - it: caps Redis at 75% of the default memory limit with noeviction
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].args
+          value: ["--maxmemory", "3221225472", "--maxmemory-policy", "noeviction"]
+
+  - it: follows a configured memory limit
+    set:
+      redis.deployment.resources.limits.memory: 2Gi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].args
+          value: ["--maxmemory", "1610612736", "--maxmemory-policy", "noeviction"]
+
+  - it: leaves Redis uncapped without a memory limit
+    set:
+      redis.deployment.resources.limits: null
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].args
+
+  - it: keeps args set through extraContainerConfig
+    set:
+      redis.deployment.extraContainerConfig:
+        args: ["--appendonly", "yes"]
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].args
+          value: ["--appendonly", "yes"]
