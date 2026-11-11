@@ -1,0 +1,527 @@
+suite: sandbox clusters added to one install
+templates:
+  - validate.yaml
+  # Read by the Deployments' checksum annotations.
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - backend/deployment.yaml
+  - queue/deployment.yaml
+  - frontend/deployment.yaml
+  - platform-backend/deployment.yaml
+  - ingest-queue/deployment.yaml
+  - sandboxes/sandbox-host-deployment.yaml
+  - sandboxes/sandbox-host-service-account.yaml
+  - sandboxes/sandbox-host-rbac.yaml
+  - sandboxes/proxy-ca.yaml
+  - sandboxes/juicefs-config.yaml
+  - sandboxes/juicefs-format-job.yaml
+tests:
+  - it: should render no SANDBOX_CLUSTERS without sandboxes.clusters
+    values:
+      - ./values/sandboxes-enabled.yaml
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_CLUSTERS
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_OWN_CLUSTER_ENABLED
+          any: true
+
+  - it: should render an added cluster next to an external runtime on platform-backend
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set: &externalPlusB
+      config.hostname: https://langsmith.example.com
+      sandboxes.external.enabled: true
+      sandboxes.external.hostIngressEndpoint: https://sandbox-a.example.com
+      sandboxes.serviceAuth.secretKey: sandbox_a_service_auth
+      sandboxes.clusters.b.hostIngressEndpoint: https://sandbox-b.example.com
+      sandboxes.clusters.b.serviceAuth.secretKey: sandbox_b_service_auth
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_CLUSTERS
+            value: '[{"name":"b","ingress":{"url":"https://sandbox-b.example.com"},"auth":{"secret_env":"SANDBOX_CLUSTER_B_SERVICE_AUTH_SECRET","previous_env":""}}]'
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_CLUSTER_B_SERVICE_AUTH_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_b_service_auth
+                optional: false
+
+  - it: should render the same added cluster on ingest-queue
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set: *externalPlusB
+    template: ingest-queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_CLUSTERS
+            value: '[{"name":"b","ingress":{"url":"https://sandbox-b.example.com"},"auth":{"secret_env":"SANDBOX_CLUSTER_B_SERVICE_AUTH_SECRET","previous_env":""}}]'
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_CLUSTER_B_SERVICE_AUTH_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_b_service_auth
+                optional: false
+
+  # An added cluster's secret reaches only the pods that sign or verify host calls.
+  - it: should keep added clusters off every other Deployment
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set: *externalPlusB
+    templates:
+      - backend/deployment.yaml
+      - queue/deployment.yaml
+      - frontend/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_CLUSTERS
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_CLUSTER_B_SERVICE_AUTH_SECRET
+          any: true
+
+  - it: should give platform-backend the previous secret of an added cluster
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *externalPlusB
+      sandboxes.clusters.b.serviceAuth.previousSecretKey: sandbox_b_service_auth_previous
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_CLUSTERS
+            value: '[{"name":"b","ingress":{"url":"https://sandbox-b.example.com"},"auth":{"secret_env":"SANDBOX_CLUSTER_B_SERVICE_AUTH_SECRET","previous_env":"SANDBOX_CLUSTER_B_SERVICE_AUTH_SECRET_PREVIOUS"}}]'
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_CLUSTER_B_SERVICE_AUTH_SECRET_PREVIOUS
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_b_service_auth_previous
+                optional: false
+
+  # ingest-queue only signs, so it never needs a previous secret.
+  - it: should not give ingest-queue the previous secret of an added cluster
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *externalPlusB
+      sandboxes.clusters.b.serviceAuth.previousSecretKey: sandbox_b_service_auth_previous
+    template: ingest-queue/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_CLUSTER_B_SERVICE_AUTH_SECRET_PREVIOUS
+          any: true
+
+  # Helm walks map keys alphabetically; the default comes only from the flag.
+  - it: should render entries sorted by name with default only where set
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *externalPlusB
+      sandboxes.clusters.c-west.hostIngressEndpoint: https://sandbox-c.example.com
+      sandboxes.clusters.c-west.serviceAuth.secretKey: sandbox_c_service_auth
+      sandboxes.clusters.c-west.default: true
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_CLUSTERS
+            value: '[{"name":"b","ingress":{"url":"https://sandbox-b.example.com"},"auth":{"secret_env":"SANDBOX_CLUSTER_B_SERVICE_AUTH_SECRET","previous_env":""}},{"name":"c-west","ingress":{"url":"https://sandbox-c.example.com"},"auth":{"secret_env":"SANDBOX_CLUSTER_C_WEST_SERVICE_AUTH_SECRET","previous_env":""},"default":true}]'
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_CLUSTER_C_WEST_SERVICE_AUTH_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_c_service_auth
+                optional: false
+
+  - it: should keep the in-cluster runtime when incluster is enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set: &inclusterPlusB
+      config.hostname: https://langsmith.example.com
+      sandboxes.clusters.incluster.enabled: true
+      sandboxes.clusters.b.hostIngressEndpoint: https://sandbox-b.example.com
+      sandboxes.clusters.b.serviceAuth.secretKey: sandbox_b_service_auth
+    templates:
+      - sandboxes/sandbox-host-deployment.yaml
+      - sandboxes/sandbox-host-service-account.yaml
+      - sandboxes/proxy-ca.yaml
+      - sandboxes/juicefs-config.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: should render only the added entry when incluster is enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set: *inclusterPlusB
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_CLUSTERS
+            value: '[{"name":"b","ingress":{"url":"https://sandbox-b.example.com"},"auth":{"secret_env":"SANDBOX_CLUSTER_B_SERVICE_AUTH_SECRET","previous_env":""}}]'
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_DEPLOYMENT_MODE
+            value: sameCluster
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_OWN_CLUSTER_ENABLED
+          any: true
+
+  - it: should remove the in-cluster runtime when incluster is disabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set: &inclusterOffPlusB
+      config.hostname: https://langsmith.example.com
+      sandboxes.clusters.incluster.enabled: false
+      sandboxes.clusters.b.hostIngressEndpoint: https://sandbox-b.example.com
+      sandboxes.clusters.b.serviceAuth.secretKey: sandbox_b_service_auth
+    templates:
+      - sandboxes/sandbox-host-deployment.yaml
+      - sandboxes/sandbox-host-service-account.yaml
+      - sandboxes/sandbox-host-rbac.yaml
+      - sandboxes/proxy-ca.yaml
+      - sandboxes/juicefs-config.yaml
+      - sandboxes/juicefs-format-job.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should tell the control plane there is no own-name cluster when incluster is disabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set: *inclusterOffPlusB
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_OWN_CLUSTER_ENABLED
+            value: "false"
+
+  - it: should mark the deployment mode separate when incluster is disabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set: *inclusterOffPlusB
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_DEPLOYMENT_MODE
+            value: separateCluster
+
+  # Refused at render: the messages follow the design's worked examples.
+  - it: should require incluster.enabled when clusters are added to an in-cluster install
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: https://langsmith.example.com
+      sandboxes.clusters.b.hostIngressEndpoint: https://sandbox-b.example.com
+      sandboxes.clusters.b.serviceAuth.secretKey: sandbox_b_service_auth
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters is set, so set sandboxes.clusters.incluster.enabled explicitly: true keeps today's in-cluster sandbox cluster; false removes it and stops its sandboxes."
+
+  - it: should refuse incluster next to an external runtime
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *externalPlusB
+      sandboxes.clusters.incluster.enabled: true
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters.incluster cannot be set with sandboxes.external.enabled: the external runtime is already this install's own cluster."
+
+  - it: should refuse incluster keys other than enabled and default
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterPlusB
+      sandboxes.clusters.incluster.hostIngressEndpoint: https://sandbox-a.example.com
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters.incluster takes only enabled and default: it is this install's in-cluster sandbox cluster, configured by the other sandboxes values."
+
+  - it: should refuse default on a disabled incluster
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterOffPlusB
+      sandboxes.clusters.incluster.default: true
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters.incluster.default needs sandboxes.clusters.incluster.enabled: true."
+
+  - it: should refuse an http endpoint on an added cluster
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterPlusB
+      sandboxes.clusters.b.hostIngressEndpoint: http://sandbox-b.example.com
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters.b.hostIngressEndpoint must be an https:// origin without a path, query string, or fragment."
+
+  - it: should refuse an endpoint with a path on an added cluster
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterPlusB
+      sandboxes.clusters.b.hostIngressEndpoint: https://sandbox-b.example.com/internal
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters.b.hostIngressEndpoint must be an https:// origin without a path, query string, or fragment."
+
+  - it: should refuse an added cluster without an existing Secret
+    set:
+      config.langsmithLicenseKey: test-license
+      config.apiKeySalt: test-api-key-salt
+      config.oauth.enabled: true
+      config.authType: oauth
+      config.hostname: https://langsmith.example.com
+      images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
+      sandboxes.enabled: true
+      sandboxes.callbackSigningJwk: test-callback-jwk
+      sandboxes.sandboxHost.deployment.nodeSelector.kvm: "true"
+      sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      sandboxes.juicefs.redis.metaURL: redis://redis:6379/1
+      insights.encryptionKey: test-insights-encryption-key
+      polly.encryptionKey: test-polly-encryption-key
+      sandboxes.clusters.incluster.enabled: true
+      sandboxes.clusters.b.hostIngressEndpoint: https://sandbox-b.example.com
+      sandboxes.clusters.b.serviceAuth.secretKey: sandbox_b_service_auth
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters.b needs config.existingSecretName: an added cluster's service-auth key must come from an existing Secret."
+
+  - it: should refuse an added cluster without a dedicated secret key
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterPlusB
+      sandboxes.clusters.b.serviceAuth.secretKey: ""
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters.b.serviceAuth.secretKey must name a dedicated key in config.existingSecretName, not api_key_salt."
+
+  - it: should refuse api_key_salt as an added cluster's secret key
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterPlusB
+      sandboxes.clusters.b.serviceAuth.secretKey: api_key_salt
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters.b.serviceAuth.secretKey must name a dedicated key in config.existingSecretName, not api_key_salt."
+
+  - it: should refuse two added clusters sharing a secret key
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterPlusB
+      sandboxes.clusters.c.hostIngressEndpoint: https://sandbox-c.example.com
+      sandboxes.clusters.c.serviceAuth.secretKey: sandbox_b_service_auth
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters.b and sandboxes.clusters.c use the same service-auth key 'sandbox_b_service_auth'; each cluster needs its own."
+
+  - it: should refuse a previous key equal to another cluster's key
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterPlusB
+      sandboxes.clusters.c.hostIngressEndpoint: https://sandbox-c.example.com
+      sandboxes.clusters.c.serviceAuth.secretKey: sandbox_c_service_auth
+      sandboxes.clusters.c.serviceAuth.previousSecretKey: sandbox_b_service_auth
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters.b and sandboxes.clusters.c use the same service-auth key 'sandbox_b_service_auth'; each cluster needs its own."
+
+  - it: should refuse an added cluster reusing the own cluster's secret key
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *externalPlusB
+      sandboxes.clusters.b.serviceAuth.secretKey: sandbox_a_service_auth
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters.b uses the service-auth key 'sandbox_a_service_auth' of this install's own sandbox cluster; each cluster needs its own."
+
+  - it: should refuse two added clusters sharing an endpoint
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterPlusB
+      sandboxes.clusters.c.hostIngressEndpoint: https://sandbox-b.example.com
+      sandboxes.clusters.c.serviceAuth.secretKey: sandbox_c_service_auth
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters.b and sandboxes.clusters.c use the same hostIngressEndpoint 'https://sandbox-b.example.com'; each cluster needs its own."
+
+  - it: should refuse an added cluster reusing the external runtime's endpoint
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *externalPlusB
+      sandboxes.clusters.b.hostIngressEndpoint: https://sandbox-a.example.com
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters.b uses the hostIngressEndpoint of this install's own sandbox cluster (sandboxes.external.hostIngressEndpoint); each cluster needs its own."
+
+  - it: should require one default when only added clusters run
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterOffPlusB
+      sandboxes.clusters.c.hostIngressEndpoint: https://sandbox-c.example.com
+      sandboxes.clusters.c.serviceAuth.secretKey: sandbox_c_service_auth
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters lists 2 clusters and no in-cluster cluster, so mark one with default: true."
+
+  - it: should accept two added clusters with one default when only added clusters run
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterOffPlusB
+      sandboxes.clusters.b.default: true
+      sandboxes.clusters.c.hostIngressEndpoint: https://sandbox-c.example.com
+      sandboxes.clusters.c.serviceAuth.secretKey: sandbox_c_service_auth
+    template: validate.yaml
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: should refuse an entry named after the own cluster
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterPlusB
+      sandboxes.clusterName: prod
+      sandboxes.clusters.prod.hostIngressEndpoint: https://sandbox-p.example.com
+      sandboxes.clusters.prod.serviceAuth.secretKey: sandbox_p_service_auth
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters.prod uses this install's own cluster name (sandboxes.clusterName); configure that cluster with sandboxes.clusters.incluster or sandboxes.external instead."
+
+  - it: should refuse two defaults
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterPlusB
+      sandboxes.clusters.incluster.default: true
+      sandboxes.clusters.b.default: true
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Only one entry in sandboxes.clusters may set default: true."
+
+  - it: should refuse an entry name that is not a DNS label
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterPlusB
+      sandboxes.clusters.Cluster_B.hostIngressEndpoint: https://sandbox-x.example.com
+      sandboxes.clusters.Cluster_B.serviceAuth.secretKey: sandbox_x_service_auth
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusters.Cluster_B must be a DNS label: up to 63 lowercase letters, digits or hyphens, starting and ending with a letter or digit."
+
+  - it: should require config.hostname for an added cluster
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterPlusB
+      config.hostname: ""
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.hostname is required when sandboxes.clusters lists an added cluster, so its sandbox-host can reach the LangSmith API."
+
+  - it: should refuse an in-cluster config.hostname for an added cluster
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      <<: *inclusterPlusB
+      config.hostname: http://langsmith-frontend.default.svc.cluster.local
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.hostname must not be an in-cluster service address when sandboxes.clusters lists an added cluster."
+
+  - it: should accept an in-cluster install that adds a cluster
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set: *inclusterPlusB
+    template: validate.yaml
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: should accept an external install that adds a cluster
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set: *externalPlusB
+    template: validate.yaml
+    asserts:
+      - notFailedTemplate: {}

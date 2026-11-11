@@ -61,7 +61,7 @@ config:
     secretKey: ""
 
 serviceAuth:
-  # -- Key in config.existingSecretName holding the sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET): a dedicated random value, never the LangSmith api_key_salt. Its value must equal the control plane's: `sandbox_service_auth_secret` in the langsmith chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in its config.existingSecretName.
+  # -- Key in config.existingSecretName holding the sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET): a dedicated random value, never the LangSmith api_key_salt. Its value must equal the control plane's: `sandbox_service_auth_secret` in the langsmith chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in its config.existingSecretName. For a cluster added with the langsmith chart's `sandboxes.clusters.<name>`, it must equal the value of the key `sandboxes.clusters.<name>.serviceAuth.secretKey` names, and differ from every other cluster's.
   secretKey: "sandbox_service_auth_secret"
   # -- Optional key in config.existingSecretName containing the previous service-auth key during rotation.
   previousSecretKey: ""

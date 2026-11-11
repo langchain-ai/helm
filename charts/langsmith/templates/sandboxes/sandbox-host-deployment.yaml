@@ -1,4 +1,4 @@
-{{- if and .Values.sandboxes.enabled (not .Values.sandboxes.external.enabled) }}
+{{- if eq (include "langsmith.sandboxes.inclusterEnabled" .) "true" }}
 {{- $sandboxHost := .Values.sandboxes.sandboxHost }}
 {{- $managedHostMountEnv := list
   (dict "name" "SANDBOX_HOST_JUICEFS_META_URL_FILE")

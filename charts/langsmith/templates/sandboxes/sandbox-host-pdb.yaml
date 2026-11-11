@@ -1,4 +1,4 @@
-{{- if and .Values.sandboxes.enabled (not .Values.sandboxes.external.enabled) .Values.sandboxes.sandboxHost.pdb.enabled }}
+{{- if and (eq (include "langsmith.sandboxes.inclusterEnabled" .) "true") .Values.sandboxes.sandboxHost.pdb.enabled }}
 {{- $name := printf "%s-%s" (include "langsmith.fullname" .) .Values.sandboxes.sandboxHost.name }}
 {{- include "langsmithSandbox.render.pdb" (dict
   "name" $name
