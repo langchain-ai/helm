@@ -71,11 +71,8 @@
       optional: true
 {{- end }}
 {{- if eq (include "langsmith.fleet.agentAccessTokenEnabled" .) "true" }}
-- name: AGENT_ACCESS_TOKEN_SIGNING_JWKS
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.secretsName" . }}
-      key: agent_access_token_signing_jwks
+- name: AGENT_ACCESS_TOKEN_ENABLED
+  value: "true"
 - name: AGENT_ACCESS_TOKEN_FLEET_DEPLOYMENT_IDS
   value: {{ include "langsmith.fleet.deploymentId" . | quote }}
 - name: AGENT_ACCESS_TOKEN_FLEET_SERVICE_ACCOUNTS

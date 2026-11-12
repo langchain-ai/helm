@@ -744,21 +744,25 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
 {{- end -}}
 {{- end -}}
 {{- if eq (include "langsmith.fleet.agentAccessTokenEnabled" .) "true" -}}
-{{- $signingJwks := .Values.fleet.agentAccessToken.signingJwks -}}
 {{- $chartManagesSecret := not (or .Values.config.existingSecretName .Values.config.disableSecretCreation) -}}
 {{- if not .Values.config.hostname -}}
 {{- fail "config.hostname is required when fleet.agentAccessToken.enabled is true." -}}
 {{- end -}}
-{{- if and $chartManagesSecret (not $signingJwks) -}}
-{{- fail "fleet.agentAccessToken.signingJwks is required when fleet.agentAccessToken.enabled is true and the chart manages the LangSmith app Secret. With config.existingSecretName or config.disableSecretCreation, add key agent_access_token_signing_jwks to your Secret instead." -}}
+{{- if .Values.fleet.agentAccessToken.signingJwks -}}
+{{- fail "fleet.agentAccessToken.signingJwks was removed: agent access tokens are signed by the first RSA key after key 0 in config.signingJwks. Add your RSA key to config.signingJwks after key 0, then unset fleet.agentAccessToken.signingJwks." -}}
 {{- end -}}
-{{- if and (not $chartManagesSecret) $signingJwks -}}
-{{- fail "fleet.agentAccessToken.signingJwks cannot be used with config.existingSecretName or config.disableSecretCreation. Add key agent_access_token_signing_jwks to your Secret instead." -}}
+{{- if $chartManagesSecret -}}
+{{- $keys := (fromJson (.Values.config.signingJwks | default "{}")).keys -}}
+{{- $hasRSAKeyAfterKeyZero := false -}}
+{{- if kindIs "slice" $keys -}}
+{{- range $index, $key := $keys -}}
+{{- if and (gt $index 0) (kindIs "map" $key) (eq (get $key "kty") "RSA") -}}
+{{- $hasRSAKeyAfterKeyZero = true -}}
 {{- end -}}
-{{- with $signingJwks -}}
-{{- $keys := (fromJson .).keys -}}
-{{- if not (and (kindIs "slice" $keys) $keys) -}}
-{{- fail "fleet.agentAccessToken.signingJwks must be a JSON Web Key Set: a JSON object with a keys list." -}}
+{{- end -}}
+{{- end -}}
+{{- if not $hasRSAKeyAfterKeyZero -}}
+{{- fail "fleet.agentAccessToken.enabled needs an RSA key after key 0 in config.signingJwks: the first one signs agent access tokens. With config.existingSecretName or config.disableSecretCreation, add it to the langsmith_signing_jwks key of your Secret instead." -}}
 {{- end -}}
 {{- end -}}
 {{- $componentOf := dict -}}
