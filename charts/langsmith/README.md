@@ -1759,6 +1759,7 @@ To rotate the signing key, put the new key first in the set and keep the old key
 | config.deployment.scalingOverridesEnabled | bool | `false` | Let users override LangSmith Deployment autoscaling CPU targets and scale-up/scale-down behavior. Opt-in for self-hosted. |
 | config.deployment.uncappedResourcesEnabled | bool | `false` | Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted. |
 | config.disableSecretCreation | bool | `false` |  |
+| config.disableSecretEnvVars | bool | `false` | Do not inject Secret values as env vars on the core LangSmith workloads (drops valueFrom.secretKeyRef entries). Mount the Secret as a volume and load values via an entrypoint wrapper instead. |
 | config.existingSecretName | string | `""` |  |
 | config.frontendHostname | string | `""` | Frontend origin for user-facing redirects (LANGSMITH_URL); defaults to hostname. Set only when the UI is served from a different origin than this deployment's API. |
 | config.googleIapEnabled | bool | `false` | Enables Google IAP (Identity-Aware Proxy) session handling in the frontend. When true, the frontend adds required IAP headers, uses credentialed fetches, and handles 401 re-auth via GCP's session refresh mechanism. |

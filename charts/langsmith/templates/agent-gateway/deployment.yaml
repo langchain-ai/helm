@@ -8,6 +8,7 @@
 {{- end -}}
 {{- if .Values.agentGateway.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "agentGatewayEnvVars" . | fromYamlArray) .Values.agentGateway.deployment.extraEnv -}}
+{{- $envVars := include "langsmith.filterSecretEnv" (dict "root" . "env" $envVars) | fromYamlArray -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.agentGateway.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.agentGateway.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}

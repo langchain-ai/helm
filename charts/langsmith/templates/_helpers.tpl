@@ -140,6 +140,25 @@ the user or some other secret provisioning mechanism
 {{- end }}
 {{- end }}
 
+{{/*
+Drop env entries that read from a Kubernetes Secret (valueFrom.secretKeyRef) when
+config.disableSecretEnvVars is true, for clusters whose admission policy forbids
+secrets as environment variables. Plain-value entries are kept. Mount the Secret as a
+volume (commonVolumes / commonVolumeMounts) and load the values in an entrypoint
+wrapper (command override) instead.
+Usage: {{- $envVars := include "langsmith.filterSecretEnv" (dict "root" . "env" $envVars) | fromYamlArray -}}
+*/}}
+{{- define "langsmith.filterSecretEnv" -}}
+{{- $kept := list -}}
+{{- range .env -}}
+  {{- if and $.root.Values.config.disableSecretEnvVars (dig "valueFrom" "secretKeyRef" "" .) -}}
+  {{- else -}}
+    {{- $kept = append $kept . -}}
+  {{- end -}}
+{{- end -}}
+{{- $kept | toYaml -}}
+{{- end -}}
+
 {{/* Include these env vars if they aren't defined in .Values.commonEnv */}}
 {{- define "langsmith.conditionalEnvVars" -}}
 - name: X_SERVICE_AUTH_JWT_SECRET
