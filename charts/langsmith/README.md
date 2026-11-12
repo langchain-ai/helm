@@ -117,15 +117,23 @@ The operator deletes removed objects only after the deployment's rollout complet
 
 **Coordinated upgrade required:** enable it only with platform backend and Fleet images that support agent access tokens. This chart does not change image tags.
 
-The tokens are signed by the first RSA key after key 0 in `config.signingJwks`; key 0 stays the Ed25519 key. If your key set has no RSA key yet, one way to append one, with Node.js:
+The tokens are signed by the first RSA key after key 0 in `config.signingJwks`. Key 0 must be an Ed25519 key: it signs LangSmith's own tokens.
+
+If you don't set `config.signingJwks` yet, create a key set with both keys. One way, with Node.js:
+
+```bash
+node -e 'const c=require("node:crypto"); const jwk=(k,extra)=>({...k.export({format:"jwk"}),kid:c.randomUUID(),use:"sig",...extra}); const ed=c.generateKeyPairSync("ed25519").privateKey; const rsa=c.generateKeyPairSync("rsa",{modulusLength:3072}).privateKey; process.stdout.write(JSON.stringify({keys:[jwk(ed,{alg:"EdDSA"}),jwk(rsa,{alg:"RS256"})]}))' > signing-jwks.json
+```
+
+If you already set it, append an RSA key instead:
 
 ```bash
 node -e 'const c=require("node:crypto"); const jwks=JSON.parse(require("node:fs").readFileSync(0,"utf8")); const {privateKey}=c.generateKeyPairSync("rsa",{modulusLength:3072}); jwks.keys.push({...privateKey.export({format:"jwk"}),kid:c.randomUUID(),alg:"RS256",use:"sig"}); process.stdout.write(JSON.stringify(jwks))' < signing-jwks.json > signing-jwks-with-rsa.json
 ```
 
-Pass it with `--set-file config.signingJwks=signing-jwks-with-rsa.json`, and never commit the file. With `config.existingSecretName` or `config.disableSecretCreation`, put it in your Secret under `langsmith_signing_jwks` instead. To rotate, put the new RSA key before the old one, and keep the old one until its tokens have expired.
+Pass the result with `--set-file config.signingJwks=<file>`, and never commit the file. With `config.existingSecretName` or `config.disableSecretCreation`, put it in your Secret under `langsmith_signing_jwks` instead. Setting `config.signingJwks` also turns on the OAuth authorization server and the remote MCP server. To rotate the RSA key, put the new one before the old one, and keep the old one until its tokens have expired.
 
-If a release candidate of this chart had you set `fleet.agentAccessToken.signingJwks`, append that RSA key to `config.signingJwks` after key 0 and unset `fleet.agentAccessToken.signingJwks`; the chart refuses to render while it is set.
+If a release candidate of this chart had you set `fleet.agentAccessToken.signingJwks`, move that RSA key into `config.signingJwks` after key 0, and unset `fleet.agentAccessToken.signingJwks`; the chart refuses to render while it is set. With no key set yet, create one with the first command, then replace its RSA key with yours.
 
 When the feature is on, the chart:
 
