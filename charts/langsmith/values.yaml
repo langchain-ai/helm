@@ -1525,9 +1525,12 @@ smithdb:
           failureThreshold: 6
           periodSeconds: 10
           timeoutSeconds: 1
+      # Raise the soft open-file limit to the inherited hard limit for disk-cache files.
+      # Custom commands must perform this initialization themselves.
       command:
-        - "./smithdb"
-        - "query"
+        - /bin/sh
+        - -c
+        - 'ulimit -Sn "$(ulimit -Hn)" && exec ./smithdb query'
       extraEnv: []
       extraContainerConfig: {}
       sidecars: []
@@ -1599,7 +1602,12 @@ smithdb:
           failureThreshold: 6
           periodSeconds: 10
           timeoutSeconds: 1
-      command: ["./smithdb", "query"]
+      # Raise the soft open-file limit to the inherited hard limit for disk-cache files.
+      # Custom commands must perform this initialization themselves.
+      command:
+        - /bin/sh
+        - -c
+        - 'ulimit -Sn "$(ulimit -Hn)" && exec ./smithdb query'
       extraEnv: []
       extraContainerConfig: {}
       sidecars: []
@@ -1671,7 +1679,12 @@ smithdb:
           failureThreshold: 6
           periodSeconds: 10
           timeoutSeconds: 1
-      command: ["./smithdb", "query"]
+      # Raise the soft open-file limit to the inherited hard limit for disk-cache files.
+      # Custom commands must perform this initialization themselves.
+      command:
+        - /bin/sh
+        - -c
+        - 'ulimit -Sn "$(ulimit -Hn)" && exec ./smithdb query'
       extraEnv: []
       extraContainerConfig: {}
       sidecars: []
@@ -1743,7 +1756,12 @@ smithdb:
           failureThreshold: 6
           periodSeconds: 10
           timeoutSeconds: 1
-      command: ["./smithdb", "query"]
+      # Raise the soft open-file limit to the inherited hard limit for disk-cache files.
+      # Custom commands must perform this initialization themselves.
+      command:
+        - /bin/sh
+        - -c
+        - 'ulimit -Sn "$(ulimit -Hn)" && exec ./smithdb query'
       extraEnv: []
       extraContainerConfig: {}
       sidecars: []

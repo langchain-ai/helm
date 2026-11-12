@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.52](https://img.shields.io/badge/Version-0.17.52-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.75](https://img.shields.io/badge/AppVersion-0.17.75-informational?style=flat-square)
+![Version: 0.17.53](https://img.shields.io/badge/Version-0.17.53-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.75](https://img.shields.io/badge/AppVersion-0.17.75-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -35,6 +35,8 @@ When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSa
 **Compatibility:** Configured sandbox quotas now apply to authenticated requests. Review existing Helm and organization-level quota overrides before upgrading.
 
 ## SmithDB resource tiers
+
+The default query commands (`query`, `mutations`, `runRules`, and `statsQuery`) raise the soft open-file limit to the inherited hard limit before starting SmithDB. Large disk caches can hold more than 65,536 file descriptors. If the inherited hard limit is too low, raise it in the node/container runtime configuration. A custom `deployment.command` replaces this initialization and must set its own limit.
 
 `smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount a volume named `cache` at `/data`; the migration Job mounts it at `/tmp` for scratch files. Each is a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s. The migration Job's volume is 100Gi in every tier.
 
@@ -1324,8 +1326,9 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.mutations.containerPort | int | `8060` |  |
 | smithdb.mutations.deployment.affinity | object | `{}` |  |
 | smithdb.mutations.deployment.annotations | object | `{}` |  |
-| smithdb.mutations.deployment.command[0] | string | `"./smithdb"` |  |
-| smithdb.mutations.deployment.command[1] | string | `"query"` |  |
+| smithdb.mutations.deployment.command[0] | string | `"/bin/sh"` |  |
+| smithdb.mutations.deployment.command[1] | string | `"-c"` |  |
+| smithdb.mutations.deployment.command[2] | string | `"ulimit -Sn \"$(ulimit -Hn)\" && exec ./smithdb query"` |  |
 | smithdb.mutations.deployment.extraContainerConfig | object | `{}` |  |
 | smithdb.mutations.deployment.extraEnv | list | `[]` |  |
 | smithdb.mutations.deployment.initContainers | list | `[]` |  |
@@ -1380,8 +1383,9 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.query.containerPort | int | `8060` |  |
 | smithdb.query.deployment.affinity | object | `{}` |  |
 | smithdb.query.deployment.annotations | object | `{}` |  |
-| smithdb.query.deployment.command[0] | string | `"./smithdb"` |  |
-| smithdb.query.deployment.command[1] | string | `"query"` |  |
+| smithdb.query.deployment.command[0] | string | `"/bin/sh"` |  |
+| smithdb.query.deployment.command[1] | string | `"-c"` |  |
+| smithdb.query.deployment.command[2] | string | `"ulimit -Sn \"$(ulimit -Hn)\" && exec ./smithdb query"` |  |
 | smithdb.query.deployment.extraContainerConfig | object | `{}` |  |
 | smithdb.query.deployment.extraEnv | list | `[]` |  |
 | smithdb.query.deployment.initContainers | list | `[]` |  |
@@ -1437,8 +1441,9 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.runRules.containerPort | int | `8060` |  |
 | smithdb.runRules.deployment.affinity | object | `{}` |  |
 | smithdb.runRules.deployment.annotations | object | `{}` |  |
-| smithdb.runRules.deployment.command[0] | string | `"./smithdb"` |  |
-| smithdb.runRules.deployment.command[1] | string | `"query"` |  |
+| smithdb.runRules.deployment.command[0] | string | `"/bin/sh"` |  |
+| smithdb.runRules.deployment.command[1] | string | `"-c"` |  |
+| smithdb.runRules.deployment.command[2] | string | `"ulimit -Sn \"$(ulimit -Hn)\" && exec ./smithdb query"` |  |
 | smithdb.runRules.deployment.extraContainerConfig | object | `{}` |  |
 | smithdb.runRules.deployment.extraEnv | list | `[]` |  |
 | smithdb.runRules.deployment.initContainers | list | `[]` |  |
@@ -1494,8 +1499,9 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.statsQuery.containerPort | int | `8060` |  |
 | smithdb.statsQuery.deployment.affinity | object | `{}` |  |
 | smithdb.statsQuery.deployment.annotations | object | `{}` |  |
-| smithdb.statsQuery.deployment.command[0] | string | `"./smithdb"` |  |
-| smithdb.statsQuery.deployment.command[1] | string | `"query"` |  |
+| smithdb.statsQuery.deployment.command[0] | string | `"/bin/sh"` |  |
+| smithdb.statsQuery.deployment.command[1] | string | `"-c"` |  |
+| smithdb.statsQuery.deployment.command[2] | string | `"ulimit -Sn \"$(ulimit -Hn)\" && exec ./smithdb query"` |  |
 | smithdb.statsQuery.deployment.extraContainerConfig | object | `{}` |  |
 | smithdb.statsQuery.deployment.extraEnv | list | `[]` |  |
 | smithdb.statsQuery.deployment.initContainers | list | `[]` |  |

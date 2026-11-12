@@ -41,7 +41,10 @@ tests:
         documentIndex: 2
       - equal:
           path: spec.template.spec.containers[0].command
-          value: ["./smithdb", "query"]
+          value:
+            - /bin/sh
+            - -c
+            - 'ulimit -Sn "$(ulimit -Hn)" && exec ./smithdb query'
         documentIndex: 2
       - contains:
           path: spec.template.spec.containers[0].env

@@ -1,0 +1,148 @@
+suite: test smithdb query open-file limits
+templates:
+  - smithdb/query-deployment.yaml
+  - smithdb/query-services-deployments.yaml
+tests:
+  - it: should raise the query soft open-file limit before exec
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.mutations.enabled: true
+      smithdb.runRules.enabled: true
+      smithdb.statsQuery.enabled: true
+    template: smithdb/query-deployment.yaml
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - /bin/sh
+            - -c
+            - 'ulimit -Sn "$(ulimit -Hn)" && exec ./smithdb query'
+
+  - it: should preserve the query custom command
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.mutations.enabled: true
+      smithdb.runRules.enabled: true
+      smithdb.statsQuery.enabled: true
+      smithdb.query.deployment.command:
+        - ./custom-query-entrypoint
+        - query
+    template: smithdb/query-deployment.yaml
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - ./custom-query-entrypoint
+            - query
+
+  - it: should raise the mutations soft open-file limit before exec
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.mutations.enabled: true
+      smithdb.runRules.enabled: true
+      smithdb.statsQuery.enabled: true
+    template: smithdb/query-services-deployments.yaml
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - /bin/sh
+            - -c
+            - 'ulimit -Sn "$(ulimit -Hn)" && exec ./smithdb query'
+
+  - it: should preserve the mutations custom command
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.mutations.enabled: true
+      smithdb.runRules.enabled: true
+      smithdb.statsQuery.enabled: true
+      smithdb.mutations.deployment.command:
+        - ./custom-query-entrypoint
+        - query
+    template: smithdb/query-services-deployments.yaml
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - ./custom-query-entrypoint
+            - query
+
+  - it: should raise the runRules soft open-file limit before exec
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.mutations.enabled: true
+      smithdb.runRules.enabled: true
+      smithdb.statsQuery.enabled: true
+    template: smithdb/query-services-deployments.yaml
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - /bin/sh
+            - -c
+            - 'ulimit -Sn "$(ulimit -Hn)" && exec ./smithdb query'
+
+  - it: should preserve the runRules custom command
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.mutations.enabled: true
+      smithdb.runRules.enabled: true
+      smithdb.statsQuery.enabled: true
+      smithdb.runRules.deployment.command:
+        - ./custom-query-entrypoint
+        - query
+    template: smithdb/query-services-deployments.yaml
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - ./custom-query-entrypoint
+            - query
+
+  - it: should raise the statsQuery soft open-file limit before exec
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.mutations.enabled: true
+      smithdb.runRules.enabled: true
+      smithdb.statsQuery.enabled: true
+    template: smithdb/query-services-deployments.yaml
+    documentIndex: 2
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - /bin/sh
+            - -c
+            - 'ulimit -Sn "$(ulimit -Hn)" && exec ./smithdb query'
+
+  - it: should preserve the statsQuery custom command
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.mutations.enabled: true
+      smithdb.runRules.enabled: true
+      smithdb.statsQuery.enabled: true
+      smithdb.statsQuery.deployment.command:
+        - ./custom-query-entrypoint
+        - query
+    template: smithdb/query-services-deployments.yaml
+    documentIndex: 2
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - ./custom-query-entrypoint
+            - query
