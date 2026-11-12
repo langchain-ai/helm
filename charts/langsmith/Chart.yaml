@@ -5,8 +5,8 @@ maintainers:
     email: ankush@langchain.dev
 description: Helm chart to deploy the langsmith application and all services it depends on.
 type: application
-version: 0.18.0-rc.71
-appVersion: "0.18.25rc1"
+version: 0.18.0-rc.72
+appVersion: "0.18.26rc1"
 # The sandbox runtime's object templates live in langsmith-sandbox; sameCluster
 # renders them through langsmithSandbox.render.*. The dependency renders nothing
 # itself (its sandboxHost.enabled stays false). The pairing check requires the

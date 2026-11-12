@@ -1,6 +1,6 @@
 # langsmith-sandbox
 
-![Version: 0.18.0-rc.6](https://img.shields.io/badge/Version-0.18.0--rc.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.25rc1](https://img.shields.io/badge/AppVersion-0.18.25rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.7](https://img.shields.io/badge/Version-0.18.0--rc.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.26rc1](https://img.shields.io/badge/AppVersion-0.18.26rc1-informational?style=flat-square)
 
 Helm chart to deploy the LangSmith sandbox runtime in a dedicated Kubernetes cluster.
 
