@@ -696,7 +696,7 @@ To rotate the signing key, put the new key first in the set and keep the old key
 | images.backendImage.tag | string | `"0.18.26rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
-| images.clickhouseImage.tag | string | `"25.12"` |  |
+| images.clickhouseImage.tag | string | `"26.3.62.3"` |  |
 | images.deploymentDbImage.repository | string | `"docker.io/pgvector/pgvector"` |  |
 | images.deploymentDbImage.tag | string | `"pg15"` |  |
 | images.deploymentRedisImage.repository | string | `"docker.io/redis"` |  |
