@@ -356,6 +356,9 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
 {{- fail "sandboxes.juicefs.bucket must use an HTTP(S) S3 endpoint URL when sandboxes.juicefs.storage is s3." -}}
 {{- end -}}
 {{- end -}}
+{{- include "langsmithSandbox.validate.localStorage" (dict "localStorage" .Values.sandboxes.sandboxHost.localStorage "prefix" "sandboxes.sandboxHost.localStorage") -}}
+{{- /* With localStorage the host plans the cache and the chart drops these. */ -}}
+{{- if not (.Values.sandboxes.sandboxHost.localStorage | default dict).enabled -}}
 {{- $hostMount := .Values.sandboxes.juicefs.hostMount -}}
 {{- if not $hostMount.cacheDirs -}}
 {{- fail "sandboxes.juicefs.hostMount.cacheDirs must contain at least one node host path when sandboxes.enabled is true." -}}
@@ -382,6 +385,7 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
 {{- range $mountOption := $hostMount.mountOptions -}}
 {{- if regexMatch "^--cache-dir($|=)" $mountOption -}}
 {{- fail "sandboxes.juicefs.hostMount.mountOptions must not set --cache-dir; configure sandboxes.juicefs.hostMount.cacheDirs instead." -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- $proxyCaMode := .Values.sandboxes.proxyCa.mode -}}

@@ -104,6 +104,9 @@
 {{- fail "juicefs.bucket must use a region-explicit HTTP(S) S3 endpoint when juicefs.storage is s3." -}}
 {{- end -}}
 {{- end -}}
+{{- include "langsmithSandbox.validate.localStorage" (dict "localStorage" .Values.sandboxHost.localStorage "prefix" "sandboxHost.localStorage") -}}
+{{- /* With localStorage the host plans the cache and the chart drops these. */ -}}
+{{- if not (.Values.sandboxHost.localStorage | default dict).enabled -}}
 {{- if not .Values.juicefs.hostMount.cacheDirs -}}
 {{- fail "juicefs.hostMount.cacheDirs must contain at least one node host path." -}}
 {{- end -}}
@@ -123,6 +126,7 @@
 {{- range $mountOption := .Values.juicefs.hostMount.mountOptions -}}
 {{- if regexMatch "^--cache-dir($|=)" $mountOption -}}
 {{- fail "juicefs.hostMount.mountOptions must not set --cache-dir; configure juicefs.hostMount.cacheDirs instead." -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- if not (or (eq .Values.proxyCa.mode "generatedSecret") (eq .Values.proxyCa.mode "existingSecret")) -}}

@@ -43,6 +43,37 @@ langsmithSandbox.render.hostDeployment
 {{- $autoscaling := $in.sandboxHost.autoscaling -}}
 {{- $hostMount := $in.juicefs.hostMount -}}
 {{- $env := $in.env -}}
+{{- /* With localStorage the host plans its local disks itself: the JuiceFS
+cache dirs and size, ephemeral sandbox disks, and room for received live
+migrations. It refuses operator cache options, so cacheDirs and the cache
+mount options are dropped. Without paths, the pod's own scratch storage backs
+it and the budget becomes the pod's ephemeral-storage request. */ -}}
+{{- $localStorage := $in.sandboxHost.localStorage | default dict -}}
+{{- $localStorageEnabled := $localStorage.enabled | default false -}}
+{{- $localStorageBudgetGiB := int64 ($localStorage.budgetGiB | default 0) -}}
+{{- $localStorageEphemeralReserveGiB := int64 ($localStorage.ephemeralReserveGiB | default 0) -}}
+{{- $localStoragePaths := $localStorage.paths | default list -}}
+{{- $localStorageMountPaths := list -}}
+{{- $mountOptions := list -}}
+{{- if $localStorageEnabled -}}
+{{- range $index, $path := ($localStoragePaths | default (list "")) -}}
+{{- $localStorageMountPaths = append $localStorageMountPaths (printf "/var/lib/sandbox-host-local/%d" $index) -}}
+{{- end -}}
+{{- range $option := $hostMount.mountOptions -}}
+{{- if not (has (trimPrefix "-" (trimPrefix "-" (first (splitList "=" $option)))) (list "cache-dir" "cache-size" "free-space-ratio")) -}}
+{{- $mountOptions = append $mountOptions $option -}}
+{{- end -}}
+{{- end -}}
+{{- else -}}
+{{- $mountOptions = concat (list (printf "--cache-dir=%s" (join ":" $hostMount.cacheDirs))) $hostMount.mountOptions -}}
+{{- end -}}
+{{- $resources := deepCopy ($d.resources | default dict) -}}
+{{- if and $localStorageEnabled (empty $localStoragePaths) -}}
+{{- /* A request, not a limit: exceeding a limit evicts the pod and every VM on it. */ -}}
+{{- $requests := $resources.requests | default dict -}}
+{{- $_ := set $requests "ephemeral-storage" (printf "%dGi" $localStorageBudgetGiB) -}}
+{{- $_ := set $resources "requests" $requests -}}
+{{- end -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -184,7 +215,19 @@ spec:
             - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
               value: /run/secrets/juicefs/metaurl
             - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
-              value: {{ concat (list (printf "--cache-dir=%s" (join ":" $hostMount.cacheDirs))) $hostMount.mountOptions | toJson | quote }}
+              value: {{ $mountOptions | toJson | quote }}
+            {{- if $localStorageEnabled }}
+            - name: SANDBOX_HOST_LOCAL_STORAGE_DIRS
+              value: {{ join ":" $localStorageMountPaths | quote }}
+            {{- if gt $localStorageBudgetGiB 0 }}
+            - name: SANDBOX_HOST_LOCAL_STORAGE_BUDGET_BYTES
+              value: {{ mul $localStorageBudgetGiB 1073741824 | toString | quote }}
+            {{- end }}
+            {{- if gt $localStorageEphemeralReserveGiB 0 }}
+            - name: SANDBOX_HOST_LOCAL_STORAGE_EPHEMERAL_RESERVE_BYTES
+              value: {{ mul $localStorageEphemeralReserveGiB 1073741824 | toString | quote }}
+            {{- end }}
+            {{- end }}
             {{- with ($in.juicefs.redis | default dict).iamAuthProvider }}
             - name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
               value: {{ . | quote }}
@@ -220,13 +263,20 @@ spec:
           securityContext:
             {{- toYaml $d.securityContext | nindent 12 }}
           resources:
-            {{- toYaml $d.resources | nindent 12 }}
+            {{- toYaml $resources | nindent 12 }}
           volumeMounts:
             - name: juicefs
               mountPath: /juicefs
+            {{- if $localStorageEnabled }}
+            {{- range $index, $mountPath := $localStorageMountPaths }}
+            - name: local-storage-{{ $index }}
+              mountPath: {{ $mountPath | quote }}
+            {{- end }}
+            {{- else }}
             {{- range $index, $cacheDir := $hostMount.cacheDirs }}
             - name: juicefs-cache-{{ $index }}
               mountPath: {{ $cacheDir | quote }}
+            {{- end }}
             {{- end }}
             - name: juicefs-meta
               mountPath: /run/secrets/juicefs
@@ -246,11 +296,25 @@ spec:
         - name: juicefs
           # Writable mount target. sandbox-host mounts JuiceFS over this directory.
           emptyDir: {}
+        {{- if and $localStorageEnabled $localStoragePaths }}
+        {{- range $index, $path := $localStoragePaths }}
+        - name: local-storage-{{ $index }}
+          hostPath:
+            path: {{ $path | quote }}
+            type: DirectoryOrCreate
+        {{- end }}
+        {{- else if $localStorageEnabled }}
+        # The pod's scratch storage, with no sizeLimit: exceeding one evicts the
+        # pod and every VM on it. The host keeps itself under budgetGiB instead.
+        - name: local-storage-0
+          emptyDir: {}
+        {{- else }}
         {{- range $index, $cacheDir := $hostMount.cacheDirs }}
         - name: juicefs-cache-{{ $index }}
           hostPath:
             path: {{ $cacheDir | quote }}
             type: DirectoryOrCreate
+        {{- end }}
         {{- end }}
         - name: juicefs-meta
           secret:
@@ -270,6 +334,62 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
       terminationGracePeriodSeconds: {{ $d.terminationGracePeriodSeconds }}
+{{- end -}}
+
+{{- /*
+langsmithSandbox.validate.localStorage fails on an invalid localStorage block.
+
+  localStorage   the sandboxHost.localStorage values block
+  prefix         its values path, for messages
+*/ -}}
+{{- define "langsmithSandbox.validate.localStorage" -}}
+{{- $ls := .localStorage | default dict -}}
+{{- $p := .prefix -}}
+{{- if $ls.enabled -}}
+{{- range $key := list "budgetGiB" "ephemeralReserveGiB" -}}
+{{- $v := index $ls $key | default 0 -}}
+{{- if not (or (kindIs "int" $v) (kindIs "int64" $v) (and (kindIs "float64" $v) (eq (float64 $v) (floor (float64 $v))))) -}}
+{{- fail (printf "%s.%s must be a whole number of GiB." $p $key) -}}
+{{- end -}}
+{{- if lt (int64 $v) 0 -}}
+{{- fail (printf "%s.%s must not be negative." $p $key) -}}
+{{- end -}}
+{{- end -}}
+{{- $budget := int64 ($ls.budgetGiB | default 0) -}}
+{{- /* sandbox-host refuses to start with less: margin, jailer, scratch and a minimal cache. */ -}}
+{{- if and (gt $budget 0) (lt $budget 24) -}}
+{{- fail (printf "%s.budgetGiB must be at least 24 when set." $p) -}}
+{{- end -}}
+{{- if not (kindIs "slice" ($ls.paths | default list)) -}}
+{{- fail (printf "%s.paths must be a list." $p) -}}
+{{- end -}}
+{{- if and (empty $ls.paths) (eq $budget 0) -}}
+{{- fail (printf "%s.budgetGiB is required when paths is empty: the pod's scratch storage backs local storage, and the budget is its ephemeral-storage request." $p) -}}
+{{- end -}}
+{{- $seen := dict -}}
+{{- range $path := $ls.paths -}}
+{{- if not (kindIs "string" $path) -}}
+{{- fail (printf "%s.paths entries must be strings." $p) -}}
+{{- end -}}
+{{- if or (eq $path "/") (not (hasPrefix "/" $path)) (ne (clean $path) $path) (contains ":" $path) -}}
+{{- fail (printf "%s.paths entry %q must be a normalized absolute path other than / and must not contain ':'." $p $path) -}}
+{{- end -}}
+{{- if hasKey $seen $path -}}
+{{- fail (printf "%s.paths contains duplicate path %q." $p $path) -}}
+{{- end -}}
+{{- $_ := set $seen $path true -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- /* Env the chart owns with localStorage enabled, for the callers' duplicate
+check. SANDBOX_HOST_EPHEMERAL_ROOT is listed because the host refuses to start
+with it beside SANDBOX_HOST_LOCAL_STORAGE_DIRS. */ -}}
+{{- define "langsmithSandbox.localStorageManagedEnv" -}}
+- name: SANDBOX_HOST_LOCAL_STORAGE_DIRS
+- name: SANDBOX_HOST_LOCAL_STORAGE_BUDGET_BYTES
+- name: SANDBOX_HOST_LOCAL_STORAGE_EPHEMERAL_RESERVE_BYTES
+- name: SANDBOX_HOST_EPHEMERAL_ROOT
 {{- end -}}
 
 {{- /* A valueFrom.secretKeyRef; "optional" is written only when the caller sets it. */ -}}
