@@ -185,6 +185,15 @@ sandboxHost:
     targetUtilizationPercent: 70
     headroomHosts: 1
     scaleDownStabilizationSeconds: 300
+  # -- Let sandbox-host plan its node-local storage itself (needs LangSmith 0.18.15 or later; older images ignore it and put the JuiceFS cache in the container). It splits the space between the JuiceFS cache, ephemeral sandbox disks and received live migrations, keeps free space above the kubelet's eviction threshold, and refuses work that would not fit, so juicefs.hostMount.cacheDirs and the `--cache-dir`, `--cache-size` and `--free-space-ratio` mount options no longer apply. Changing it rolls every host, suspending its microVMs, and starts the cache cold.
+  localStorage:
+    enabled: false
+    # -- Node directories, one per local disk, mounted from the host. Empty uses the pod's own scratch storage (the node's ephemeral-storage disk), which requires budgetGiB.
+    paths: []
+    # -- GiB of the volumes sandbox-host may use; any value marks them shared, so the host keeps 15% of each free. Required, and at least 24, when paths is empty: it is then also the pod's ephemeral-storage request, so it must fit the node's allocatable ephemeral storage or the pod never schedules. 0 with paths gives the host those disks to fill.
+    budgetGiB: 0
+    # -- GiB held back for ephemeral sandboxes' disks. 0 holds none: they take what is free when created, and a create that does not fit fails.
+    ephemeralReserveGiB: 0
   pdb:
     enabled: false
     maxUnavailable: 1

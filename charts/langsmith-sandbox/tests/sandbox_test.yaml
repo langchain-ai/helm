@@ -737,3 +737,127 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "Duplicate keys detected: [SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS]"
+
+  - it: should hand node-local disks to sandbox-host when localStorage has paths
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.localStorage:
+        enabled: true
+        paths:
+          - /mnt/disk0
+          - /mnt/disk1
+        ephemeralReserveGiB: 50
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_LOCAL_STORAGE_DIRS
+            value: /var/lib/sandbox-host-local/0:/var/lib/sandbox-host-local/1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_LOCAL_STORAGE_EPHEMERAL_RESERVE_BYTES
+            value: "53687091200"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_LOCAL_STORAGE_BUDGET_BYTES
+          any: true
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+            value: '["--cache-large-write"]'
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: local-storage-1
+            hostPath:
+              path: /mnt/disk1
+              type: DirectoryOrCreate
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: juicefs-cache-0
+          any: true
+      - notExists:
+          path: spec.template.spec.containers[0].resources.requests["ephemeral-storage"]
+
+  - it: should back localStorage with the pod's scratch storage and request the budget
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.localStorage:
+        enabled: true
+        budgetGiB: 400
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_LOCAL_STORAGE_DIRS
+            value: /var/lib/sandbox-host-local/0
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_LOCAL_STORAGE_BUDGET_BYTES
+            value: "429496729600"
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: local-storage-0
+            emptyDir: {}
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests["ephemeral-storage"]
+          value: 400Gi
+      - notExists:
+          path: spec.template.spec.containers[0].resources.limits
+
+  - it: should require a budget when localStorage uses the pod's scratch storage
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.localStorage.enabled: true
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxHost.localStorage.budgetGiB is required when paths is empty: the pod's scratch storage backs local storage, and the budget is its ephemeral-storage request."
+
+  - it: should reject a localStorage budget sandbox-host cannot start with
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.localStorage.enabled: true
+      sandboxHost.localStorage.budgetGiB: 10
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxHost.localStorage.budgetGiB must be at least 24 when set."
+
+  - it: should reject a localStorage path JuiceFS and sandbox-host cannot split
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.localStorage.enabled: true
+      sandboxHost.localStorage.paths:
+        - /mnt/a:b
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxHost.localStorage.paths entry \"/mnt/a:b\" must be a normalized absolute path other than / and must not contain ':'."
+
+  - it: should reject an ephemeral root next to localStorage
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.localStorage.enabled: true
+      sandboxHost.localStorage.budgetGiB: 100
+      sandboxHost.deployment.extraEnv:
+        - name: SANDBOX_HOST_EPHEMERAL_ROOT
+          value: /var/lib/ephemeral
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [SANDBOX_HOST_EPHEMERAL_ROOT]"

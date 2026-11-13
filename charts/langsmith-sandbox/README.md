@@ -1,6 +1,6 @@
 # langsmith-sandbox
 
-![Version: 0.18.0-rc.7](https://img.shields.io/badge/Version-0.18.0--rc.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.26rc1](https://img.shields.io/badge/AppVersion-0.18.26rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.8](https://img.shields.io/badge/Version-0.18.0--rc.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.26rc1](https://img.shields.io/badge/AppVersion-0.18.26rc1-informational?style=flat-square)
 
 Helm chart to deploy the LangSmith sandbox runtime in a dedicated Kubernetes cluster.
 
@@ -171,6 +171,10 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 | sandboxHost.ingress.labels | object | `{}` |  |
 | sandboxHost.ingress.service.annotations | object | `{}` | Annotations on the sandbox-host Service the Ingress points at, for example `cloud.google.com/backend-config` on GKE. They win over `commonAnnotations` on a key clash. |
 | sandboxHost.ingress.tls | list | `[]` |  |
+| sandboxHost.localStorage | object | `{"budgetGiB":0,"enabled":false,"ephemeralReserveGiB":0,"paths":[]}` | Let sandbox-host plan its node-local storage itself (needs LangSmith 0.18.15 or later; older images ignore it and put the JuiceFS cache in the container). It splits the space between the JuiceFS cache, ephemeral sandbox disks and received live migrations, keeps free space above the kubelet's eviction threshold, and refuses work that would not fit, so juicefs.hostMount.cacheDirs and the `--cache-dir`, `--cache-size` and `--free-space-ratio` mount options no longer apply. Changing it rolls every host, suspending its microVMs, and starts the cache cold. |
+| sandboxHost.localStorage.budgetGiB | int | `0` | GiB of the volumes sandbox-host may use; any value marks them shared, so the host keeps 15% of each free. Required, and at least 24, when paths is empty: it is then also the pod's ephemeral-storage request, so it must fit the node's allocatable ephemeral storage or the pod never schedules. 0 with paths gives the host those disks to fill. |
+| sandboxHost.localStorage.ephemeralReserveGiB | int | `0` | GiB held back for ephemeral sandboxes' disks. 0 holds none: they take what is free when created, and a create that does not fit fails. |
+| sandboxHost.localStorage.paths | list | `[]` | Node directories, one per local disk, mounted from the host. Empty uses the pod's own scratch storage (the node's ephemeral-storage disk), which requires budgetGiB. |
 | sandboxHost.name | string | `"sandbox-host"` |  |
 | sandboxHost.pdb.annotations | object | `{}` |  |
 | sandboxHost.pdb.enabled | bool | `false` |  |
