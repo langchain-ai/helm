@@ -776,8 +776,10 @@ To rotate the signing key, put the new key first in the set and keep the old key
 | ingestQueue.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | ingestQueue.deployment.replicas | int | `3` |  |
 | ingestQueue.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| ingestQueue.deployment.resources.limits.ephemeral-storage | string | `"20Gi"` |  |
 | ingestQueue.deployment.resources.limits.memory | string | `"4Gi"` |  |
 | ingestQueue.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| ingestQueue.deployment.resources.requests.ephemeral-storage | string | `"2Gi"` |  |
 | ingestQueue.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | ingestQueue.deployment.securityContext | object | `{}` |  |
 | ingestQueue.deployment.sidecars | list | `[]` |  |
@@ -799,6 +801,10 @@ To rotate the signing key, put the new key first in the set and keep the old key
 | ingestQueue.pdb.minAvailable | int | `1` |  |
 | ingestQueue.rollout | object | `{"enabled":false,"strategy":{"canary":{"steps":[{"setWeight":100}]}}}` | ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/ |
 | ingestQueue.rollout.strategy | object | `{"canary":{"steps":[{"setWeight":100}]}}` | Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/ |
+| ingestQueue.s3Spool.diskLimitGB | string | `""` | Most gigabytes spooled to disk per pod, shared with the upload spool. Empty keeps the application default (10). Keep deployment.resources.limits.ephemeral-storage above it. Renders SPOOL_LIMIT_GB. |
+| ingestQueue.s3Spool.enabled | bool | `false` | Enable the S3 spool for every organization. Renders INGEST_S3_SPOOL_ENABLED. |
+| ingestQueue.s3Spool.maxMB | string | `""` | Most megabytes one task downloads. Empty keeps the application default (256). Renders INGEST_S3_SPOOL_MAX_MB. |
+| ingestQueue.s3Spool.minRefs | string | `""` | Distinct ranges a task must read from an object before the object is downloaded. Empty keeps the application default (2). Renders INGEST_S3_SPOOL_MIN_REFS. |
 | ingestQueue.serviceAccount.annotations | object | `{}` |  |
 | ingestQueue.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | ingestQueue.serviceAccount.create | bool | `true` |  |

@@ -1,0 +1,93 @@
+suite: Ingest queue resources
+# validate.yaml renders for every test and needs a license, a salt, one auth method,
+# and encryption keys for the insights and polly features, which are on by default.
+set:
+  insights.enabled: false
+  polly.enabled: false
+  config.langsmithLicenseKey: "lic"
+  config.apiKeySalt: "salt"
+  config.oauth.enabled: true
+  config.authType: "mixed"
+# The deployment's checksum annotations include these templates, and helm-unittest only
+# loads the ones listed here.
+templates:
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - operator/config-map.yaml
+  - ingest-queue/deployment.yaml
+tests:
+  - it: requests and limits ephemeral storage by default
+    template: ingest-queue/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: 2Gi
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.ephemeral-storage
+          value: 20Gi
+
+  - it: keeps the CPU and memory defaults next to ephemeral storage
+    template: ingest-queue/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 4Gi
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 1000m
+
+  - it: renders a configured ephemeral storage limit
+    template: ingest-queue/deployment.yaml
+    set:
+      ingestQueue.deployment.resources.limits.ephemeral-storage: 50Gi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.ephemeral-storage
+          value: 50Gi
+
+  - it: does not enable the S3 spool by default
+    template: ingest-queue/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: INGEST_S3_SPOOL_ENABLED
+            value: "true"
+
+  - it: enables the S3 spool for every organization
+    template: ingest-queue/deployment.yaml
+    set:
+      ingestQueue.s3Spool.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: INGEST_S3_SPOOL_ENABLED
+            value: "true"
+
+  - it: renders the S3 spool limits
+    template: ingest-queue/deployment.yaml
+    set:
+      ingestQueue.s3Spool.minRefs: "3"
+      ingestQueue.s3Spool.maxMB: "128"
+      ingestQueue.s3Spool.diskLimitGB: "5"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: INGEST_S3_SPOOL_MIN_REFS
+            value: "3"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: INGEST_S3_SPOOL_MAX_MB
+            value: "128"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SPOOL_LIMIT_GB
+            value: "5"

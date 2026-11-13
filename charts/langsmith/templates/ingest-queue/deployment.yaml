@@ -3,6 +3,22 @@
   value: "3"
 - name: "QUEUE_PORT"
   value: {{ .Values.ingestQueue.containerPort | quote }}
+{{- if .Values.ingestQueue.s3Spool.enabled }}
+- name: INGEST_S3_SPOOL_ENABLED
+  value: "true"
+{{- end }}
+{{- with .Values.ingestQueue.s3Spool.minRefs }}
+- name: INGEST_S3_SPOOL_MIN_REFS
+  value: {{ . | quote }}
+{{- end }}
+{{- with .Values.ingestQueue.s3Spool.maxMB }}
+- name: INGEST_S3_SPOOL_MAX_MB
+  value: {{ . | quote }}
+{{- end }}
+{{- with .Values.ingestQueue.s3Spool.diskLimitGB }}
+- name: SPOOL_LIMIT_GB
+  value: {{ . | quote }}
+{{- end }}
 {{ include "langsmith.engine.smithGoEnv" . }}
 {{- if .Values.sandboxes.enabled }}
 - name: SANDBOX_QUEUE_PRIORITY

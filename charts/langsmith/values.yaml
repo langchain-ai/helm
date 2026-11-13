@@ -3829,6 +3829,18 @@ ingestQueue:
       canary:
         steps:
           - setWeight: 100
+  # The S3 spool downloads an S3 object once to local disk when an ingest task reads several fields
+  # from it, and serves those reads from the file instead of one ranged GET per field. It is off
+  # unless enabled. It has no effect with Azure blob storage.
+  s3Spool:
+    # -- Enable the S3 spool for every organization. Renders INGEST_S3_SPOOL_ENABLED.
+    enabled: false
+    # -- Distinct ranges a task must read from an object before the object is downloaded. Empty keeps the application default (2). Renders INGEST_S3_SPOOL_MIN_REFS.
+    minRefs: ""
+    # -- Most megabytes one task downloads. Empty keeps the application default (256). Renders INGEST_S3_SPOOL_MAX_MB.
+    maxMB: ""
+    # -- Most gigabytes spooled to disk per pod, shared with the upload spool. Empty keeps the application default (10). Keep deployment.resources.limits.ephemeral-storage above it. Renders SPOOL_LIMIT_GB.
+    diskLimitGB: ""
   deployment:
     replicas: 3
     labels: {}
@@ -3837,12 +3849,16 @@ ingestQueue:
     securityContext: {}
     lifecycle: {}
     priorityClassName: ""
+    # The ephemeral-storage limit covers the container's local disk, including the objects
+    # the S3 spool (s3Spool) downloads. Keep it above s3Spool.diskLimitGB.
     resources:
       limits:
         cpu: 2000m
+        ephemeral-storage: 20Gi
         memory: 4Gi
       requests:
         cpu: 1000m
+        ephemeral-storage: 2Gi
         memory: 2Gi
     command:
       - "asynq_worker_entrypoint.sh"
