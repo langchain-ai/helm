@@ -3829,6 +3829,20 @@ ingestQueue:
       canary:
         steps:
           - setWeight: 100
+  # The S3 spool downloads an S3 object once to local disk when an ingest task reads several fields
+  # from it, and serves those reads from the file instead of one ranged GET per field. It is off
+  # unless an organization is enabled. It has no effect with Azure blob storage.
+  s3Spool:
+    # -- Organization IDs to enable the S3 spool for. Renders INGEST_S3_SPOOL_ENABLE_ORG_IDS.
+    enableOrgIds: []
+    # -- Percentage of organizations (0-100) to enable the S3 spool for, in addition to enableOrgIds. The share is stable per organization, and a larger percentage only adds organizations. Most installations have one organization, so 100 enables it. Renders INGEST_S3_SPOOL_ENABLE_ORGS_PERCENT.
+    enableOrgsPercent: 0
+    # -- Distinct ranges a task must read from an object before the object is downloaded. Empty keeps the application default (2). Renders INGEST_S3_SPOOL_MIN_REFS.
+    minRefs: ""
+    # -- Most megabytes one task downloads. Empty keeps the application default (256). Renders INGEST_S3_SPOOL_MAX_MB.
+    maxMB: ""
+    # -- Most gigabytes spooled to disk per pod, shared with the upload spool. Empty keeps the application default (10). Keep deployment.resources.limits.ephemeral-storage above it. Renders SPOOL_LIMIT_GB.
+    diskLimitGB: ""
   deployment:
     replicas: 3
     labels: {}
@@ -3838,9 +3852,7 @@ ingestQueue:
     lifecycle: {}
     priorityClassName: ""
     # The ephemeral-storage limit covers the container's local disk, including the objects
-    # the ingest S3 spool downloads when it is enabled (INGEST_S3_SPOOL_ENABLE_ORG_IDS or
-    # INGEST_S3_SPOOL_ENABLE_ORGS_PERCENT in extraEnv). The spool holds at most
-    # SPOOL_LIMIT_GB (10 by default) per pod, so keep the limit above it.
+    # the S3 spool (s3Spool) downloads. Keep it above s3Spool.diskLimitGB.
     resources:
       limits:
         cpu: 2000m
