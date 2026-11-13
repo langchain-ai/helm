@@ -1,0 +1,25 @@
+charts/langsmith/tests/ingest_queue_resources_test.yaml
+  s_352a42db860627::t_477a4c268a1e75 52,58-59,61,64,69-70
+charts/langsmith/templates/ingest-queue/deployment.yaml
+  s_352a42db860627::t_477a4c268a1e75 6-8
+charts/langsmith/README.md
+  s_352a42db860627::t_477a4c268a1e75 805
+charts/langsmith/values.yaml
+  s_352a42db860627::t_5d62818f687864 3834,3836-3837
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6f46ebc4116ac7f8137f1207d3a9f678477c84e2",
+  "prompts": {},
+  "sessions": {
+    "s_352a42db860627": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "602f375b-a985-461a-b535-e7590962619a",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Kiewan Villatel <kiewan@langchain.dev>"
+    }
+  }
+}
