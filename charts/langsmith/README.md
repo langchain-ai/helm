@@ -776,8 +776,10 @@ To rotate the signing key, put the new key first in the set and keep the old key
 | ingestQueue.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | ingestQueue.deployment.replicas | int | `3` |  |
 | ingestQueue.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| ingestQueue.deployment.resources.limits.ephemeral-storage | string | `"20Gi"` |  |
 | ingestQueue.deployment.resources.limits.memory | string | `"4Gi"` |  |
 | ingestQueue.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| ingestQueue.deployment.resources.requests.ephemeral-storage | string | `"2Gi"` |  |
 | ingestQueue.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | ingestQueue.deployment.securityContext | object | `{}` |  |
 | ingestQueue.deployment.sidecars | list | `[]` |  |

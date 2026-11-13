@@ -1,0 +1,38 @@
+suite: Ingest queue resources
+# validate.yaml renders for every test and needs a license, a salt, one auth method,
+# and encryption keys for the insights and polly features, which are on by default.
+set:
+  insights.enabled: false
+  polly.enabled: false
+  config.langsmithLicenseKey: "lic"
+  config.apiKeySalt: "salt"
+  config.oauth.enabled: true
+  config.authType: "mixed"
+templates:
+  - ingest-queue/deployment.yaml
+tests:
+  - it: requests and limits ephemeral storage by default
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: 2Gi
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.ephemeral-storage
+          value: 20Gi
+
+  - it: keeps the CPU and memory defaults next to ephemeral storage
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 4Gi
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 1000m
+
+  - it: renders a configured ephemeral storage limit
+    set:
+      ingestQueue.deployment.resources.limits.ephemeral-storage: 50Gi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.ephemeral-storage
+          value: 50Gi

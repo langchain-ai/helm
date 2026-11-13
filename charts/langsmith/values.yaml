@@ -3837,12 +3837,18 @@ ingestQueue:
     securityContext: {}
     lifecycle: {}
     priorityClassName: ""
+    # The ephemeral-storage limit covers the container's local disk, including the objects
+    # the ingest S3 spool downloads when it is enabled (INGEST_S3_SPOOL_ENABLE_ORG_IDS or
+    # INGEST_S3_SPOOL_ENABLE_ORGS_PERCENT in extraEnv). The spool holds at most
+    # SPOOL_LIMIT_GB (10 by default) per pod, so keep the limit above it.
     resources:
       limits:
         cpu: 2000m
+        ephemeral-storage: 20Gi
         memory: 4Gi
       requests:
         cpu: 1000m
+        ephemeral-storage: 2Gi
         memory: 2Gi
     command:
       - "asynq_worker_entrypoint.sh"
