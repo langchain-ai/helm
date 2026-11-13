@@ -413,6 +413,12 @@ Template containing common environment variables that are used by several servic
 - name: LONGLIVED_TTL_ALLOWED_DAYS
   value: {{ include "langsmith.longlivedAllowedDays" . | quote }}
 {{- end }}
+{{- if (.Values.config.ttl.perProjectRetention | default dict).enabled }}
+- name: FF_PER_PROJECT_RETENTION_ENABLED
+  value: "true"
+- name: PROJECT_TTL_SMITHDB_SYNC_ENABLED
+  value: "true"
+{{- end }}
 {{- end }}
 {{- if .Values.config.workspaceScopeOrgInvitesEnabled }}
 - name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
