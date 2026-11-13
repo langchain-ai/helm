@@ -718,6 +718,9 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
 {{- if hasKey .Values.config "polly" -}}
 {{- fail "config.polly is no longer supported (the bundled-agent bootstrap path was removed in chart 0.15.1). Use the top-level polly block: polly.enabled, polly.encryptionKey, etc." -}}
 {{- end -}}
+{{- if .Values.fleet.agentAccessToken.signingJwks -}}
+{{- fail "fleet.agentAccessToken.signingJwks was removed: agent access tokens are signed by the first RSA key after key 0 in config.signingJwks. Add your RSA key to config.signingJwks after key 0, then unset fleet.agentAccessToken.signingJwks." -}}
+{{- end -}}
 
 {{- /* Validate autoscaling configuration for all services */ -}}
 {{- $autoscalingServices := dict
@@ -748,22 +751,14 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
 {{- end -}}
 {{- end -}}
 {{- if eq (include "langsmith.fleet.agentAccessTokenEnabled" .) "true" -}}
-{{- $signingJwks := .Values.fleet.agentAccessToken.signingJwks -}}
 {{- $chartManagesSecret := not (or .Values.config.existingSecretName .Values.config.disableSecretCreation) -}}
 {{- if not .Values.config.hostname -}}
 {{- fail "config.hostname is required when fleet.agentAccessToken.enabled is true." -}}
 {{- end -}}
-{{- if and $chartManagesSecret (not $signingJwks) -}}
-{{- fail "fleet.agentAccessToken.signingJwks is required when fleet.agentAccessToken.enabled is true and the chart manages the LangSmith app Secret. With config.existingSecretName or config.disableSecretCreation, add key agent_access_token_signing_jwks to your Secret instead." -}}
-{{- end -}}
-{{- if and (not $chartManagesSecret) $signingJwks -}}
-{{- fail "fleet.agentAccessToken.signingJwks cannot be used with config.existingSecretName or config.disableSecretCreation. Add key agent_access_token_signing_jwks to your Secret instead." -}}
-{{- end -}}
-{{- with $signingJwks -}}
-{{- $keys := (fromJson .).keys -}}
-{{- if not (and (kindIs "slice" $keys) $keys) -}}
-{{- fail "fleet.agentAccessToken.signingJwks must be a JSON Web Key Set: a JSON object with a keys list." -}}
-{{- end -}}
+{{- if $chartManagesSecret -}}
+{{- include "langsmith.fleet.validateSigningJwks" .Values.config.signingJwks -}}
+{{- else if .Values.config.signingJwks -}}
+{{- fail "config.signingJwks cannot be used with config.existingSecretName or config.disableSecretCreation. Put the key set in your Secret under langsmith_signing_jwks instead." -}}
 {{- end -}}
 {{- $componentOf := dict -}}
 {{- range $component, $name := include "langsmith.fleet.serviceAccountNames" . | fromYaml -}}
