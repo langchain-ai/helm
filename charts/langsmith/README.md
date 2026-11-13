@@ -802,8 +802,7 @@ To rotate the signing key, put the new key first in the set and keep the old key
 | ingestQueue.rollout | object | `{"enabled":false,"strategy":{"canary":{"steps":[{"setWeight":100}]}}}` | ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/ |
 | ingestQueue.rollout.strategy | object | `{"canary":{"steps":[{"setWeight":100}]}}` | Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/ |
 | ingestQueue.s3Spool.diskLimitGB | string | `""` | Most gigabytes spooled to disk per pod, shared with the upload spool. Empty keeps the application default (10). Keep deployment.resources.limits.ephemeral-storage above it. Renders SPOOL_LIMIT_GB. |
-| ingestQueue.s3Spool.enableOrgIds | list | `[]` | Organization IDs to enable the S3 spool for. Renders INGEST_S3_SPOOL_ENABLE_ORG_IDS. |
-| ingestQueue.s3Spool.enableOrgsPercent | int | `0` | Percentage of organizations (0-100) to enable the S3 spool for, in addition to enableOrgIds. The share is stable per organization, and a larger percentage only adds organizations. Most installations have one organization, so 100 enables it. Renders INGEST_S3_SPOOL_ENABLE_ORGS_PERCENT. |
+| ingestQueue.s3Spool.enabled | bool | `false` | Enable the S3 spool for every organization. Renders INGEST_S3_SPOOL_ENABLED. |
 | ingestQueue.s3Spool.maxMB | string | `""` | Most megabytes one task downloads. Empty keeps the application default (256). Renders INGEST_S3_SPOOL_MAX_MB. |
 | ingestQueue.s3Spool.minRefs | string | `""` | Distinct ranges a task must read from an object before the object is downloaded. Empty keeps the application default (2). Renders INGEST_S3_SPOOL_MIN_REFS. |
 | ingestQueue.serviceAccount.annotations | object | `{}` |  |

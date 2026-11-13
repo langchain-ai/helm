@@ -49,38 +49,25 @@ tests:
           path: spec.template.spec.containers[0].resources.limits.ephemeral-storage
           value: 50Gi
 
-  - it: does not render S3 spool variables by default
+  - it: does not enable the S3 spool by default
     template: ingest-queue/deployment.yaml
     asserts:
       - notContains:
           path: spec.template.spec.containers[0].env
           content:
-            name: INGEST_S3_SPOOL_ENABLE_ORGS_PERCENT
-            value: "0"
-      - notContains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SPOOL_LIMIT_GB
-            value: ""
+            name: INGEST_S3_SPOOL_ENABLED
+            value: "true"
 
-  - it: renders the enabled S3 spool organizations and percentage
+  - it: enables the S3 spool for every organization
     template: ingest-queue/deployment.yaml
     set:
-      ingestQueue.s3Spool.enableOrgIds:
-        - org-a
-        - org-b
-      ingestQueue.s3Spool.enableOrgsPercent: 50
+      ingestQueue.s3Spool.enabled: true
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: INGEST_S3_SPOOL_ENABLE_ORG_IDS
-            value: "org-a,org-b"
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: INGEST_S3_SPOOL_ENABLE_ORGS_PERCENT
-            value: "50"
+            name: INGEST_S3_SPOOL_ENABLED
+            value: "true"
 
   - it: renders the S3 spool limits
     template: ingest-queue/deployment.yaml
