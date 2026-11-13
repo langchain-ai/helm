@@ -13,7 +13,7 @@ set:
   fleet.enabled: true
   fleet.encryptionKey: "fleet-key"
   fleet.agentAccessToken.enabled: true
-  fleet.agentAccessToken.signingJwks: '{"keys":[{"kid":"test"}]}'
+  config.signingJwks: '{"keys":[{"kty":"OKP","crv":"Ed25519","kid":"langsmith","d":"private"},{"kty":"RSA","kid":"agent","d":"private"}]}'
 tests:
   - it: maps each Fleet service account to one deployment ID on platform-backend
     template: templates/platform-backend/deployment.yaml
@@ -130,32 +130,14 @@ tests:
             name: AGENT_ACCESS_TOKEN_FLEET_SERVICE_ACCOUNTS
             value: '{"system:serviceaccount:langsmith:other-langsmith-standalone-fleet-api-server":"fa060c6f-17de-81f7-8bd3-d21110fa12e0"}'
 
-  - it: reads the signing JWKS from the chart-managed Secret
+  - it: turns on agent access tokens on platform-backend
     template: templates/platform-backend/deployment.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: AGENT_ACCESS_TOKEN_SIGNING_JWKS
-            valueFrom:
-              secretKeyRef:
-                name: ls-langsmith-secrets
-                key: agent_access_token_signing_jwks
-
-  - it: reads the signing JWKS from config.existingSecretName when set
-    template: templates/platform-backend/deployment.yaml
-    set:
-      config.existingSecretName: "langsmith-existing-secrets"
-      fleet.agentAccessToken.signingJwks: ""
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: AGENT_ACCESS_TOKEN_SIGNING_JWKS
-            valueFrom:
-              secretKeyRef:
-                name: langsmith-existing-secrets
-                key: agent_access_token_signing_jwks
+            name: AGENT_ACCESS_TOKEN_ENABLED
+            value: "true"
 
   - it: passes the egress audience to platform-backend when set
     template: templates/platform-backend/deployment.yaml
@@ -176,7 +158,7 @@ tests:
       - notContains:
           path: spec.template.spec.containers[0].env
           content:
-            name: AGENT_ACCESS_TOKEN_SIGNING_JWKS
+            name: AGENT_ACCESS_TOKEN_ENABLED
           any: true
       - notContains:
           path: spec.template.spec.containers[0].env
@@ -202,23 +184,8 @@ tests:
       - notContains:
           path: spec.template.spec.containers[0].env
           content:
-            name: AGENT_ACCESS_TOKEN_SIGNING_JWKS
+            name: AGENT_ACCESS_TOKEN_ENABLED
           any: true
-
-  - it: stores the signing JWKS in the chart-managed Secret
-    template: templates/secrets.yaml
-    asserts:
-      - equal:
-          path: data.agent_access_token_signing_jwks
-          value: eyJrZXlzIjpbeyJraWQiOiJ0ZXN0In1dfQ==
-
-  - it: leaves the Secret unchanged when the switch is off
-    template: templates/secrets.yaml
-    set:
-      fleet.agentAccessToken.enabled: false
-    asserts:
-      - notExists:
-          path: data.agent_access_token_signing_jwks
 
   - it: mounts a pod token for Agent Auth on the Fleet api-server
     template: templates/agent-features/fleet/api-server/deployment.yaml
@@ -508,37 +475,138 @@ tests:
       - failedTemplate:
           errorMessage: "config.hostname is required when fleet.agentAccessToken.enabled is true."
 
-  - it: requires the signing JWKS when the chart manages the Secret
+  - it: requires config.signingJwks when the chart manages the Secret
     template: templates/validate.yaml
     set:
-      fleet.agentAccessToken.signingJwks: ""
+      config.signingJwks: ""
     asserts:
       - failedTemplate:
-          errorMessage: "fleet.agentAccessToken.signingJwks is required when fleet.agentAccessToken.enabled is true and the chart manages the LangSmith app Secret. With config.existingSecretName or config.disableSecretCreation, add key agent_access_token_signing_jwks to your Secret instead."
+          errorMessage: "fleet.agentAccessToken.enabled needs config.signingJwks: a JSON Web Key Set with an Ed25519 key 0 and an RSA key after it. With config.existingSecretName or config.disableSecretCreation, put it in your Secret under langsmith_signing_jwks instead."
 
-  - it: refuses an inline signing JWKS with config.existingSecretName
+  - it: refuses a config.signingJwks that is not a JSON Web Key Set
+    template: templates/validate.yaml
+    set:
+      config.signingJwks: '{"keys":['
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.agentAccessToken.enabled needs config.signingJwks: a JSON Web Key Set with an Ed25519 key 0 and an RSA key after it. With config.existingSecretName or config.disableSecretCreation, put it in your Secret under langsmith_signing_jwks instead."
+
+  - it: refuses an RSA key 0
+    template: templates/validate.yaml
+    set:
+      config.signingJwks: '{"keys":[{"kty":"RSA","kid":"agent","d":"private"}]}'
+    asserts:
+      - failedTemplate:
+          errorMessage: "Key 0 of config.signingJwks must be an Ed25519 private key: it signs LangSmith's own tokens. Put RSA keys after it."
+
+  - it: refuses an Ed25519 key 0 without its private part
+    template: templates/validate.yaml
+    set:
+      config.signingJwks: '{"keys":[{"kty":"OKP","crv":"Ed25519","kid":"langsmith"},{"kty":"RSA","kid":"agent","d":"private"}]}'
+    asserts:
+      - failedTemplate:
+          errorMessage: "Key 0 of config.signingJwks must be an Ed25519 private key: it signs LangSmith's own tokens. Put RSA keys after it."
+
+  - it: refuses a key 0 that is not a JSON object
+    template: templates/validate.yaml
+    set:
+      config.signingJwks: '{"keys":["langsmith",{"kty":"RSA","kid":"agent","d":"private"}]}'
+    asserts:
+      - failedTemplate:
+          errorMessage: "Key 0 of config.signingJwks must be an Ed25519 private key: it signs LangSmith's own tokens. Put RSA keys after it."
+
+  - it: requires an RSA key after key 0 in config.signingJwks
+    template: templates/validate.yaml
+    set:
+      config.signingJwks: '{"keys":[{"kty":"OKP","crv":"Ed25519","kid":"langsmith","d":"private"}]}'
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.agentAccessToken.enabled needs an RSA key after key 0 in config.signingJwks: the first one signs agent access tokens."
+
+  - it: refuses a first RSA key without a kid
+    template: templates/validate.yaml
+    set:
+      config.signingJwks: '{"keys":[{"kty":"OKP","crv":"Ed25519","kid":"langsmith","d":"private"},{"kty":"RSA","d":"private"}]}'
+    asserts:
+      - failedTemplate:
+          errorMessage: "The first RSA key after key 0 in config.signingJwks signs agent access tokens, so it needs a kid and its private part, and alg RS256 and use sig when they are set."
+
+  - it: refuses a first RSA key without its private part
+    template: templates/validate.yaml
+    set:
+      config.signingJwks: '{"keys":[{"kty":"OKP","crv":"Ed25519","kid":"langsmith","d":"private"},{"kty":"RSA","kid":"agent"}]}'
+    asserts:
+      - failedTemplate:
+          errorMessage: "The first RSA key after key 0 in config.signingJwks signs agent access tokens, so it needs a kid and its private part, and alg RS256 and use sig when they are set."
+
+  - it: refuses a first RSA key for another algorithm
+    template: templates/validate.yaml
+    set:
+      config.signingJwks: '{"keys":[{"kty":"OKP","crv":"Ed25519","kid":"langsmith","d":"private"},{"kty":"RSA","kid":"agent","d":"private","alg":"RS512"}]}'
+    asserts:
+      - failedTemplate:
+          errorMessage: "The first RSA key after key 0 in config.signingJwks signs agent access tokens, so it needs a kid and its private part, and alg RS256 and use sig when they are set."
+
+  - it: refuses a first RSA key for encryption
+    template: templates/validate.yaml
+    set:
+      config.signingJwks: '{"keys":[{"kty":"OKP","crv":"Ed25519","kid":"langsmith","d":"private"},{"kty":"RSA","kid":"agent","d":"private","use":"enc"}]}'
+    asserts:
+      - failedTemplate:
+          errorMessage: "The first RSA key after key 0 in config.signingJwks signs agent access tokens, so it needs a kid and its private part, and alg RS256 and use sig when they are set."
+
+  - it: checks only the first RSA key after key 0
+    template: templates/validate.yaml
+    set:
+      config.signingJwks: '{"keys":[{"kty":"OKP","crv":"Ed25519","kid":"langsmith","d":"private"},{"kty":"RSA","kid":"agent","d":"private"},{"kty":"RSA","kid":"previous"}]}'
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: accepts config.signingJwks with an RSA key after key 0
+    template: templates/validate.yaml
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: skips the key check with config.existingSecretName
+    template: templates/validate.yaml
+    set:
+      config.existingSecretName: "langsmith-existing-secrets"
+      config.signingJwks: ""
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: skips the key check with config.disableSecretCreation
+    template: templates/validate.yaml
+    set:
+      config.disableSecretCreation: true
+      config.signingJwks: ""
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: refuses config.signingJwks with your own Secret
     template: templates/validate.yaml
     set:
       config.existingSecretName: "langsmith-existing-secrets"
     asserts:
       - failedTemplate:
-          errorMessage: "fleet.agentAccessToken.signingJwks cannot be used with config.existingSecretName or config.disableSecretCreation. Add key agent_access_token_signing_jwks to your Secret instead."
+          errorMessage: "config.signingJwks cannot be used with config.existingSecretName or config.disableSecretCreation. Put the key set in your Secret under langsmith_signing_jwks instead."
 
-  - it: refuses an inline signing JWKS with config.disableSecretCreation
+  - it: refuses the removed fleet.agentAccessToken.signingJwks
     template: templates/validate.yaml
     set:
-      config.disableSecretCreation: true
+      fleet.agentAccessToken.signingJwks: '{"keys":[{"kty":"RSA","kid":"agent"}]}'
     asserts:
       - failedTemplate:
-          errorMessage: "fleet.agentAccessToken.signingJwks cannot be used with config.existingSecretName or config.disableSecretCreation. Add key agent_access_token_signing_jwks to your Secret instead."
+          errorMessage: "fleet.agentAccessToken.signingJwks was removed: agent access tokens are signed by the first RSA key after key 0 in config.signingJwks. Add your RSA key to config.signingJwks after key 0, then unset fleet.agentAccessToken.signingJwks."
 
-  - it: refuses a signing JWKS that is not a key set
+  - it: refuses the removed fleet.agentAccessToken.signingJwks with the switch off
     template: templates/validate.yaml
     set:
-      fleet.agentAccessToken.signingJwks: '{"kty":"RSA","kid":"test"}'
+      fleet.agentAccessToken.enabled: false
+      fleet.agentAccessToken.signingJwks: '{"keys":[{"kty":"RSA","kid":"agent"}]}'
     asserts:
       - failedTemplate:
-          errorMessage: "fleet.agentAccessToken.signingJwks must be a JSON Web Key Set: a JSON object with a keys list."
+          errorMessage: "fleet.agentAccessToken.signingJwks was removed: agent access tokens are signed by the first RSA key after key 0 in config.signingJwks. Add your RSA key to config.signingJwks after key 0, then unset fleet.agentAccessToken.signingJwks."
 
   - it: refuses the namespace default service account for the Fleet api-server
     template: templates/validate.yaml
@@ -603,6 +671,6 @@ tests:
     template: templates/validate.yaml
     set:
       fleet.enabled: false
-      fleet.agentAccessToken.signingJwks: ""
+      config.signingJwks: ""
     asserts:
       - notFailedTemplate: {}

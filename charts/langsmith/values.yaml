@@ -343,10 +343,8 @@ fleet:
     slackSigningSecret: ""
     slackBotId: ""
   agentAccessToken:
-    # -- Give Fleet's pods signed agent access tokens. Each pod trades its Kubernetes service account token for short-lived tokens that name the agent and the user. Needs `config.hostname`. See the Fleet agent access tokens section.
+    # -- Give Fleet's pods signed agent access tokens. Each pod trades its Kubernetes service account token for short-lived tokens that name the agent and the user. Needs `config.hostname` and an RSA key after key 0 in `config.signingJwks`. See the Fleet agent access tokens section.
     enabled: false
-    # -- JSON Web Key Set with the RSA private key that signs agent access tokens. Stored in the chart-managed Secret as `agent_access_token_signing_jwks`. With `config.existingSecretName` or `config.disableSecretCreation`, add that key to your Secret instead.
-    signingJwks: ""
     # -- Audience that your egress gateway checks in agent access tokens. Optional.
     egressAudience: ""
   apiServer:
@@ -1230,10 +1228,12 @@ config:
     # -- When true, percent-encode spaces in the OIDC authorization request as %20 instead of '+'. Enable for IdPs (e.g. SiteMinder) that reject '+'-encoded scope lists. Requires authType 'mixed' with an OAuth client secret.
     urlEncodeScopeSpaces: false
 
-  # -- Ed25519/OKP JWKS (JSON) signing the OAuth AS / remote MCP (and LLM-auth-proxy)
-  # tokens; public keys are served at /.well-known/jwks.json. Set it here (stored in the
-  # chart secret) or as key `langsmith_signing_jwks` in config.existingSecretName. The
-  # remote MCP server / OAuth AS stay inert until this is set.
+  # -- JWKS (JSON) of LangSmith's signing keys. Key 0 must be Ed25519/OKP: it signs the
+  # OAuth AS / remote MCP (and LLM-auth-proxy) tokens. RSA keys after key 0 (RS256, at least
+  # 2048 bits) sign workload identity tokens and, with fleet.agentAccessToken.enabled, agent
+  # access tokens; the first RSA key signs. Public keys are served at /.well-known/jwks.json.
+  # Set it here (stored in the chart secret) or as key `langsmith_signing_jwks` in
+  # config.existingSecretName. The remote MCP server / OAuth AS stay inert until this is set.
   signingJwks: ""
   # -- Optional issuer (iss claim) for tokens minted by the LLM auth proxy. Maps to
   # LLM_AUTH_PROXY_ISSUER. Must match the jwtIssuer configured in the auth proxy chart.

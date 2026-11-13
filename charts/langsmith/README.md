@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.75](https://img.shields.io/badge/Version-0.18.0--rc.75-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.26rc1](https://img.shields.io/badge/AppVersion-0.18.26rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.76](https://img.shields.io/badge/Version-0.18.0--rc.76-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.26rc1](https://img.shields.io/badge/AppVersion-0.18.26rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -113,17 +113,27 @@ The operator deletes removed objects only after the deployment's rollout complet
 
 ## Fleet agent access tokens
 
-`fleet.agentAccessToken.enabled` defaults to `false`. Set it to `true` to give Fleet's pods agent access tokens: short-lived signed tokens that name the agent and the user it acts for. Each Fleet pod trades its own Kubernetes service account token for them at the platform backend, so no API key is involved. It needs `fleet.enabled=true` and `config.hostname`.
+`fleet.agentAccessToken.enabled` defaults to `false`. Set it to `true` to give Fleet's pods agent access tokens: short-lived signed tokens that name the agent and the user it acts for. Each Fleet pod trades its own Kubernetes service account token for them at the platform backend, so no API key is involved. It needs `fleet.enabled=true`, `config.hostname`, and an RSA key in `config.signingJwks`.
 
 **Coordinated upgrade required:** enable it only with platform backend and Fleet images that support agent access tokens. This chart does not change image tags.
 
-You provide the RSA private key that signs the tokens, as a JSON Web Key Set. One way to create it, with Node.js:
+The tokens are signed by the first RSA key after key 0 in `config.signingJwks`. Key 0 must be an Ed25519 key: it signs LangSmith's own tokens.
+
+If you don't set `config.signingJwks` yet, create a key set with both keys. One way, with Node.js:
 
 ```bash
-node -e 'const c=require("node:crypto"); const {privateKey}=c.generateKeyPairSync("rsa",{modulusLength:3072}); process.stdout.write(JSON.stringify({keys:[{...privateKey.export({format:"jwk"}),kid:c.randomUUID(),alg:"RS256",use:"sig"}]}))' > agent-access-token-jwks.json
+node -e 'const c=require("node:crypto"); const jwk=(k,extra)=>({...k.export({format:"jwk"}),kid:c.randomUUID(),use:"sig",...extra}); const ed=c.generateKeyPairSync("ed25519").privateKey; const rsa=c.generateKeyPairSync("rsa",{modulusLength:3072}).privateKey; process.stdout.write(JSON.stringify({keys:[jwk(ed,{alg:"EdDSA"}),jwk(rsa,{alg:"RS256"})]}))' > signing-jwks.json
 ```
 
-Pass it with `--set-file fleet.agentAccessToken.signingJwks=agent-access-token-jwks.json`, and never commit the file. The chart stores the key set in its managed Secret as `agent_access_token_signing_jwks`. With `config.existingSecretName` or `config.disableSecretCreation`, put the key set in your Secret under that key instead, and leave `fleet.agentAccessToken.signingJwks` empty.
+If you already set it and it has no RSA key after key 0, append one:
+
+```bash
+node -e 'const c=require("node:crypto"); const jwks=JSON.parse(require("node:fs").readFileSync(0,"utf8")); const {privateKey}=c.generateKeyPairSync("rsa",{modulusLength:3072}); jwks.keys.push({...privateKey.export({format:"jwk"}),kid:c.randomUUID(),alg:"RS256",use:"sig"}); process.stdout.write(JSON.stringify(jwks))' < signing-jwks.json > signing-jwks-with-rsa.json
+```
+
+Pass the result with `--set-file config.signingJwks=<file>`, and never commit the file. With `config.existingSecretName` or `config.disableSecretCreation`, put it in your Secret under `langsmith_signing_jwks` instead. Setting `config.signingJwks` also turns on the OAuth authorization server and the remote MCP server, and its first RSA key also signs the workload identity tokens that sandboxes use with cloud providers.
+
+If a release candidate of this chart had you set `fleet.agentAccessToken.signingJwks`, move that RSA key into `config.signingJwks` after key 0, and unset `fleet.agentAccessToken.signingJwks`; the chart refuses to render while it is set. If you kept the key in your own Secret under `agent_access_token_signing_jwks`, move it into `langsmith_signing_jwks` after key 0. With no key set yet, create one with the first command, then replace its RSA key with yours.
 
 When the feature is on, the chart:
 
@@ -138,9 +148,9 @@ To grant that access yourself, set `platformBackend.rbac.create=false`. Then giv
 
 Each Fleet pod needs a service account of its own, because the platform backend accepts each account's tokens from one Deployment only: keep `fleet.apiServer.serviceAccount.create` and `fleet.queue.serviceAccount.create` at `true`, or name a different account you created for each. The platform backend needs one too while the chart creates its ClusterRoleBinding, and it must keep `platformBackend.serviceAccount.automountServiceAccountToken=true`. The chart refuses to render otherwise.
 
-Systems that check the tokens, such as an egress gateway, fetch the public keys from `https://<config.hostname>[/<config.basePath>]/api/v1/agent-auth/.well-known/jwks.json`. Set `fleet.agentAccessToken.egressAudience` to the audience your gateway expects. Fleet then sends a token for that audience on its model and tool requests.
+Systems that check the tokens, such as an egress gateway, fetch the public keys from `https://<config.hostname>[/<config.basePath>]/api/v1/agent-auth/.well-known/jwks.json`. They should check each token's issuer (`https://<config.hostname>[/<config.basePath>]/api/v1/agent-auth`), its `typ` header (`at+jwt`) and its audience. Set `fleet.agentAccessToken.egressAudience` to the audience your gateway expects. Fleet then sends a token for that audience on its model and tool requests.
 
-To rotate the signing key, put the new key first in the set and keep the old key after it. The first key signs, and every key in the set verifies. Remove the old key once your gateways have fetched the new public keys and the last tokens signed with the old key have expired; tokens last 5 minutes. With the chart's managed Secret, an upgrade restarts the platform backend. With your own Secret, restart it yourself (`kubectl rollout restart`).
+To rotate the RSA key, append the new key after the old one and upgrade: it is published but does not sign yet. Once the systems that check the tokens have fetched it, move it before the old one and upgrade again; the first RSA key after key 0 signs. Remove the old key once the last tokens it signed have expired; tokens last 5 minutes. With the chart's managed Secret, an upgrade restarts the platform backend. With your own Secret, restart it yourself (`kubectl rollout restart`).
 
 ## General parameters
 
@@ -358,8 +368,7 @@ To rotate the signing key, put the new key first in the set and keep the old key
 | engineInsightsAgent.redis.statefulSet.volumeMounts | list | `[]` |  |
 | engineInsightsAgent.redis.statefulSet.volumes | list | `[]` |  |
 | fleet.agentAccessToken.egressAudience | string | `""` | Audience that your egress gateway checks in agent access tokens. Optional. |
-| fleet.agentAccessToken.enabled | bool | `false` | Give Fleet's pods signed agent access tokens. Each pod trades its Kubernetes service account token for short-lived tokens that name the agent and the user. Needs `config.hostname`. See the Fleet agent access tokens section. |
-| fleet.agentAccessToken.signingJwks | string | `""` | JSON Web Key Set with the RSA private key that signs agent access tokens. Stored in the chart-managed Secret as `agent_access_token_signing_jwks`. With `config.existingSecretName` or `config.disableSecretCreation`, add that key to your Secret instead. |
+| fleet.agentAccessToken.enabled | bool | `false` | Give Fleet's pods signed agent access tokens. Each pod trades its Kubernetes service account token for short-lived tokens that name the agent and the user. Needs `config.hostname` and an RSA key after key 0 in `config.signingJwks`. See the Fleet agent access tokens section. |
 | fleet.apiServer.autoscaling.enabled | bool | `false` |  |
 | fleet.apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | fleet.apiServer.autoscaling.keda.enabled | bool | `false` |  |
@@ -1790,7 +1799,7 @@ To rotate the signing key, put the new key first in the set and keep the old key
 | config.security.cors.alwaysAllowPathsRegex | string | `""` | Regular expression pattern for paths that should always allow CORS from any origin. Useful for public endpoints like webhooks or public API endpoints. Example: ".*(/feedback/tokens/|/public/).*" |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
 | config.settings.redisRunsExpirySeconds | string | `"21600"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
-| config.signingJwks | string | `""` | Ed25519/OKP JWKS (JSON) signing the OAuth AS / remote MCP (and LLM-auth-proxy) tokens; public keys are served at /.well-known/jwks.json. Set it here (stored in the chart secret) or as key `langsmith_signing_jwks` in config.existingSecretName. The remote MCP server / OAuth AS stay inert until this is set. |
+| config.signingJwks | string | `""` | JWKS (JSON) of LangSmith's signing keys. Key 0 must be Ed25519/OKP: it signs the OAuth AS / remote MCP (and LLM-auth-proxy) tokens. RSA keys after key 0 (RS256, at least 2048 bits) sign workload identity tokens and, with fleet.agentAccessToken.enabled, agent access tokens; the first RSA key signs. Public keys are served at /.well-known/jwks.json. Set it here (stored in the chart secret) or as key `langsmith_signing_jwks` in config.existingSecretName. The remote MCP server / OAuth AS stay inert until this is set. |
 | config.skipValidation | bool | `false` | Skip validation checks in validate.yaml. Used by AWS Marketplace for helm template verification. |
 | config.superAdmins | list | `[]` | Email addresses of the installation's super admins. With the organization's installation operations permission, they can view instance health, restart backfills, and create organizations when organization creation is disabled. They are also the only users allowed to use the usage backfill export unless orgAdminsInstallationUsageExportEnabled is set. |
 | config.telemetry.logs | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
