@@ -204,6 +204,9 @@ Allowed long-lived days as JSON. Fails at render time on values the backend refu
 {{- if lt (int .) 14 -}}
 {{- fail (printf "config.ttl.longlivedAllowedDays: %v is below the 14-day minimum" .) -}}
 {{- end -}}
+{{- if gt (int .) 36500 -}}
+{{- fail (printf "config.ttl.longlivedAllowedDays: %v is above the 36500-day maximum" .) -}}
+{{- end -}}
 {{- end -}}
 {{- toJson $days -}}
 {{- end -}}
@@ -407,6 +410,9 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.ttl.enabled | quote }}
 - name: FF_UPGRADE_TRACE_TIER_ENABLED
   value: "true"
+{{- if gt (int64 .Values.config.ttl.ttl_period_seconds.longlived) 3153600000 }}
+{{- fail (printf "config.ttl.ttl_period_seconds.longlived: %v is above the 36500-day maximum (3153600000 seconds)" .Values.config.ttl.ttl_period_seconds.longlived) }}
+{{- end }}
 - name: TRACE_TIER_TTL_DURATION_SEC_MAP
   value: "{ \"longlived\": {{ .Values.config.ttl.ttl_period_seconds.longlived }}, \"shortlived\": {{ .Values.config.ttl.ttl_period_seconds.shortlived }} }"
 {{- if .Values.config.ttl.longlivedAllowedDays }}
