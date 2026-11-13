@@ -8,10 +8,20 @@ set:
   config.apiKeySalt: "salt"
   config.oauth.enabled: true
   config.authType: "mixed"
+# The deployment's checksum annotations include these templates, and helm-unittest only
+# loads the ones listed here.
 templates:
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - operator/config-map.yaml
   - ingest-queue/deployment.yaml
 tests:
   - it: requests and limits ephemeral storage by default
+    template: ingest-queue/deployment.yaml
     asserts:
       - equal:
           path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
@@ -21,6 +31,7 @@ tests:
           value: 20Gi
 
   - it: keeps the CPU and memory defaults next to ephemeral storage
+    template: ingest-queue/deployment.yaml
     asserts:
       - equal:
           path: spec.template.spec.containers[0].resources.limits.memory
@@ -30,6 +41,7 @@ tests:
           value: 1000m
 
   - it: renders a configured ephemeral storage limit
+    template: ingest-queue/deployment.yaml
     set:
       ingestQueue.deployment.resources.limits.ephemeral-storage: 50Gi
     asserts:
