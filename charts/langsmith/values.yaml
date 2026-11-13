@@ -99,7 +99,7 @@ images:
   clickhouseImage:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
-    tag: "25.12"
+    tag: "26.3.62.3"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
@@ -1252,6 +1252,9 @@ config:
     # Every value is offered, also above ttl_period_seconds.longlived, which stays the default.
     # Create a bucket lifecycle rule for each ttl_<N>d/ prefix, or blobs under it never expire.
     longlivedAllowedDays: []
+    perProjectRetention:
+      # -- Per-project extended retention, off by default. Set to true to turn it on.
+      enabled: false
 
   # Blob storage configuration
   # Optional. Used to store inputs, outputs, and errors in Blob Storage.

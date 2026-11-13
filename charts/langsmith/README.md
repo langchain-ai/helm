@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.72](https://img.shields.io/badge/Version-0.18.0--rc.72-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.26rc1](https://img.shields.io/badge/AppVersion-0.18.26rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.76](https://img.shields.io/badge/Version-0.18.0--rc.76-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.26rc1](https://img.shields.io/badge/AppVersion-0.18.26rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -705,7 +705,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | images.backendImage.tag | string | `"0.18.26rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
-| images.clickhouseImage.tag | string | `"25.12"` |  |
+| images.clickhouseImage.tag | string | `"26.3.62.3"` |  |
 | images.deploymentDbImage.repository | string | `"docker.io/pgvector/pgvector"` |  |
 | images.deploymentDbImage.tag | string | `"pg15"` |  |
 | images.deploymentRedisImage.repository | string | `"docker.io/redis"` |  |
@@ -1805,8 +1805,9 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | config.telemetry.logs | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
 | config.telemetry.metrics | bool | `true` |  |
 | config.telemetry.traces | bool | `true` |  |
-| config.ttl | object | `{"enabled":true,"longlivedAllowedDays":[],"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
+| config.ttl | object | `{"enabled":true,"longlivedAllowedDays":[],"perProjectRetention":{"enabled":false},"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
 | config.ttl.longlivedAllowedDays | list | `[]` | Long-lived retention options in days, for SmithDB-only installs. Empty keeps the default options (30 to 400, up to ttl_period_seconds.longlived). At most 10 values, each at least 14. Every value is offered, also above ttl_period_seconds.longlived, which stays the default. Create a bucket lifecycle rule for each ttl_<N>d/ prefix, or blobs under it never expire. |
+| config.ttl.perProjectRetention.enabled | bool | `false` | Per-project extended retention, off by default. Set to true to turn it on. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
 | config.userOrgCreationDisabled | bool | `true` | Prevent organization creation by users. This includes admins. |
 | config.workspaceScopeOrgInvitesEnabled | bool | `false` | Enable Workspace Admins to invite users to the org and workspace. |
