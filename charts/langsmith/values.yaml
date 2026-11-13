@@ -343,7 +343,7 @@ fleet:
     slackSigningSecret: ""
     slackBotId: ""
   agentAccessToken:
-    # -- Give Fleet's pods signed agent access tokens. Each pod trades its Kubernetes service account token for short-lived tokens that name the agent and the user. Needs `config.hostname`. See the Fleet agent access tokens section.
+    # -- Give Fleet's pods signed agent access tokens. Each pod trades its Kubernetes service account token for short-lived tokens that name the agent and the user. Needs `config.hostname` and an RSA key after key 0 in `config.signingJwks`. See the Fleet agent access tokens section.
     enabled: false
     # -- Audience that your egress gateway checks in agent access tokens. Optional.
     egressAudience: ""

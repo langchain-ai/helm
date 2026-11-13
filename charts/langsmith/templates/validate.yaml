@@ -714,6 +714,9 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
 {{- if hasKey .Values.config "polly" -}}
 {{- fail "config.polly is no longer supported (the bundled-agent bootstrap path was removed in chart 0.15.1). Use the top-level polly block: polly.enabled, polly.encryptionKey, etc." -}}
 {{- end -}}
+{{- if .Values.fleet.agentAccessToken.signingJwks -}}
+{{- fail "fleet.agentAccessToken.signingJwks was removed: agent access tokens are signed by the first RSA key after key 0 in config.signingJwks. Add your RSA key to config.signingJwks after key 0, then unset fleet.agentAccessToken.signingJwks." -}}
+{{- end -}}
 
 {{- /* Validate autoscaling configuration for all services */ -}}
 {{- $autoscalingServices := dict
@@ -748,22 +751,10 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
 {{- if not .Values.config.hostname -}}
 {{- fail "config.hostname is required when fleet.agentAccessToken.enabled is true." -}}
 {{- end -}}
-{{- if .Values.fleet.agentAccessToken.signingJwks -}}
-{{- fail "fleet.agentAccessToken.signingJwks was removed: agent access tokens are signed by the first RSA key after key 0 in config.signingJwks. Add your RSA key to config.signingJwks after key 0, then unset fleet.agentAccessToken.signingJwks." -}}
-{{- end -}}
 {{- if $chartManagesSecret -}}
-{{- $keys := (fromJson (.Values.config.signingJwks | default "{}")).keys -}}
-{{- $hasRSAKeyAfterKeyZero := false -}}
-{{- if kindIs "slice" $keys -}}
-{{- range $index, $key := $keys -}}
-{{- if and (gt $index 0) (kindIs "map" $key) (eq (get $key "kty") "RSA") -}}
-{{- $hasRSAKeyAfterKeyZero = true -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-{{- if not $hasRSAKeyAfterKeyZero -}}
-{{- fail "fleet.agentAccessToken.enabled needs an RSA key after key 0 in config.signingJwks: the first one signs agent access tokens. With config.existingSecretName or config.disableSecretCreation, add it to the langsmith_signing_jwks key of your Secret instead." -}}
-{{- end -}}
+{{- include "langsmith.fleet.validateSigningJwks" .Values.config.signingJwks -}}
+{{- else if .Values.config.signingJwks -}}
+{{- fail "config.signingJwks cannot be used with config.existingSecretName or config.disableSecretCreation. Put the key set in your Secret under langsmith_signing_jwks instead." -}}
 {{- end -}}
 {{- $componentOf := dict -}}
 {{- range $component, $name := include "langsmith.fleet.serviceAccountNames" . | fromYaml -}}
