@@ -1,0 +1,19 @@
+suite: redaction rules
+set:
+  config.existingSecretName: langsmith-secrets
+  config.skipValidation: true
+tests:
+  - it: leaves the feature flag unset by default
+    template: templates/config-map.yaml
+    asserts:
+      - notExists:
+          path: data.FF_REDACTION_RULES_ENABLED
+
+  - it: enables redaction rules when configured
+    template: templates/config-map.yaml
+    set:
+      config.redactionRules.enabled: true
+    asserts:
+      - equal:
+          path: data.FF_REDACTION_RULES_ENABLED
+          value: "true"

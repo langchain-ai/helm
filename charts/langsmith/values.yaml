@@ -1204,6 +1204,11 @@ config:
   # config) to unauthenticated callers.
   infoEndpointAuthRequired: false
 
+  # Regex redaction rules applied at ingestion, configured per project in the UI.
+  redactionRules:
+    # -- Enable redaction rules at ingestion. Renders FF_REDACTION_RULES_ENABLED. Needs ingestQueue.enabled. Raw values of large fields are kept in blob storage under ttl_1d/ until the worker deletes them, so create a bucket lifecycle rule that expires that prefix after 1 day.
+    enabled: false
+
   # -- hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com
   hostname: ""
   # -- Frontend origin for user-facing redirects (LANGSMITH_URL); defaults to hostname. Set only when the UI is served from a different origin than this deployment's API.

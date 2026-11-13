@@ -171,6 +171,9 @@ data:
   FF_USE_PG_FOR_FEEDBACK_CONFIGS_FETCH_ENABLED_ALL: "true"
   FF_USE_PG_FOR_FEEDBACK_FETCH_ENABLED_ALL: "true"
   IS_SELF_HOSTED: "true"
+  {{- if .Values.config.redactionRules.enabled }}
+  FF_REDACTION_RULES_ENABLED: "true"
+  {{- end }}
   LGP_EXTRA_MANIFESTS_ENABLED: {{ and .Values.config.deployment.enabled .Values.operator.enabled .Values.config.deployment.extraManifestsEnabled | toString | quote }}
   {{- if .Values.polly.enabled }}
   SELF_HOSTED_POLLY_ENABLED: "true"

@@ -1783,6 +1783,8 @@ To rotate the signing key, put the new key first in the set and keep the old key
 | config.observability.tracing.useTls | bool | `true` | Use TLS for OTLP export. |
 | config.orgAdminsInstallationUsageExportEnabled | bool | `false` | When true, any org admin can use the usage backfill export. |
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
+| config.redactionRules | object | `{"enabled":false}` | |
+| config.redactionRules.enabled | bool | `false` | Enable redaction rules at ingestion. Renders FF_REDACTION_RULES_ENABLED. Needs ingestQueue.enabled. Raw values of large fields are kept in blob storage under ttl_1d/ until the worker deletes them, so create a bucket lifecycle rule that expires that prefix after 1 day. |
 | config.security | object | `{"cors":{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}}` | Security configuration for CORS, headers, and other security-related settings. These settings control cross-origin access and help protect against common web vulnerabilities. |
 | config.security.cors | object | `{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}` | CORS (Cross-Origin Resource Sharing) configuration. Controls which origins can make requests to the LangSmith API. By default, CORS is permissive. For production deployments, you should restrict this. |
 | config.security.cors.allowedOrigins | string | `"*"` | Comma-separated list of allowed origins. Use "*" to allow all origins (not recommended for production). Example: "https://app.example.com,https://admin.example.com" If allowedOriginsRegex is set, this value is ignored. |
