@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.76](https://img.shields.io/badge/Version-0.18.0--rc.76-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.26rc1](https://img.shields.io/badge/AppVersion-0.18.26rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.77](https://img.shields.io/badge/Version-0.18.0--rc.77-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.26rc1](https://img.shields.io/badge/AppVersion-0.18.26rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -210,7 +210,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | engineInsightsAgent.apiServer.deployment.securityContext | object | `{}` |  |
 | engineInsightsAgent.apiServer.deployment.sidecars | list | `[]` |  |
 | engineInsightsAgent.apiServer.deployment.startupProbe.exec | string | `nil` |  |
-| engineInsightsAgent.apiServer.deployment.startupProbe.failureThreshold | int | `6` |  |
+| engineInsightsAgent.apiServer.deployment.startupProbe.failureThreshold | int | `30` |  |
 | engineInsightsAgent.apiServer.deployment.startupProbe.httpGet.path | string | `"/ok?check_db=1"` |  |
 | engineInsightsAgent.apiServer.deployment.startupProbe.httpGet.port | int | `8000` |  |
 | engineInsightsAgent.apiServer.deployment.startupProbe.periodSeconds | int | `10` |  |
@@ -309,7 +309,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | engineInsightsAgent.queue.deployment.resources | object | `{}` |  |
 | engineInsightsAgent.queue.deployment.securityContext | object | `{}` |  |
 | engineInsightsAgent.queue.deployment.sidecars | list | `[]` |  |
-| engineInsightsAgent.queue.deployment.startupProbe.failureThreshold | int | `6` |  |
+| engineInsightsAgent.queue.deployment.startupProbe.failureThreshold | int | `30` |  |
 | engineInsightsAgent.queue.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
 | engineInsightsAgent.queue.deployment.startupProbe.httpGet.port | int | `8000` |  |
 | engineInsightsAgent.queue.deployment.startupProbe.periodSeconds | int | `10` |  |

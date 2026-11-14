@@ -646,7 +646,7 @@ engineInsightsAgent:
         httpGet:
           path: /ok?check_db=1
           port: 8000
-        failureThreshold: 6
+        failureThreshold: 30
         periodSeconds: 10
         timeoutSeconds: 1
       readinessProbe:
@@ -716,7 +716,7 @@ engineInsightsAgent:
         httpGet:
           path: "/ok"
           port: 8000
-        failureThreshold: 6
+        failureThreshold: 30
         periodSeconds: 10
         timeoutSeconds: 1
       readinessProbe:
