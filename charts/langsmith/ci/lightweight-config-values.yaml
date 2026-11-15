@@ -9,7 +9,7 @@ config:
     initialOrgAdminPassword: "TestLangSmith123!"
     jwtSecret: "YOUR_JWT_SECRET"
 
-# Blob storage: no config.blobStorage, so the chart deploys RustFS. The other ci/ values files use external storage.
+# Blob storage: no config.blobStorage, so the chart deploys RustFS.
 rustfs:
   statefulSet:
     resources:

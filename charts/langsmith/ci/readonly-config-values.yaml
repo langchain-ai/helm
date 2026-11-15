@@ -1,13 +1,5 @@
 # Read-Only configuration. Use this if you are running in an environment where containers must run as read-only.
 config:
-  # Blob storage is required. CI points it at the RustFS the workflow deploys in the kind cluster.
-  blobStorage:
-    engine: "S3"
-    bucketName: "langsmith"
-    apiURL: "http://rustfs.default.svc.cluster.local:9000"
-    s3UsePathStyle: true
-    accessKey: "langsmith-ci"
-    accessKeySecret: "langsmith-ci-secret"
   langsmithLicenseKey: "YOUR_LICENSE_KEY"
   apiKeySalt: "YOUR_API_KEY_SALT"
   authType: "mixed"
@@ -804,3 +796,13 @@ clickhouse:
         mountPath: /var
       - name: etc
         mountPath: /etc/clickhouse-server/users.d
+
+# Blob storage: no config.blobStorage, so the chart deploys RustFS.
+rustfs:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+    persistence:
+      size: 1Gi
