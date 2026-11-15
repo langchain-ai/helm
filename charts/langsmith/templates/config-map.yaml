@@ -91,8 +91,6 @@ data:
   {{- else }}
   SMITHDB_INGESTION_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "ingestion" "port" .Values.smithdb.ingestion.service.port) | quote }}
   {{- end }}
-  RULES_REDIS_TRACKING_ENABLED: "true"
-  RULES_REDIS_TRACKING_MULTIPART_ENABLED: "true"
   {{- end }}
   {{- if .Values.smithdb.enabled }}
   {{- if $smithdbUnified }}
@@ -105,12 +103,6 @@ data:
   SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE: "1073741824"
   SMITHDB_FEEDBACK_MUTATION_RPS_PER_KEY: "100"
   SMITHDB_FEEDBACK_MUTATION_BURST_PER_KEY: "150"
-  SMITHDB_RULES_REDIS_READ_ENABLED: "true"
-  SMITHDB_RULES_THREAD_REDIS_READ_ENABLED: "true"
-  RUN_RULES_SMITHDB_RETRIEVER_TENANTS: '["*"]'
-  RUN_RULES_SMITHDB_RETRIEVER_PCT: "100"
-  RUN_RULES_SMITHDB_THREAD_RETRIEVER_TENANTS: '["*"]'
-  RUN_RULES_SMITHDB_THREAD_RETRIEVER_PCT: "100"
   RUN_RULES_QUERY_LIMIT: "250"
   {{- if .Values.smithdb.runRules.enabled }}
   SMITHDB_RUN_RULES_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "runRules" "port" .Values.smithdb.runRules.service.port) | quote }}
@@ -132,9 +124,15 @@ data:
   {{- if .Values.config.llmAuthProxyIssuer }}
   LLM_AUTH_PROXY_ISSUER: {{ .Values.config.llmAuthProxyIssuer | quote }}
   {{- end }}
-  {{- if and .Values.fleet.enabled .Values.fleetTriggerServer.enabled }}
+  {{- $fleetToolServerDeployed := and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetToolServer.enabled }}
+  {{- if or (and .Values.fleet.enabled .Values.fleetTriggerServer.enabled) $fleetToolServerDeployed }}
   MCP_SERVER_URL: "http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetToolServer.service.port }}"
+  {{- end }}
+  {{- if and .Values.fleet.enabled .Values.fleetTriggerServer.enabled }}
   TRIGGER_SERVER_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetTriggerServer.service.port }}"
+  {{- end }}
+  {{- with (.Values.fleet.egressProxy | default dict).url }}
+  FLEET_EGRESS_PROXY_URL: {{ . | quote }}
   {{- end }}
   {{- if .Values.config.deployment.enabled }}
   {{- if not .Values.frontend.enabled }}
@@ -149,8 +147,6 @@ data:
   {{- end }}
   FF_RUN_STATS_GROUP_BY_ENABLED_ALL: "true"
   SEPARATE_QUEUES_WITH_SINGLE_WORKER: '["host"]'
-  RUN_RULES_REDIS_DEDUP_TENANTS: '["*"]'
-  RUN_RULES_LIMIT_RRA_RECORDS_PER_BATCH_TENANTS: '["*"]'
   {{- if .Values.config.observability.tracing.enabled }}
   OTEL_TRACING_ENABLED: "{{ .Values.config.observability.tracing.enabled }}"
   OTLP_ENDPOINT: "{{ .Values.config.observability.tracing.endpoint }}"
@@ -166,6 +162,7 @@ data:
   ENABLE_POSTGRES_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
   ENABLE_REDIS_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
   ENABLE_CLICKHOUSE_METRICS_CRON: {{ and .Values.clickhouse.enabled .Values.config.telemetry.metrics | quote }}
+  ENABLE_SMITHDB_METRICS_CRON: {{ and (or .Values.smithdb.enabled (include "langsmith.smithdb.migrationEnabled" . | eq "true")) .Values.config.telemetry.metrics | quote }}
   BEACON_LOGGING_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.logs | quote }}
   BEACON_METRICS_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
   BEACON_TRACING_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.traces | quote }}
@@ -174,6 +171,7 @@ data:
   FF_USE_PG_FOR_FEEDBACK_CONFIGS_FETCH_ENABLED_ALL: "true"
   FF_USE_PG_FOR_FEEDBACK_FETCH_ENABLED_ALL: "true"
   IS_SELF_HOSTED: "true"
+  LGP_EXTRA_MANIFESTS_ENABLED: {{ and .Values.config.deployment.enabled .Values.operator.enabled .Values.config.deployment.extraManifestsEnabled | toString | quote }}
   {{- if .Values.polly.enabled }}
   SELF_HOSTED_POLLY_ENABLED: "true"
   {{- end }}
@@ -184,9 +182,12 @@ data:
   {{- if .Values.presidioAnalyzer.enabled }}
   DEFAULT_ORG_FEATURE_GATEWAY_PII_REDACTION_ENABLED: "true"
   {{- end }}
-  # Usage backfill export gating
+  # Every organization is entitled to Tool Gateway.
+  DEFAULT_ORG_FEATURE_LMT_ENABLED: "true"
+  # Instance admins: usage backfill export and installation-level operations
   {{- if .Values.config.superAdmins }}
   USAGE_EXPORT_ADMIN_EMAILS: {{ .Values.config.superAdmins | toJson | quote }}
+  INSTANCE_ADMIN_EMAILS: {{ .Values.config.superAdmins | toJson | quote }}
   {{- end }}
   ORG_ADMINS_INSTALLATION_USAGE_EXPORT_ENABLED: {{ .Values.config.orgAdminsInstallationUsageExportEnabled | quote }}
   # Security - CORS configuration

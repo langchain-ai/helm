@@ -10,6 +10,25 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 {{ template "chart.requirementsSection" . }}
 
+## Sandboxes
+
+Sandboxes support two deployment topologies:
+
+- By default this chart deploys the sandbox runtime, `sandbox-host`, alongside LangSmith on dedicated KVM-capable nodes.
+- With `sandboxes.external.enabled=true` the runtime is external: this release keeps the sandbox API and control plane but omits the runtime resources. Install the `langsmith-sandbox` chart in the sandbox cluster and give it an externally reachable LangSmith API endpoint plus a minimal existing Secret containing the shared sandbox service-auth key and callback-signing JWK.
+
+When the clusters share a private network you trust, leave `sandboxes.external.hostIngressEndpoint` empty and allow the LangSmith cluster to reach sandbox node IPs on TCP port 19190; that traffic is plain HTTP and carries sandbox commands, files and credentials. Otherwise, enable the `langsmith-sandbox` chart's host ingress (`sandboxHost.ingress`) with TLS and set its `https://` origin as `sandboxes.external.hostIngressEndpoint`.
+
+Copy the sandbox service-auth secret and the callback-signing JWK into the runtime chart's Secret, under the keys that chart's `serviceAuth.secretKey` (default `sandbox_service_auth_secret`) and `config.callbackSigningJwkSecretKey` name. With an external runtime the service-auth secret must be its own random value, never `api_key_salt`: that value also salts API keys and signs LangSmith's other service calls, so it must not leave this cluster, and the chart refuses to render without a dedicated secret. Generate one (for example with `openssl rand -base64 32`) and either set `sandboxes.serviceAuth.secret`, which the chart stores as `sandbox_service_auth_secret` in its managed Secret, or add it to `config.existingSecretName` under its own key and name that key in `sandboxes.serviceAuth.secretKey`. With the embedded runtime the secret still defaults to `api_key_salt`. To change the value of a running install, rotate it in three steps, and wait for both releases to finish rolling out after each one:
+
+1. On both sides, add the new value as the previous secret: `sandboxes.serviceAuth.previousSecret` or `previousSecretKey` here, `serviceAuth.previousSecretKey` in the runtime chart.
+2. On both sides, make the new value current and the old value the previous secret.
+3. Remove the previous secret on both sides.
+
+Kubernetes does not restart pods when data inside an existing Secret changes, so after editing one, restart the pods that read it (`kubectl rollout restart`). Restarting sandbox-host suspends its VMs.
+
+Run exactly one `langsmith-sandbox` release per LangSmith install, and none while `sandboxes.external.enabled` is false. LangSmith accepts host reports from one runtime at a time and refuses any other: a refused runtime's hosts never join, and its elected `sandbox-host` pod turns not ready. To move from the embedded runtime, set `sandboxes.external.enabled=true` on this release, with its dedicated service-auth secret, first, then install `langsmith-sandbox` with the same secret. Set `sandboxes.clusterName` only at install time: renaming it hides existing sandboxes, private registries and hosts.
+
 ## Engine
 
 LangSmith Engine is off by default. `engine.enabled=true` requires all of the following, and the chart refuses to render if any is missing:
@@ -42,7 +61,7 @@ When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSa
 
 ## SmithDB resource tiers
 
-`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount a volume named `cache` at `/data` as a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s.
+`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query and ingestion mount a volume named `cache` at `/data`; compaction worker and the migration Job mount it at `/tmp` for scratch files. Each is a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s. The migration Job's volume is 100Gi in every tier.
 
 Explicit component `resources` or `volumes` replace the tier values. Cache overrides must be named `cache` and use an `emptyDir` or inline ephemeral PVC; existing PVCs are unsupported. To cache on local SSD, set matching `emptyDir.sizeLimit` and `ephemeral-storage` requests and limits.
 
@@ -72,6 +91,63 @@ The query disk cache limit is set automatically from the PVC storage request or,
 Online evaluations on trajectories use an internal gRPC listener in `platformBackend` on port `8086`, enabled when both `smithdb.enabled` and `smithdb.langsmith.query.enabled` are true. Otherwise, no trajectory listener, Service, or endpoint is configured. It shares the HTTP backend's SmithDB routing, resources, and scaling; readiness uses `/ready` while active.
 
 The trajectory Service is cluster-internal; no public route is added. Trajectory processing can be memory intensive, consider setting [GOMEMLIMIT](https://pkg.go.dev/runtime#hdr-Environment_Variables) relative to your memory limit to mitigate OOMKilled errors for this service. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
+
+## Extra manifests
+
+`config.deployment.extraManifestsEnabled` defaults to `false`. Set it to `true` to let standalone self-hosted deployments declare extra ServiceAccounts and SecretProviderClasses. It needs `config.deployment.enabled=true` and the operator. The chart passes `LGP_EXTRA_MANIFESTS_ENABLED` to the operator and, through the shared ConfigMap, to the host backend, listener, and platform backend. Deployments on a remote listener are unsupported. Do not override the flag through environment values.
+
+**Coordinated upgrade required:** enable it only with operator, host backend, listener, and platform backend images that support the feature, together with this chart's LGP CRD. This chart does not change image tags.
+
+The API and the operator validate every manifest and return the reason for a rejection. In summary: only `v1/ServiceAccount` and `secrets-store.csi.x-k8s.io/v1/SecretProviderClass` are allowed, up to 16 objects. Each name must start with the deployment's resource name followed by `-`; the UI shows the prefix. SecretProviderClasses must use pod workload identity. A deployment cannot reference another deployment's objects; the operator reports `ReferenceForbidden`.
+
+Manifests are stored in plaintext in the LangSmith database and in the deployment's custom resource. Do not put credentials in them.
+
+Enabling the feature grants the operator SecretProviderClass `get`, `create`, `patch`, and `delete`. ServiceAccount permissions already exist. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
+
+Scope each workload identity's federation to the namespace and the full prefixed ServiceAccount name. For Azure Key Vault, install the Secrets Store CSI driver and Azure provider, and configure Azure Workload Identity and the federated identity credential. This chart does not install those prerequisites.
+
+The operator deletes removed objects only after the deployment's rollout completes and no pod or Deployment template still references them. It reports progress in the LGP `ExtraManifestsReady` condition. Turning the flag off freezes the objects and the stored configuration. Clear resources while the flag is on. Deleting a deployment garbage-collects its objects through owner references.
+
+## Fleet agent access tokens
+
+`fleet.agentAccessToken.enabled` defaults to `false`. Set it to `true` to give Fleet's pods agent access tokens: short-lived signed tokens that name the agent and the user it acts for. Each Fleet pod trades its own Kubernetes service account token for them at the platform backend, so no API key is involved. It needs `fleet.enabled=true`, `config.hostname`, and an RSA key in `config.signingJwks`.
+
+**Coordinated upgrade required:** enable it only with platform backend and Fleet images that support agent access tokens. This chart does not change image tags.
+
+The tokens are signed by the first RSA key after key 0 in `config.signingJwks`. Key 0 must be an Ed25519 key: it signs LangSmith's own tokens.
+
+If you don't set `config.signingJwks` yet, create a key set with both keys. One way, with Node.js:
+
+```bash
+node -e 'const c=require("node:crypto"); const jwk=(k,extra)=>({...k.export({format:"jwk"}),kid:c.randomUUID(),use:"sig",...extra}); const ed=c.generateKeyPairSync("ed25519").privateKey; const rsa=c.generateKeyPairSync("rsa",{modulusLength:3072}).privateKey; process.stdout.write(JSON.stringify({keys:[jwk(ed,{alg:"EdDSA"}),jwk(rsa,{alg:"RS256"})]}))' > signing-jwks.json
+```
+
+If you already set it and it has no RSA key after key 0, append one:
+
+```bash
+node -e 'const c=require("node:crypto"); const jwks=JSON.parse(require("node:fs").readFileSync(0,"utf8")); const {privateKey}=c.generateKeyPairSync("rsa",{modulusLength:3072}); jwks.keys.push({...privateKey.export({format:"jwk"}),kid:c.randomUUID(),alg:"RS256",use:"sig"}); process.stdout.write(JSON.stringify(jwks))' < signing-jwks.json > signing-jwks-with-rsa.json
+```
+
+Pass the result with `--set-file config.signingJwks=<file>`, and never commit the file. With `config.existingSecretName` or `config.disableSecretCreation`, put it in your Secret under `langsmith_signing_jwks` instead. Setting `config.signingJwks` also turns on the OAuth authorization server and the remote MCP server, and its first RSA key also signs the workload identity tokens that sandboxes use with cloud providers.
+
+If a release candidate of this chart had you set `fleet.agentAccessToken.signingJwks`, move that RSA key into `config.signingJwks` after key 0, and unset `fleet.agentAccessToken.signingJwks`; the chart refuses to render while it is set. If you kept the key in your own Secret under `agent_access_token_signing_jwks`, move it into `langsmith_signing_jwks` after key 0. With no key set yet, create one with the first command, then replace its RSA key with yours.
+
+When the feature is on, the chart:
+
+- mounts a service account token in the Fleet api-server and queue pods. Its audience is `https://<config.hostname>[/<config.basePath>]/api/v1/agent-auth`. It lasts 10 minutes, and the kubelet renews it before it expires.
+- tells the platform backend which service accounts belong to Fleet. They map to one deployment ID, derived from the release name and namespace, so it stays the same across upgrades. Fleet names the same ID when its sandboxes ask for tokens.
+- creates a ClusterRole and a ClusterRoleBinding for the platform backend. With them, the platform backend checks each pod token's signature against the cluster's service account keys (`/openid/v1/jwks`), then asks the Kubernetes API server to confirm the token with a TokenReview.
+- creates a Role and a RoleBinding in the release namespace. With them, the platform backend reads the pod each token names, then its ReplicaSet and its Deployment, and accepts the token only when Fleet's own Deployment runs that pod. A pod that merely runs as a Fleet service account gets no token.
+
+If the cluster does not serve `/openid/v1/jwks`, the platform backend relies on the TokenReview alone and logs a warning.
+
+To grant that access yourself, set `platformBackend.rbac.create=false`. Then give the platform backend's service account `create` on `tokenreviews` in the `authentication.k8s.io` API group and `get` on the non-resource URL `/openid/v1/jwks` across the cluster, and `get` on `pods`, and on `replicasets` and `deployments` in the `apps` API group, in the release namespace.
+
+Each Fleet pod needs a service account of its own, because the platform backend accepts each account's tokens from one Deployment only: keep `fleet.apiServer.serviceAccount.create` and `fleet.queue.serviceAccount.create` at `true`, or name a different account you created for each. The platform backend needs one too while the chart creates its ClusterRoleBinding, and it must keep `platformBackend.serviceAccount.automountServiceAccountToken=true`. The chart refuses to render otherwise.
+
+Systems that check the tokens, such as an egress gateway, fetch the public keys from `https://<config.hostname>[/<config.basePath>]/api/v1/agent-auth/.well-known/jwks.json`. They should check each token's issuer (`https://<config.hostname>[/<config.basePath>]/api/v1/agent-auth`), its `typ` header (`at+jwt`) and its audience. Set `fleet.agentAccessToken.egressAudience` to the audience your gateway expects. Fleet then sends a token for that audience on its model and tool requests.
+
+To rotate the RSA key, append the new key after the old one and upgrade: it is published but does not sign yet. Once the systems that check the tokens have fetched it, move it before the old one and upgrade again; the first RSA key after key 0 signs. Remove the old key once the last tokens it signed have expired; tokens last 5 minutes. With the chart's managed Secret, an upgrade restarts the platform backend. With your own Secret, restart it yourself (`kubectl rollout restart`).
 
 ## General parameters
 

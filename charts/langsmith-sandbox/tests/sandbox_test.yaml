@@ -1,0 +1,739 @@
+suite: separate-cluster sandbox runtime
+templates:
+  - validate.yaml
+  - proxy-ca.yaml
+  - juicefs-config.yaml
+  - juicefs-format-job.yaml
+  - sandbox-host-service-account.yaml
+  - sandbox-host-rbac.yaml
+  - sandbox-host-deployment.yaml
+  - sandbox-host-pdb.yaml
+  - sandbox-host-service.yaml
+  - sandbox-host-ingress.yaml
+tests:
+  - it: should render no runtime resources when disabled
+    set:
+      sandboxHost.enabled: false
+    templates:
+      - proxy-ca.yaml
+      - juicefs-config.yaml
+      - juicefs-format-job.yaml
+      - sandbox-host-service-account.yaml
+      - sandbox-host-rbac.yaml
+      - sandbox-host-deployment.yaml
+      - sandbox-host-pdb.yaml
+      - sandbox-host-service.yaml
+      - sandbox-host-ingress.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should probe readiness on /readyz, which reflects pool registration and runtime refusal
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet
+          value:
+            path: /readyz
+            port: http
+      - notExists:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket
+
+  - it: should configure a host to report to the external LangSmith API
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-sandbox-host
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
+            value: https://langsmith.example.com/api
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OAUTH_AS_ISSUER
+            value: https://langsmith.example.com/api
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-sandbox-runtime
+                key: sandbox_service_auth_secret
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-sandbox-runtime
+                key: sandbox_callback_signing_jwk
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].hostPort
+          value: 19190
+
+  - it: should keep host ingress disabled by default
+    values:
+      - ./values/enabled.yaml
+    templates:
+      - sandbox-host-service.yaml
+      - sandbox-host-ingress.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should add ingress labels without dropping the chart labels
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.ingress.enabled: true
+      sandboxHost.ingress.hostname: sandbox-host.example.com
+      sandboxHost.ingress.labels:
+        team: sandboxes
+    template: sandbox-host-ingress.yaml
+    asserts:
+      - equal:
+          path: metadata.labels.team
+          value: sandboxes
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: langsmith-sandbox
+
+  - it: should expose the authenticated host pool through an optional ingress
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.ingress.enabled: true
+      sandboxHost.ingress.ingressClassName: nginx
+      sandboxHost.ingress.hostname: sandbox-host.example.com
+    templates:
+      - sandbox-host-service.yaml
+      - sandbox-host-ingress.yaml
+    asserts:
+      - isKind:
+          of: Service
+        template: sandbox-host-service.yaml
+      - equal:
+          path: spec.ports[0].port
+          value: 19190
+        template: sandbox-host-service.yaml
+      - isKind:
+          of: Ingress
+        template: sandbox-host-ingress.yaml
+      - equal:
+          path: spec.rules[0].host
+          value: sandbox-host.example.com
+        template: sandbox-host-ingress.yaml
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.name
+          value: RELEASE-NAME-langsmith-sandbox-sandbox-host
+        template: sandbox-host-ingress.yaml
+
+  # Only host RPCs and the sandbox data plane go through the ingress; the
+  # hosts' unauthenticated /metrics and /readyz must not be reachable there.
+  - it: should route only the host RPC and data-plane paths through the host ingress
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.ingress.enabled: true
+      sandboxHost.ingress.hostname: sandbox-host.example.com
+    template: sandbox-host-ingress.yaml
+    asserts:
+      - lengthEqual:
+          path: spec.rules[0].http.paths
+          count: 2
+      - equal:
+          path: spec.rules[0].http.paths
+          value:
+            - path: /internal/SandboxHost/
+              pathType: Prefix
+              backend:
+                service:
+                  name: RELEASE-NAME-langsmith-sandbox-sandbox-host
+                  port:
+                    number: 19190
+            - path: /guest-operation/
+              pathType: Prefix
+              backend:
+                service:
+                  name: RELEASE-NAME-langsmith-sandbox-sandbox-host
+                  port:
+                    number: 19190
+
+  # GKE reads cloud.google.com/backend-config only from the Service, so the
+  # health check on /readyz needs Service-specific annotations.
+  - it: should annotate the host Service for the ingress, over commonAnnotations
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.ingress.enabled: true
+      sandboxHost.ingress.hostname: sandbox-host.example.com
+      commonAnnotations:
+        team: sandboxes
+        cloud.google.com/backend-config: '{"default":"common"}'
+      sandboxHost.ingress.service.annotations:
+        cloud.google.com/backend-config: '{"default":"sandbox-host"}'
+    template: sandbox-host-service.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            team: sandboxes
+            cloud.google.com/backend-config: '{"default":"sandbox-host"}'
+
+  - it: should use the existing JuiceFS Secret for formatting and mounting
+    values:
+      - ./values/enabled.yaml
+    set:
+      juicefs.redis.metaURL: ""
+      juicefs.bucket: ""
+      juicefs.existingSecretName: external-juicefs-config
+    templates:
+      - juicefs-config.yaml
+      - juicefs-format-job.yaml
+      - sandbox-host-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: juicefs-config.yaml
+      - equal:
+          path: spec.template.spec.volumes[0].secret.secretName
+          value: external-juicefs-config
+        template: juicefs-format-job.yaml
+      - equal:
+          path: spec.template.spec.volumes[2].secret.secretName
+          value: external-juicefs-config
+        template: sandbox-host-deployment.yaml
+
+  - it: should grant the elected host access only to its Deployment
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-rbac.yaml
+    documentIndex: 0
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups: ["apps"]
+            resources: ["deployments"]
+            resourceNames: ["RELEASE-NAME-langsmith-sandbox-sandbox-host"]
+            verbs: ["get", "patch"]
+
+  - it: should set LANGCHAIN_ENV directly on the formatter
+    values:
+      - ./values/enabled.yaml
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: LANGCHAIN_ENV
+              value: local_kubernetes
+
+  - it: should require a minimal existing service-auth Secret
+    values:
+      - ./values/enabled.yaml
+    set:
+      config.existingSecretName: ""
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.existingSecretName is required when sandboxHost.enabled is true."
+
+  - it: should require an absolute platform endpoint
+    values:
+      - ./values/enabled.yaml
+    set:
+      config.endpoint: /api
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.endpoint must be an absolute HTTP(S) URL without a query string or fragment."
+
+  - it: should require the public API prefix on the platform endpoint
+    values:
+      - ./values/enabled.yaml
+    set:
+      config.endpoint: https://langsmith.example.com
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.endpoint must include the externally reachable LangSmith /api prefix."
+
+  # The sandbox IRSA role trusts one ServiceAccount by name (Terraform:
+  # sandbox_service_account_name, written into these values by init-values.sh).
+  # If this stops being honored, IRSA fails at runtime with a WebIdentityErr
+  # that points nowhere near the chart, so pin the behavior here.
+  - it: should name the sandbox-host ServiceAccount from serviceAccount.name
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.serviceAccount.name: sandbox-host
+    templates:
+      - sandbox-host-service-account.yaml
+      - sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: sandbox-host
+        template: sandbox-host-service-account.yaml
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: sandbox-host
+        template: sandbox-host-deployment.yaml
+
+  - it: should fall back to the release-prefixed ServiceAccount name when unset
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-service-account.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-sandbox-host
+
+  - it: should render the optional sandbox-host disruption budget
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.pdb.enabled: true
+    template: sandbox-host-pdb.yaml
+    asserts:
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: spec.maxUnavailable
+          value: 1
+
+  - it: should require KVM host scheduling
+    values:
+      - ./values/no-scheduling.yaml
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxHost.deployment.nodeSelector is required: sandbox-host must be pinned to KVM-capable nodes."
+  # helm.sh/chart is a label value and therefore capped at 63 characters. Pin the
+  # truncation with a version whose build metadata pushes the untruncated string
+  # to 66, so dropping the helper fails here rather than at apply time.
+  - it: should truncate the chart label to a valid length
+    chart:
+      version: 0.1.0-rc.1+build.20260101120000.abcdef0123456789
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: metadata.labels["helm.sh/chart"]
+          value: langsmith-sandbox-0.1.0-rc.1_build.20260101120000.abcdef0123456
+
+  - it: should apply commonDnsConfig to sandbox-host and the JuiceFS formatter
+    values:
+      - ./values/enabled.yaml
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.dnsConfig.options[0].name
+          value: ndots
+      - equal:
+          path: spec.template.spec.dnsConfig.options[0].value
+          value: "4"
+
+  - it: should omit dnsConfig when commonDnsConfig is cleared
+    values:
+      - ./values/enabled.yaml
+    set:
+      commonDnsConfig: null
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.dnsConfig
+
+  # A Job's spec.template is immutable, so a dnsConfig change has to move the
+  # formatter's name or the next upgrade fails on the immutable field instead of
+  # rolling a fresh formatter. These two pin the default hash and the changed
+  # hash, so dropping dnsConfig from the name inputs collapses them and fails
+  # here. The chart version is pinned because it is itself a hash input —
+  # otherwise every release bump would invalidate both expectations.
+  - it: should name the JuiceFS formatter from its pod spec inputs
+    chart:
+      version: 0.0.0-test
+    values:
+      - ./values/enabled.yaml
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-62ef49ce
+
+  # The deadline covers scheduling and the image pull on a new node.
+  - it: should give the JuiceFS formatter a configurable deadline
+    values:
+      - ./values/enabled.yaml
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.activeDeadlineSeconds
+          value: 900
+
+  - it: should take a longer JuiceFS formatter deadline
+    values:
+      - ./values/enabled.yaml
+    set:
+      juicefsFormatJob.activeDeadlineSeconds: 1800
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.activeDeadlineSeconds
+          value: 1800
+
+  - it: should rename the JuiceFS formatter when commonDnsConfig changes
+    chart:
+      version: 0.0.0-test
+    values:
+      - ./values/enabled.yaml
+    set:
+      commonDnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-8a8738e1
+
+  - it: should add commonEnv, volumes, mounts, and init containers to sandbox-host
+    values:
+      - ./values/enabled.yaml
+    set:
+      commonEnv:
+        - name: HTTPS_PROXY
+          value: http://proxy.internal:3128
+      commonVolumes:
+        - name: extra
+          emptyDir: {}
+      commonVolumeMounts:
+        - name: extra
+          mountPath: /extra
+      commonInitContainers:
+        - name: warm
+          image: busybox
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+            value: http://proxy.internal:3128
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: extra
+            emptyDir: {}
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: extra
+            mountPath: /extra
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: warm
+
+  - it: should reject a commonEnv var that collides with a chart-managed one
+    values:
+      - ./values/enabled.yaml
+    set:
+      commonEnv:
+        - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
+          value: http://elsewhere
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [LANGSMITH_SANDBOX_INTERNAL_ENDPOINT]"
+
+  - it: should honor automountServiceAccountToken on sandbox-host and the formatter
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.serviceAccount.automountServiceAccountToken: false
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: false
+
+  - it: should pass the JuiceFS Redis IAM auth provider to sandbox-host and the formatter
+    values:
+      - ./values/enabled.yaml
+    set:
+      juicefs.redis.iamAuthProvider: gcp
+      workloadIdentity.provider: gcp
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+            value: gcp
+
+  - it: should omit the JuiceFS Redis IAM auth provider by default
+    values:
+      - ./values/enabled.yaml
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+          any: true
+
+  - it: should reject an unsupported JuiceFS Redis IAM auth provider
+    values:
+      - ./values/enabled.yaml
+    set:
+      juicefs.redis.iamAuthProvider: aws
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: 'juicefs.redis.iamAuthProvider "aws" is not supported. Valid values are "", "azure" and "gcp".'
+
+  # Baseline for the next test: the same Azure setup without Redis IAM auth.
+  - it: should name the formatter for an Azure setup without Redis IAM auth
+    chart:
+      version: 0.0.0-test
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: azure
+      workloadIdentity.azure.clientId: 00000000-0000-0000-0000-000000000001
+      juicefs.redis.metaURL: rediss://cache.example.com:10000/0
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-411e0f0b
+
+  - it: should rename the JuiceFS formatter when the Redis IAM auth provider changes
+    chart:
+      version: 0.0.0-test
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: azure
+      workloadIdentity.azure.clientId: 00000000-0000-0000-0000-000000000001
+      juicefs.redis.metaURL: rediss://cache.example.com:10000/0
+      juicefs.redis.iamAuthProvider: azure
+    template: juicefs-format-job.yaml
+    asserts:
+      - notEqual:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-411e0f0b
+
+  # Like sandbox-host, the formatter must verify a JuiceFS Redis whose
+  # certificate is signed by a private CA (for example Memorystore with TLS).
+  - it: should trust the custom CA in the JuiceFS formatter
+    values:
+      - ./values/enabled.yaml
+    set:
+      config.customCa.secretName: langsmith-ca-bundle
+      config.customCa.secretKey: ca-certificates.crt
+    template: juicefs-format-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSL_CERT_FILE
+            value: /etc/ssl/certs/custom-ca-certificates.crt
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: langsmith-custom-ca
+            mountPath: /etc/ssl/certs/custom-ca-certificates.crt
+            subPath: ca-certificates.crt
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: langsmith-custom-ca
+            secret:
+              secretName: langsmith-ca-bundle
+              items:
+                - key: ca-certificates.crt
+                  path: ca-certificates.crt
+
+  - it: should not mount a custom CA in the JuiceFS formatter by default
+    values:
+      - ./values/enabled.yaml
+    template: juicefs-format-job.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSL_CERT_FILE
+            value: /etc/ssl/certs/custom-ca-certificates.crt
+      - lengthEqual:
+          path: spec.template.spec.volumes
+          count: 1
+
+  # The CA mount is part of the Job's immutable pod template.
+  - it: should rename the JuiceFS formatter when the custom CA changes
+    chart:
+      version: 0.0.0-test
+    values:
+      - ./values/enabled.yaml
+    set:
+      config.customCa.secretName: langsmith-ca-bundle
+      config.customCa.secretKey: ca-certificates.crt
+    template: juicefs-format-job.yaml
+    asserts:
+      - notEqual:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-62ef49ce
+
+  # The proxy URL can carry Basic-auth credentials, so it is only ever a
+  # secretKeyRef into the runtime Secret, never a literal value.
+  - it: should read the sandbox egress proxy URL from the runtime Secret
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-sandbox-runtime
+                key: sandbox_egress_proxy_url
+                optional: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
+          any: true
+
+  - it: should pass the egress proxy bypass list and a custom URL key
+    values:
+      - ./values/enabled.yaml
+    set:
+      authProxy.httpProxy.urlSecretKey: corp_proxy_url
+      authProxy.httpProxy.noProxy:
+        - internal.corp
+        - 10.0.0.0/8
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-sandbox-runtime
+                key: corp_proxy_url
+                optional: true
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
+            value: internal.corp,10.0.0.0/8
+
+  - it: should reject an extraEnv var that shadows the egress proxy URL
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.deployment.extraEnv:
+        - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+          value: http://user:pass@proxy.internal:3128
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [SANDBOX_EGRESS_UPSTREAM_PROXY_URL]"
+
+  # A tag pinned in values does not move when the chart is upgraded (and
+  # --reuse-values keeps it), so the host image would lag the control plane.
+  - it: should default the sandbox-host image tag to the chart appVersion
+    chart:
+      appVersion: 9.9.9-test
+    values:
+      - ./values/enabled.yaml
+    set:
+      images.sandboxHostImage.tag: ""
+    templates:
+      - validate.yaml
+      - sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: example.com/langsmith/sandbox-host:9.9.9-test
+        template: sandbox-host-deployment.yaml
+
+  # helm.sh/chart changes on every chart version bump; on the pod template it
+  # would roll every host (suspending its VMs) for chart-only changes.
+  - it: should keep helm.sh/chart off the sandbox-host pod template
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - exists:
+          path: metadata.labels["helm.sh/chart"]
+      - notExists:
+          path: spec.template.metadata.labels["helm.sh/chart"]
+      - exists:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+
+  # Argo CD applies waves in order; the JuiceFS formatter Job (wave -1) runs as
+  # this ServiceAccount, so it must exist first.
+  - it: should create the ServiceAccount before the JuiceFS formatter in Argo CD
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-service-account.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-wave"]
+          value: "-2"
+
+  - it: should keep an operator-set sync-wave on the ServiceAccount
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.serviceAccount.annotations:
+        argocd.argoproj.io/sync-wave: "-5"
+    template: sandbox-host-service-account.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-wave"]
+          value: "-5"
+
+  - it: should reject an operator-set previous service-auth secret alongside serviceAuth.previousSecretKey
+    values:
+      - ./values/enabled.yaml
+    set:
+      serviceAuth.previousSecretKey: sandbox_service_auth_secret_previous
+      sandboxHost.deployment.extraEnv:
+        - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+          value: other
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS]"

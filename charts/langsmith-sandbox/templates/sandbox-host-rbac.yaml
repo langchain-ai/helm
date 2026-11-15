@@ -1,0 +1,8 @@
+{{- if and .Values.sandboxHost.enabled .Values.sandboxHost.rbac.create }}
+{{- include "langsmithSandbox.render.rbac" (dict
+  "name" (include "langsmithSandbox.sandboxHostFullname" .)
+  "namespace" (include "langsmithSandbox.namespace" .)
+  "labels" (mergeOverwrite (include "langsmithSandbox.labels" . | fromYaml) (default dict .Values.sandboxHost.rbac.labels))
+  "annotations" (mergeOverwrite (include "langsmithSandbox.annotations" . | fromYaml) (default dict .Values.sandboxHost.rbac.annotations))
+  "serviceAccountName" (include "langsmithSandbox.serviceAccountName" .)) }}
+{{- end }}

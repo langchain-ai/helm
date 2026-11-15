@@ -15,6 +15,10 @@
 - name: SMITHDB_MIGRATION_METRICS_ENDPOINT
   value: "http://{{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.smithdb.migration.containerPort }}"
 {{- end }}
+{{- if .Values.smithdb.enabled }}
+- name: SMITHDB_METRICS_ENDPOINTS
+  value: {{ include "langsmith.smithdb.metricsEndpoints" . | quote }}
+{{- end }}
 {{- if and (or .Values.config.agentBuilder.enabled .Values.fleet.enabled) .Values.fleetTriggerServer.enabled .Values.config.hostname }}
 - name: TRIGGER_SERVER_PUBLIC_URL
   value: {{ include "langsmith.triggerServerPublicUrl" . | quote }}

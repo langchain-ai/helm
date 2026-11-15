@@ -1,7 +1,7 @@
 {{- if include "langsmith.smithdb.unifiedTopology" . }}
 {{- $resources := include "langsmith.smithdb.resources" (dict "root" . "component" "unified") | fromYaml -}}
 {{- $volumes := concat .Values.commonVolumes (include "langsmith.smithdb.volumes" (dict "root" . "component" "unified") | fromYamlArray) -}}
-{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" (include "langsmith.smithdb.serviceEnv" (dict "root" . "service" "" "prefix" "SMITHDB" "displayName" "smithdb") | fromYamlArray) "extraEnv" .Values.smithdb.unified.deployment.extraEnv) | fromYamlArray -}}
+{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" (concat (include "langsmith.smithdb.serviceEnv" (dict "root" . "service" "" "prefix" "SMITHDB" "displayName" "smithdb") | fromYamlArray) (include "langsmith.smithdb.queryEnv" . | fromYamlArray)) "extraEnv" .Values.smithdb.unified.deployment.extraEnv) | fromYamlArray -}}
 {{- $retention := printf "%ss" (toString .Values.config.ttl.ttl_period_seconds.longlived) -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -80,6 +80,7 @@ spec:
               valueFrom:
                 resourceFieldRef:
                   resource: limits.memory
+                  divisor: "0"
             {{- end }}
             {{- with (include "langsmith.smithdb.queryCacheLimit" (dict "component" "unified" "volumes" $volumes "resources" $resources)) }}
             - name: SMITHDB__DISK_LIMIT

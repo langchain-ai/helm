@@ -1,0 +1,56 @@
+suite: per-cloud values
+templates:
+  - validate.yaml
+  - sandbox-host-service-account.yaml
+  - sandbox-host-deployment.yaml
+  - juicefs-format-job.yaml
+  - sandbox-host-service.yaml
+  - sandbox-host-ingress.yaml
+tests:
+  - it: should render EKS with an IRSA role and the formatter on the pod network
+    values:
+      - ./values/eks.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations["eks.amazonaws.com/role-arn"]
+          value: arn:aws:iam::123456789012:role/langsmith-sandbox-host
+        template: sandbox-host-service-account.yaml
+      - notExists:
+          path: spec.template.spec.hostNetwork
+        template: juicefs-format-job.yaml
+
+  - it: should render GKE with both pods on the node service account
+    values:
+      - ./values/gke.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: true
+        template: juicefs-format-job.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+            value: gcp
+        template: sandbox-host-deployment.yaml
+      - equal:
+          path: metadata.annotations["cloud.google.com/backend-config"]
+          value: '{"default":"sandbox-host"}'
+        template: sandbox-host-service.yaml
+
+  - it: should render AKS with the managed identity on both pods
+    values:
+      - ./values/aks.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations["azure.workload.identity/client-id"]
+          value: 00000000-0000-0000-0000-000000000001
+        template: sandbox-host-service-account.yaml
+      - equal:
+          path: spec.template.metadata.labels["azure.workload.identity/use"]
+          value: "true"
+        template: sandbox-host-deployment.yaml
+      - equal:
+          path: spec.template.metadata.labels["azure.workload.identity/use"]
+          value: "true"
+        template: juicefs-format-job.yaml

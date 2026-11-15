@@ -91,3 +91,11 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "images.fleetTriggerServerImage is deprecated: this workload now runs on the consolidated backend image. Configure images.backendImage instead (and mirror only that image)."
+
+  - it: should refuse a fleet.egressProxy.url with credentials even when validation is skipped
+    set:
+      config.skipValidation: true
+      fleet.egressProxy.url: http://svc-user:p%40ss@proxy.corp.internal:3128
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.egressProxy.url must not contain credentials: it is stored in a ConfigMap. For a proxy that needs a password, leave it empty and set HTTPS_PROXY and NO_PROXY from a Secret in each Fleet deployment's extraEnv."

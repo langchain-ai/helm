@@ -2,6 +2,20 @@ suite: frontend nginx routing and request buffering
 templates:
   - frontend/config-map.yaml
 tests:
+  - it: routes only workspace usage-limit GETs to Go without a base path
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'if \(\$request_method = GET\) \{\s*rewrite \^/\(api/v1/\)\?usage-limits/\?\$ /api/v1/platform/usage-limits last;\s*\}'
+
+  - it: routes only workspace usage-limit GETs to Go with a base path
+    set:
+      config.basePath: langsmith
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'if \(\$request_method = GET\) \{\s*rewrite \^/langsmith/\(api/v1/\)\?usage-limits/\?\$ /langsmith/api/v1/platform/usage-limits last;\s*\}'
+
   - it: does not expose channel setup when Fleet is disabled
     asserts:
       - notMatchRegex:
@@ -30,6 +44,34 @@ tests:
       - notMatchRegex:
           path: data["nginx.conf"]
           pattern: 'location /langsmith/v1/channels'
+
+  - it: routes workspace legacy API usage to platform-backend without a base path
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /api/v1/workspaces/current/legacy-api-usage \{[^}]*proxy_pass http://[^}]*-platform-backend\.'
+
+  - it: routes workspace legacy API usage to platform-backend with a base path
+    set:
+      config.basePath: langsmith
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /langsmith/api/v1/workspaces/current/legacy-api-usage \{\s*rewrite \^/langsmith\(/api/v1/\.\*\)\$ \$1 break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
+
+  - it: routes workspace deprecated API usage to platform-backend without a base path
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /api/v1/workspaces/current/deprecated-api-usage \{[^}]*proxy_pass http://[^}]*-platform-backend\.'
+
+  - it: routes workspace deprecated API usage to platform-backend with a base path
+    set:
+      config.basePath: langsmith
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /langsmith/api/v1/workspaces/current/deprecated-api-usage \{\s*rewrite \^/langsmith\(/api/v1/\.\*\)\$ \$1 break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
 
   - it: routes agent auth to platform-backend without a base path
     asserts:
@@ -159,3 +201,29 @@ tests:
       - notMatchRegex:
           path: data["nginx.conf"]
           pattern: 'brotli'
+
+  - it: routes agent and address APIs to platform-backend without a base path
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location ~ \^/api/v1/agents\(\?:/\|\$\) \{[^}]*proxy_pass http://[^}]*-platform-backend\.'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location ~ \^/api/v1/agent-environments\(\?:/\|\$\) \{[^}]*proxy_pass http://[^}]*-platform-backend\.'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location ~ \^/api/v1/sessions/resolutions/\?\$ \{[^}]*proxy_pass http://[^}]*-platform-backend\.'
+
+  - it: routes agent and address APIs to platform-backend with a base path
+    set:
+      config.basePath: langsmith
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location ~ \^/langsmith/api/v1/agents\(\?:/\|\$\) \{\s*rewrite \^/langsmith\(/api/v1/\.\*\)\$ \$1 break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location ~ \^/langsmith/api/v1/agent-environments\(\?:/\|\$\) \{\s*rewrite \^/langsmith\(/api/v1/\.\*\)\$ \$1 break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location ~ \^/langsmith/api/v1/sessions/resolutions/\?\$ \{\s*rewrite \^/langsmith\(/api/v1/\.\*\)\$ \$1 break;[^}]*proxy_pass http://[^}]*-platform-backend\.'

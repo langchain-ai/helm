@@ -1,4 +1,6 @@
--- This query exports all remote metrics.
+-- This query exports all remote metrics with node or run usage.
+-- Rows marked skipped and rows with no nodes and no runs bill nothing, so they are left out.
+-- Numeric strings count; other non-numeric node or run values count as no usage.
 
 SELECT
     rm.id,
@@ -17,4 +19,6 @@ SELECT
     t.organization_id
 FROM remote_metrics rm
 LEFT JOIN tenants t ON rm.tenant_id = t.id
+WHERE rm.reported_status <> 'skipped'
+  AND rm.measures @? '$ ? (@."langgraph.platform.nodes".double() > 0 || @."langgraph.platform.runs".double() > 0)'
 ORDER BY rm.received_at DESC;

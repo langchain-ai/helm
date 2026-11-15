@@ -89,6 +89,7 @@ spec:
               valueFrom:
                 resourceFieldRef:
                   resource: limits.memory
+                  divisor: "0"
             {{- end }}
             {{- with $envVars }}
             {{- toYaml . | nindent 12 }}

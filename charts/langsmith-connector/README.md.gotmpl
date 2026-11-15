@@ -6,12 +6,15 @@
 
 ## What it does
 
-The connector runs inside your network. It opens an outbound WebSocket to LangSmith and keeps two redundant sessions alive. When a LangSmith product needs to reach one of your private services, LangSmith sends the request over that tunnel and the connector forwards it to the target you named. Nothing needs to reach the connector pod: it exposes no ports.
+The connector runs inside your network. It opens an outbound WebSocket to LangSmith and keeps two redundant sessions alive. Nothing needs to reach the connector pod: it exposes no ports. It serves one connection, either a tunnel or a relay:
+
+- **Tunnel.** When a LangSmith product needs to reach one of your private services, LangSmith sends the request over the tunnel and the connector forwards it to the target you named.
+- **Relay.** Sandbox connections that match one of the relay's rules in LangSmith leave through the connector, so they reach your network and use its egress address.
 
 ## Prerequisites
 
-1. In LangSmith, open Settings -> Tunnels and create a tunnel. Copy its connection ID.
-2. Create an organization API key that can connect tunnels (the `connections:connect` permission).
+1. In LangSmith, create a tunnel (Settings -> Tunnels) or a relay. Copy its connection ID.
+2. Create an organization API key that can connect tunnels and relays (the `connections:connect` permission).
 
 ## Installation
 
@@ -39,6 +42,21 @@ helm install langsmith-connector langchain/langsmith-connector \
 ```
 
 The key is mounted as a file and re-read on every reconnect, so rotating the Secret needs no restart.
+
+### Relay
+
+A relay takes no targets. Enable relay mode instead:
+
+```bash
+helm install langsmith-relay langchain/langsmith-connector \
+  --namespace langsmith-connector --create-namespace \
+  --set config.connectionId=<relay id> \
+  --set config.apiKey=<api key> \
+  --set config.relay.enabled=true \
+  --set 'config.relay.allow={10.0.0.0/8,db.internal.example:5432}'
+```
+
+By default a relay reaches public addresses on ports 80 and 443. `config.relay.allow` widens that and `config.relay.deny` narrows it, and deny rules win. Each rule is a CIDR (`10.0.0.0/8`), an IP address, a hostname (`db.internal.example`), or a wildcard (`*.internal.example`), optionally followed by `:PORT`. Cloud metadata addresses are always refused.
 
 Self-hosted LangSmith: set `config.endpoint` to your API origin, including any `/api` prefix.
 

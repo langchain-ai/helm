@@ -1,0 +1,177 @@
+suite: workload identity
+templates:
+  - validate.yaml
+  - sandbox-host-service-account.yaml
+  - sandbox-host-deployment.yaml
+  - juicefs-format-job.yaml
+tests:
+  - it: should annotate the ServiceAccount with the IRSA role on aws
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: aws
+      workloadIdentity.aws.roleArn: arn:aws:iam::123456789012:role/sandbox-host
+    template: sandbox-host-service-account.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations["eks.amazonaws.com/role-arn"]
+          value: arn:aws:iam::123456789012:role/sandbox-host
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-wave"]
+          value: "-2"
+
+  - it: should annotate the ServiceAccount with the managed identity on azure
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: azure
+      workloadIdentity.azure.clientId: 00000000-0000-0000-0000-000000000001
+      workloadIdentity.azure.tenantId: 00000000-0000-0000-0000-000000000002
+    template: sandbox-host-service-account.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations["azure.workload.identity/client-id"]
+          value: 00000000-0000-0000-0000-000000000001
+      - equal:
+          path: metadata.annotations["azure.workload.identity/tenant-id"]
+          value: 00000000-0000-0000-0000-000000000002
+
+  - it: should leave the Azure tenant annotation out when no tenant is set
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: azure
+      workloadIdentity.azure.clientId: 00000000-0000-0000-0000-000000000001
+    template: sandbox-host-service-account.yaml
+    asserts:
+      - notExists:
+          path: metadata.annotations["azure.workload.identity/tenant-id"]
+
+  # Merging maps instead of appending text also avoids duplicate YAML keys.
+  - it: should let an operator ServiceAccount annotation win over the generated one
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: aws
+      workloadIdentity.aws.roleArn: arn:aws:iam::123456789012:role/generated
+      sandboxHost.serviceAccount.annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/operator
+    template: sandbox-host-service-account.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations["eks.amazonaws.com/role-arn"]
+          value: arn:aws:iam::123456789012:role/operator
+
+  - it: should add no identity annotations on gcp
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: gcp
+    template: sandbox-host-service-account.yaml
+    asserts:
+      - notExists:
+          path: metadata.annotations["eks.amazonaws.com/role-arn"]
+      - notExists:
+          path: metadata.annotations["azure.workload.identity/client-id"]
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-wave"]
+          value: "-2"
+  - it: should label sandbox-host and formatter pods for Azure Workload Identity
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: azure
+      workloadIdentity.azure.clientId: 00000000-0000-0000-0000-000000000001
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels["azure.workload.identity/use"]
+          value: "true"
+
+  - it: should let operator pod labels win over the Workload Identity label
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: azure
+      workloadIdentity.azure.clientId: 00000000-0000-0000-0000-000000000001
+      sandboxHost.deployment.labels:
+        azure.workload.identity/use: "false"
+      juicefsFormatJob.labels:
+        azure.workload.identity/use: "false"
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels["azure.workload.identity/use"]
+          value: "false"
+
+  # The formatter's selector labels must survive an operator label with the same key.
+  - it: should keep the formatter's own labels when an operator label collides
+    values:
+      - ./values/enabled.yaml
+    set:
+      juicefsFormatJob.labels:
+        app.kubernetes.io/component: other
+        team: sandboxes
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: juicefs-format
+      - equal:
+          path: spec.template.metadata.labels.team
+          value: sandboxes
+
+  - it: should add no Workload Identity label outside azure
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: gcp
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - notExists:
+          path: spec.template.metadata.labels["azure.workload.identity/use"]
+  - it: should run the formatter on the host network on gcp
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: gcp
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: true
+      - equal:
+          path: spec.template.spec.dnsPolicy
+          value: ClusterFirstWithHostNet
+
+  - it: should keep the formatter on the pod network outside gcp
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: aws
+      workloadIdentity.aws.roleArn: arn:aws:iam::123456789012:role/sandbox-host
+    template: juicefs-format-job.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.hostNetwork
+      - notExists:
+          path: spec.template.spec.dnsPolicy
+  # The provider changes the Job's immutable pod template, so it must rename the Job.
+  - it: should rename the formatter when the workload identity provider changes
+    chart:
+      version: 0.0.0-test
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: gcp
+    template: juicefs-format-job.yaml
+    asserts:
+      - notEqual:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-62ef49ce

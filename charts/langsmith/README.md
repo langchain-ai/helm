@@ -1,12 +1,37 @@
 # langsmith
 
-![Version: 0.18.0-rc.47](https://img.shields.io/badge/Version-0.18.0--rc.47-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.17rc1](https://img.shields.io/badge/AppVersion-0.18.17rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.79](https://img.shields.io/badge/Version-0.18.0--rc.79-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
 ## Documentation
 
 For information on how to use this chart, up-to-date release notes, and other guides please check out the [documentation.](https://docs.langchain.com/langsmith/kubernetes)
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| file://../langsmith-sandbox | langsmith-sandbox | >=0.18.0-0 <0.19.0-0 |
+
+## Sandboxes
+
+Sandboxes support two deployment topologies:
+
+- By default this chart deploys the sandbox runtime, `sandbox-host`, alongside LangSmith on dedicated KVM-capable nodes.
+- With `sandboxes.external.enabled=true` the runtime is external: this release keeps the sandbox API and control plane but omits the runtime resources. Install the `langsmith-sandbox` chart in the sandbox cluster and give it an externally reachable LangSmith API endpoint plus a minimal existing Secret containing the shared sandbox service-auth key and callback-signing JWK.
+
+When the clusters share a private network you trust, leave `sandboxes.external.hostIngressEndpoint` empty and allow the LangSmith cluster to reach sandbox node IPs on TCP port 19190; that traffic is plain HTTP and carries sandbox commands, files and credentials. Otherwise, enable the `langsmith-sandbox` chart's host ingress (`sandboxHost.ingress`) with TLS and set its `https://` origin as `sandboxes.external.hostIngressEndpoint`.
+
+Copy the sandbox service-auth secret and the callback-signing JWK into the runtime chart's Secret, under the keys that chart's `serviceAuth.secretKey` (default `sandbox_service_auth_secret`) and `config.callbackSigningJwkSecretKey` name. With an external runtime the service-auth secret must be its own random value, never `api_key_salt`: that value also salts API keys and signs LangSmith's other service calls, so it must not leave this cluster, and the chart refuses to render without a dedicated secret. Generate one (for example with `openssl rand -base64 32`) and either set `sandboxes.serviceAuth.secret`, which the chart stores as `sandbox_service_auth_secret` in its managed Secret, or add it to `config.existingSecretName` under its own key and name that key in `sandboxes.serviceAuth.secretKey`. With the embedded runtime the secret still defaults to `api_key_salt`. To change the value of a running install, rotate it in three steps, and wait for both releases to finish rolling out after each one:
+
+1. On both sides, add the new value as the previous secret: `sandboxes.serviceAuth.previousSecret` or `previousSecretKey` here, `serviceAuth.previousSecretKey` in the runtime chart.
+2. On both sides, make the new value current and the old value the previous secret.
+3. Remove the previous secret on both sides.
+
+Kubernetes does not restart pods when data inside an existing Secret changes, so after editing one, restart the pods that read it (`kubectl rollout restart`). Restarting sandbox-host suspends its VMs.
+
+Run exactly one `langsmith-sandbox` release per LangSmith install, and none while `sandboxes.external.enabled` is false. LangSmith accepts host reports from one runtime at a time and refuses any other: a refused runtime's hosts never join, and its elected `sandbox-host` pod turns not ready. To move from the embedded runtime, set `sandboxes.external.enabled=true` on this release, with its dedicated service-auth secret, first, then install `langsmith-sandbox` with the same secret. Set `sandboxes.clusterName` only at install time: renaming it hides existing sandboxes, private registries and hosts.
 
 ## Engine
 
@@ -40,7 +65,7 @@ When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSa
 
 ## SmithDB resource tiers
 
-`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount a volume named `cache` at `/data` as a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s.
+`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query and ingestion mount a volume named `cache` at `/data`; compaction worker and the migration Job mount it at `/tmp` for scratch files. Each is a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s. The migration Job's volume is 100Gi in every tier.
 
 Explicit component `resources` or `volumes` replace the tier values. Cache overrides must be named `cache` and use an `emptyDir` or inline ephemeral PVC; existing PVCs are unsupported. To cache on local SSD, set matching `emptyDir.sizeLimit` and `ephemeral-storage` requests and limits.
 
@@ -69,6 +94,63 @@ The query disk cache limit is set automatically from the PVC storage request or,
 Online evaluations on trajectories use an internal gRPC listener in `platformBackend` on port `8086`, enabled when both `smithdb.enabled` and `smithdb.langsmith.query.enabled` are true. Otherwise, no trajectory listener, Service, or endpoint is configured. It shares the HTTP backend's SmithDB routing, resources, and scaling; readiness uses `/ready` while active.
 
 The trajectory Service is cluster-internal; no public route is added. Trajectory processing can be memory intensive, consider setting [GOMEMLIMIT](https://pkg.go.dev/runtime#hdr-Environment_Variables) relative to your memory limit to mitigate OOMKilled errors for this service. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
+
+## Extra manifests
+
+`config.deployment.extraManifestsEnabled` defaults to `false`. Set it to `true` to let standalone self-hosted deployments declare extra ServiceAccounts and SecretProviderClasses. It needs `config.deployment.enabled=true` and the operator. The chart passes `LGP_EXTRA_MANIFESTS_ENABLED` to the operator and, through the shared ConfigMap, to the host backend, listener, and platform backend. Deployments on a remote listener are unsupported. Do not override the flag through environment values.
+
+**Coordinated upgrade required:** enable it only with operator, host backend, listener, and platform backend images that support the feature, together with this chart's LGP CRD. This chart does not change image tags.
+
+The API and the operator validate every manifest and return the reason for a rejection. In summary: only `v1/ServiceAccount` and `secrets-store.csi.x-k8s.io/v1/SecretProviderClass` are allowed, up to 16 objects. Each name must start with the deployment's resource name followed by `-`; the UI shows the prefix. SecretProviderClasses must use pod workload identity. A deployment cannot reference another deployment's objects; the operator reports `ReferenceForbidden`.
+
+Manifests are stored in plaintext in the LangSmith database and in the deployment's custom resource. Do not put credentials in them.
+
+Enabling the feature grants the operator SecretProviderClass `get`, `create`, `patch`, and `delete`. ServiceAccount permissions already exist. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
+
+Scope each workload identity's federation to the namespace and the full prefixed ServiceAccount name. For Azure Key Vault, install the Secrets Store CSI driver and Azure provider, and configure Azure Workload Identity and the federated identity credential. This chart does not install those prerequisites.
+
+The operator deletes removed objects only after the deployment's rollout completes and no pod or Deployment template still references them. It reports progress in the LGP `ExtraManifestsReady` condition. Turning the flag off freezes the objects and the stored configuration. Clear resources while the flag is on. Deleting a deployment garbage-collects its objects through owner references.
+
+## Fleet agent access tokens
+
+`fleet.agentAccessToken.enabled` defaults to `false`. Set it to `true` to give Fleet's pods agent access tokens: short-lived signed tokens that name the agent and the user it acts for. Each Fleet pod trades its own Kubernetes service account token for them at the platform backend, so no API key is involved. It needs `fleet.enabled=true`, `config.hostname`, and an RSA key in `config.signingJwks`.
+
+**Coordinated upgrade required:** enable it only with platform backend and Fleet images that support agent access tokens. This chart does not change image tags.
+
+The tokens are signed by the first RSA key after key 0 in `config.signingJwks`. Key 0 must be an Ed25519 key: it signs LangSmith's own tokens.
+
+If you don't set `config.signingJwks` yet, create a key set with both keys. One way, with Node.js:
+
+```bash
+node -e 'const c=require("node:crypto"); const jwk=(k,extra)=>({...k.export({format:"jwk"}),kid:c.randomUUID(),use:"sig",...extra}); const ed=c.generateKeyPairSync("ed25519").privateKey; const rsa=c.generateKeyPairSync("rsa",{modulusLength:3072}).privateKey; process.stdout.write(JSON.stringify({keys:[jwk(ed,{alg:"EdDSA"}),jwk(rsa,{alg:"RS256"})]}))' > signing-jwks.json
+```
+
+If you already set it and it has no RSA key after key 0, append one:
+
+```bash
+node -e 'const c=require("node:crypto"); const jwks=JSON.parse(require("node:fs").readFileSync(0,"utf8")); const {privateKey}=c.generateKeyPairSync("rsa",{modulusLength:3072}); jwks.keys.push({...privateKey.export({format:"jwk"}),kid:c.randomUUID(),alg:"RS256",use:"sig"}); process.stdout.write(JSON.stringify(jwks))' < signing-jwks.json > signing-jwks-with-rsa.json
+```
+
+Pass the result with `--set-file config.signingJwks=<file>`, and never commit the file. With `config.existingSecretName` or `config.disableSecretCreation`, put it in your Secret under `langsmith_signing_jwks` instead. Setting `config.signingJwks` also turns on the OAuth authorization server and the remote MCP server, and its first RSA key also signs the workload identity tokens that sandboxes use with cloud providers.
+
+If a release candidate of this chart had you set `fleet.agentAccessToken.signingJwks`, move that RSA key into `config.signingJwks` after key 0, and unset `fleet.agentAccessToken.signingJwks`; the chart refuses to render while it is set. If you kept the key in your own Secret under `agent_access_token_signing_jwks`, move it into `langsmith_signing_jwks` after key 0. With no key set yet, create one with the first command, then replace its RSA key with yours.
+
+When the feature is on, the chart:
+
+- mounts a service account token in the Fleet api-server and queue pods. Its audience is `https://<config.hostname>[/<config.basePath>]/api/v1/agent-auth`. It lasts 10 minutes, and the kubelet renews it before it expires.
+- tells the platform backend which service accounts belong to Fleet. They map to one deployment ID, derived from the release name and namespace, so it stays the same across upgrades. Fleet names the same ID when its sandboxes ask for tokens.
+- creates a ClusterRole and a ClusterRoleBinding for the platform backend. With them, the platform backend checks each pod token's signature against the cluster's service account keys (`/openid/v1/jwks`), then asks the Kubernetes API server to confirm the token with a TokenReview.
+- creates a Role and a RoleBinding in the release namespace. With them, the platform backend reads the pod each token names, then its ReplicaSet and its Deployment, and accepts the token only when Fleet's own Deployment runs that pod. A pod that merely runs as a Fleet service account gets no token.
+
+If the cluster does not serve `/openid/v1/jwks`, the platform backend relies on the TokenReview alone and logs a warning.
+
+To grant that access yourself, set `platformBackend.rbac.create=false`. Then give the platform backend's service account `create` on `tokenreviews` in the `authentication.k8s.io` API group and `get` on the non-resource URL `/openid/v1/jwks` across the cluster, and `get` on `pods`, and on `replicasets` and `deployments` in the `apps` API group, in the release namespace.
+
+Each Fleet pod needs a service account of its own, because the platform backend accepts each account's tokens from one Deployment only: keep `fleet.apiServer.serviceAccount.create` and `fleet.queue.serviceAccount.create` at `true`, or name a different account you created for each. The platform backend needs one too while the chart creates its ClusterRoleBinding, and it must keep `platformBackend.serviceAccount.automountServiceAccountToken=true`. The chart refuses to render otherwise.
+
+Systems that check the tokens, such as an egress gateway, fetch the public keys from `https://<config.hostname>[/<config.basePath>]/api/v1/agent-auth/.well-known/jwks.json`. They should check each token's issuer (`https://<config.hostname>[/<config.basePath>]/api/v1/agent-auth`), its `typ` header (`at+jwt`) and its audience. Set `fleet.agentAccessToken.egressAudience` to the audience your gateway expects. Fleet then sends a token for that audience on its model and tool requests.
+
+To rotate the RSA key, append the new key after the old one and upgrade: it is published but does not sign yet. Once the systems that check the tokens have fetched it, move it before the old one and upgrade again; the first RSA key after key 0 signs. Remove the old key once the last tokens it signed have expired; tokens last 5 minutes. With the chart's managed Secret, an upgrade restarts the platform backend. With your own Secret, restart it yourself (`kubectl rollout restart`).
 
 ## General parameters
 
@@ -128,7 +210,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | engineInsightsAgent.apiServer.deployment.securityContext | object | `{}` |  |
 | engineInsightsAgent.apiServer.deployment.sidecars | list | `[]` |  |
 | engineInsightsAgent.apiServer.deployment.startupProbe.exec | string | `nil` |  |
-| engineInsightsAgent.apiServer.deployment.startupProbe.failureThreshold | int | `6` |  |
+| engineInsightsAgent.apiServer.deployment.startupProbe.failureThreshold | int | `30` |  |
 | engineInsightsAgent.apiServer.deployment.startupProbe.httpGet.path | string | `"/ok?check_db=1"` |  |
 | engineInsightsAgent.apiServer.deployment.startupProbe.httpGet.port | int | `8000` |  |
 | engineInsightsAgent.apiServer.deployment.startupProbe.periodSeconds | int | `10` |  |
@@ -227,7 +309,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | engineInsightsAgent.queue.deployment.resources | object | `{}` |  |
 | engineInsightsAgent.queue.deployment.securityContext | object | `{}` |  |
 | engineInsightsAgent.queue.deployment.sidecars | list | `[]` |  |
-| engineInsightsAgent.queue.deployment.startupProbe.failureThreshold | int | `6` |  |
+| engineInsightsAgent.queue.deployment.startupProbe.failureThreshold | int | `30` |  |
 | engineInsightsAgent.queue.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
 | engineInsightsAgent.queue.deployment.startupProbe.httpGet.port | int | `8000` |  |
 | engineInsightsAgent.queue.deployment.startupProbe.periodSeconds | int | `10` |  |
@@ -285,6 +367,8 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | engineInsightsAgent.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Insights Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | engineInsightsAgent.redis.statefulSet.volumeMounts | list | `[]` |  |
 | engineInsightsAgent.redis.statefulSet.volumes | list | `[]` |  |
+| fleet.agentAccessToken.egressAudience | string | `""` | Audience that your egress gateway checks in agent access tokens. Optional. |
+| fleet.agentAccessToken.enabled | bool | `false` | Give Fleet's pods signed agent access tokens. Each pod trades its Kubernetes service account token for short-lived tokens that name the agent and the user. Needs `config.hostname` and an RSA key after key 0 in `config.signingJwks`. See the Fleet agent access tokens section. |
 | fleet.apiServer.autoscaling.enabled | bool | `false` |  |
 | fleet.apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | fleet.apiServer.autoscaling.keda.enabled | bool | `false` |  |
@@ -339,6 +423,8 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | fleet.apiServer.serviceAccount.create | bool | `true` |  |
 | fleet.apiServer.serviceAccount.labels | object | `{}` |  |
 | fleet.apiServer.serviceAccount.name | string | `""` |  |
+| fleet.egressProxy.noProxy | list | `[]` | Hosts or domain suffixes to reach directly, besides in-cluster services and config.hostname. CIDR ranges aren't supported. |
+| fleet.egressProxy.url | string | `""` | Proxy for HTTPS egress from the Fleet runtime, tool server and trigger server, such as `http://proxy.corp:3128`, without credentials. |
 | fleet.enableTracing | bool | `true` |  |
 | fleet.enabled | bool | `false` |  |
 | fleet.encryptionKey | string | `""` |  |
@@ -610,33 +696,33 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.18.17rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.18.29rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.18.17rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.18.29rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.18.17rc1"` |  |
+| images.backendImage.tag | string | `"0.18.29rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
-| images.clickhouseImage.tag | string | `"25.12"` |  |
+| images.clickhouseImage.tag | string | `"26.3.62.3"` |  |
 | images.deploymentDbImage.repository | string | `"docker.io/pgvector/pgvector"` |  |
 | images.deploymentDbImage.tag | string | `"pg15"` |  |
 | images.deploymentRedisImage.repository | string | `"docker.io/redis"` |  |
 | images.deploymentRedisImage.tag | string | `"7"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
-| images.engineInsightsAgentImage.tag | string | `"0.18.17rc1"` |  |
+| images.engineInsightsAgentImage.tag | string | `"0.18.29rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.18.17rc1"` |  |
+| images.frontendImage.tag | string | `"0.18.29rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.64"` |  |
+| images.operatorImage.tag | string | `"0.1.66"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.18.17rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.18.29rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -653,10 +739,11 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | images.rustfsImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.rustfsImage.repository | string | `"docker.io/rustfs/rustfs"` |  |
 | images.rustfsImage.tag | string | `"1.0.0-beta.7"` |  |
-| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when sandboxes.enabled is true. |
+| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":"0.18.29rc1"}` | sandbox-host image. Only used when sandboxes.enabled is true. |
+| images.sandboxHostImage.tag | string | `"0.18.29rc1"` | Release tag, kept equal to the chart's appVersion and the other LangSmith image tags so the release bump moves them together, including on a Helm upgrade that reuses the previous values. An empty tag also resolves to the appVersion. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"0.18.17rc1"` |  |
+| images.smithdbImage.tag | string | `"0.18.29rc1"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -1023,11 +1110,14 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | rustfs.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart RustFS instance. |
 | rustfs.statefulSet.volumeMounts | list | `[]` |  |
 | rustfs.statefulSet.volumes | list | `[]` |  |
-| sandboxes | object | `{"authProxy":{"httpProxy":{"noProxy":[],"url":""}},"callbackSigningJwk":"","enabled":false,"juicefs":{"bucket":"","existingSecretName":"","hostMount":{"cacheDirs":["/var/cache/juicefs"],"mountOptions":["--cache-size=51200","--cache-large-write"]},"name":"sandbox-juicefs","redis":{"iamAuthProvider":"","metaURL":""},"storage":"s3","storageAccountName":""},"juicefsFormatJob":{"affinity":{},"annotations":{},"labels":{},"nodeSelector":{},"podSecurityContext":{},"resources":{"requests":{"cpu":"100m","memory":"128Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}},"tolerations":[]},"proxyCa":{"existingSecretName":"","mode":"generatedSecret","secretName":"smithbox-proxy-ca"},"quotas":{"maxCpuCores":200,"maxEphemeralStorageGib":100,"maxMemoryGb":400,"maxSandboxes":1000,"minEphemeralStorageGb":1},"sandboxHost":{"autoscaling":{"enabled":false,"headroomHosts":1,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationSeconds":300,"targetUtilizationPercent":70},"deployment":{"annotations":{},"extraEnv":[],"initContainers":[],"labels":{},"nodeSelector":{},"podAnnotations":{},"podSecurityContext":{},"priorityClassName":"","readinessProbe":{"failureThreshold":3,"initialDelaySeconds":5,"periodSeconds":10,"tcpSocket":{"port":"http"},"timeoutSeconds":3},"replicas":1,"resources":{"requests":{"cpu":"2","memory":"2Gi"}},"securityContext":{"privileged":true},"sidecars":[],"terminationGracePeriodSeconds":300,"tolerations":[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}],"volumeMounts":[],"volumes":[]},"name":"sandbox-host","pdb":{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1},"rbac":{"annotations":{},"create":true,"labels":{}},"serviceAccount":{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}},"serviceUrlBaseUrl":""}` | LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS, GCP/GKE, or Azure/AKS. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving. |
+| sandboxes | object | `{"authProxy":{"httpProxy":{"noProxy":[],"url":""}},"callbackSigningJwk":"","clusterName":"","enabled":false,"external":{"enabled":false,"hostIngressEndpoint":""},"juicefs":{"bucket":"","existingSecretName":"","hostMount":{"cacheDirs":["/var/cache/juicefs"],"mountOptions":["--cache-size=51200","--cache-large-write"]},"name":"sandbox-juicefs","redis":{"iamAuthProvider":"","metaURL":""},"storage":"s3","storageAccountName":""},"juicefsFormatJob":{"activeDeadlineSeconds":900,"affinity":{},"annotations":{},"labels":{},"nodeSelector":{},"podSecurityContext":{},"resources":{"requests":{"cpu":"100m","memory":"128Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}},"tolerations":[]},"proxyCa":{"existingSecretName":"","mode":"generatedSecret","secretName":"smithbox-proxy-ca"},"quotas":{"maxCpuCores":200,"maxEphemeralStorageGib":100,"maxMemoryGb":400,"maxSandboxes":1000,"minEphemeralStorageGb":1},"sandboxHost":{"autoscaling":{"enabled":false,"headroomHosts":1,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationSeconds":300,"targetUtilizationPercent":70},"deployment":{"annotations":{},"extraEnv":[],"initContainers":[],"labels":{},"nodeSelector":{},"podAnnotations":{},"podSecurityContext":{},"priorityClassName":"","readinessProbe":{"failureThreshold":3,"initialDelaySeconds":5,"periodSeconds":10,"tcpSocket":{"port":"http"},"timeoutSeconds":3},"replicas":1,"resources":{"requests":{"cpu":"2","memory":"2Gi"}},"securityContext":{"privileged":true},"sidecars":[],"terminationGracePeriodSeconds":300,"tolerations":[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}],"volumeMounts":[],"volumes":[]},"name":"sandbox-host","pdb":{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1},"rbac":{"annotations":{},"create":true,"labels":{}},"serviceAccount":{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}},"serviceAuth":{"previousSecret":"","previousSecretKey":"","secret":"","secretKey":""},"serviceUrlBaseUrl":""}` | LangSmith Sandboxes on AWS/EKS, GCP/GKE, or Azure/AKS. By default this release deploys the sandbox runtime (sandbox-host) in this cluster; with external.enabled the runtime is installed separately with the langsmith-sandbox chart. |
 | sandboxes.authProxy.httpProxy | object | `{"noProxy":[],"url":""}` | Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP forward proxy, as an HTTP_PROXY/HTTPS_PROXY client would: plain HTTP as standard proxy requests, HTTPS and other TCP through CONNECT. The proxy must allow CONNECT to 443 and any other TCP ports sandboxes use; nothing falls back to direct access. |
 | sandboxes.authProxy.httpProxy.noProxy | list | `[]` | Destinations dialed directly instead of through the proxy, with standard NO_PROXY matching: "internal.corp" matches the host and its subdomains, ".internal.corp" only subdomains, plus IP addresses, CIDR ranges such as "10.0.0.0/8", "host:port" entries, and "*". |
 | sandboxes.authProxy.httpProxy.url | string | `""` | Proxy URL, `http://host:port` or `https://host:port` (TLS to the proxy itself, verified against config.customCa when set, otherwise the system roots); empty sends egress directly. A private address is allowed. For Basic proxy authentication use `http://user:password@host:port`, percent-encoding reserved characters; sandboxes never see the credentials. Stored in the LangSmith app Secret, or set key `sandbox_egress_proxy_url` in config.existingSecretName instead. |
 | sandboxes.callbackSigningJwk | string | `""` | Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed. |
+| sandboxes.clusterName | string | `""` | Name of the sandbox runtime cluster this install uses, set as SANDBOX_K8S_CLUSTER_NAME on platform-backend and ingest-queue. Empty keeps the default, `incluster`. Choose it at install time: renaming hides every existing sandbox, private registry and host record. Do not also set SANDBOX_K8S_CLUSTER_NAME through extraEnv. |
+| sandboxes.external.enabled | bool | `false` | If enabled, the sandbox runtime is installed outside this release with the langsmith-sandbox chart, usually in a dedicated cluster, and this release deploys no sandbox-host. It keeps the Sandbox API and control plane. The external runtime must be the langsmith-sandbox chart on this chart's appVersion; other runtimes are not supported. |
+| sandboxes.external.hostIngressEndpoint | string | `""` | Optional origin through which the LangSmith control plane reaches the external runtime's sandbox-host, usually the langsmith-sandbox chart's host ingress. Use an `https://` origin. Leave empty to call node IPs on port 19190 directly; that traffic is plain HTTP, so do this only on a private network you trust. No path or trailing slash. |
 | sandboxes.juicefs.bucket | string | `""` | Object storage bucket/root URL used by JuiceFS. For AWS S3, use a region-explicit endpoint such as `https://bucket-name.s3.us-west-2.amazonaws.com`; do not use the `s3://bucket-name` shorthand because JuiceFS then infers region with GetBucketLocation. For GCS, use `gs://bucket-name`. Use `sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths. |
 | sandboxes.juicefs.existingSecretName | string | `""` | Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. For Azure Blob Storage, set `access-key` to the storage account name. Set `secret-key` only for account-key authentication. The formatter Job reads the Secret; sandbox-host receives only `metaurl`. When set, the chart does not create the config Secret and the corresponding values above are ignored. Rotate the Secret name to rerun formatting; roll sandbox-host after changing data in place. |
 | sandboxes.juicefs.hostMount.cacheDirs | list | `["/var/cache/juicefs"]` | Node host paths used for the JuiceFS cache. Each path is mounted into sandbox-host and combined into one JuiceFS cache-dir option. Back these paths with node-local storage; their contents survive pod rollouts on the same node but not node replacement. |
@@ -1037,6 +1127,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | sandboxes.juicefs.redis.metaURL | string | `""` | JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database. |
 | sandboxes.juicefs.storage | string | `"s3"` | Object storage backend used by JuiceFS for sandboxes. Supported values are `s3` for AWS/EKS, `gs` for GCP/GKE, and `wasb` for Azure/AKS. |
 | sandboxes.juicefs.storageAccountName | string | `""` | Azure storage account name used by JuiceFS. Required when sandboxes.juicefs.storage is `wasb`. |
+| sandboxes.juicefsFormatJob.activeDeadlineSeconds | int | `900` | Time limit for the JuiceFS formatter Job, in seconds. It includes scheduling and the pull of the sandbox-host image, which can take minutes on a new node. |
 | sandboxes.juicefsFormatJob.affinity | object | `{}` | Affinity rules for the JuiceFS formatter pod. |
 | sandboxes.juicefsFormatJob.annotations | object | `{}` | Additional annotations applied to the JuiceFS formatter Job and pod. |
 | sandboxes.juicefsFormatJob.labels | object | `{}` | Additional labels applied to the JuiceFS formatter pod. For Azure Workload Identity, set `azure.workload.identity/use` to `true`. |
@@ -1061,6 +1152,10 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | sandboxes.sandboxHost.name | string | `"sandbox-host"` | Component name for sandbox-host. Resources are named `<release-fullname>-<name>`, which the chart passes to the host as SANDBOX_HOST_DEPLOYMENT_NAME. |
 | sandboxes.sandboxHost.pdb | object | `{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1}` | Disruption budget for sandbox-host, capping concurrent evictions since each drain suspends every microVM on that host. maxUnavailable keeps a small pool drainable; setting minAvailable overrides it. |
 | sandboxes.sandboxHost.serviceAccount.annotations | object | `{}` | Annotations applied to the sandbox-host ServiceAccount. Attach the AWS IRSA, GCP Workload Identity, or Azure Workload Identity that grants access to the JuiceFS object-storage bucket here. |
+| sandboxes.serviceAuth.previousSecret | string | `""` | Previous sandbox service-auth secret, accepted alongside the current one during a rotation. Stored as `sandbox_service_auth_secret_previous` in the chart-managed Secret. With config.existingSecretName, use `previousSecretKey` instead. |
+| sandboxes.serviceAuth.previousSecretKey | string | `""` | Key in config.existingSecretName holding the previous sandbox service-auth secret during a rotation. Empty sets none. |
+| sandboxes.serviceAuth.secret | string | `""` | Sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET), which signs calls between the control plane and sandbox hosts. Stored as `sandbox_service_auth_secret` in the chart-managed Secret. Required with external.enabled, as a new random value different from `config.apiKeySalt`. With the embedded runtime, empty keeps today's value, `config.apiKeySalt`. With config.existingSecretName, put it in that Secret and set `secretKey` instead. |
+| sandboxes.serviceAuth.secretKey | string | `""` | Key in config.existingSecretName holding the sandbox service-auth secret. Empty uses `api_key_salt`, today's shared value, which an external runtime (external.enabled) does not allow; point it at a dedicated key to give sandboxes their own secret. Leave empty when the chart manages the Secret. |
 | sandboxes.serviceUrlBaseUrl | string | `""` | Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path. |
 | smithdb.cache.storageClassName | string | `""` | StorageClass for the generated SmithDB cache volumes. Empty uses the cluster default. A component's deployment.volumes replaces the generated volume. |
 | smithdb.clusterManager.containerGrpcPort | int | `8091` |  |
@@ -1227,6 +1322,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.config.objectStore.azure.allowHttp | bool | `false` | Allow plain HTTP for endpoint overrides, such as local emulators. |
 | smithdb.config.objectStore.azure.endpoint | string | `""` | Optional Azure Blob service endpoint override. |
 | smithdb.config.objectStore.bucket | string | `""` |  |
+| smithdb.config.objectStore.gcs.endpoint | string | `""` | Optional GCS endpoint override, such as a sovereign cloud storage endpoint. A trailing slash is removed. |
 | smithdb.config.objectStore.s3.accessKeyIdSecretKey | string | `""` | Keys in smithdb.config.existingSecretName for static S3 credentials. Set both to "" when using ambient cloud identity, such as IRSA. |
 | smithdb.config.objectStore.s3.endpoint | string | `""` |  |
 | smithdb.config.objectStore.s3.kmsEncryptionEnabled | bool | `false` | Send SSE-KMS encryption headers on S3 writes. Same semantics as config.blobStorage.kmsEncryptionEnabled. |
@@ -1345,13 +1441,11 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.migration.job.labels | object | `{}` |  |
 | smithdb.migration.job.nodeSelector | object | `{}` |  |
 | smithdb.migration.job.parallelism | int | `1` | migration pods. |
-| smithdb.migration.job.podSecurityContext | object | `{}` |  |
+| smithdb.migration.job.podSecurityContext.fsGroup | int | `1001` |  |
 | smithdb.migration.job.priorityClassName | string | `""` |  |
 | smithdb.migration.job.resources.limits.cpu | string | `"8"` |  |
-| smithdb.migration.job.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
 | smithdb.migration.job.resources.limits.memory | string | `"32Gi"` |  |
 | smithdb.migration.job.resources.requests.cpu | string | `"8"` |  |
-| smithdb.migration.job.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
 | smithdb.migration.job.resources.requests.memory | string | `"32Gi"` |  |
 | smithdb.migration.job.restartPolicy | string | `"Never"` |  |
 | smithdb.migration.job.securityContext | object | `{}` |  |
@@ -1361,7 +1455,8 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.migration.job.tolerations | list | `[]` |  |
 | smithdb.migration.job.topologySpreadConstraints | list | `[]` |  |
 | smithdb.migration.job.ttlSecondsAfterFinished | int | `604800` | Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs. |
-| smithdb.migration.job.volumeMounts | list | `[]` |  |
+| smithdb.migration.job.volumeMounts[0].mountPath | string | `"/tmp"` |  |
+| smithdb.migration.job.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.migration.job.volumes | list | `[]` |  |
 | smithdb.migration.name | string | `"migration"` |  |
 | smithdb.migration.service | object | `{"annotations":{},"labels":{}}` | Headless Service in front of the migration Job pods, so each pod has a stable DNS record on containerPort. |
@@ -1726,7 +1821,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | config.agentBuilder.oauth.slackOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackSigningSecret | string | `""` |  |
 | config.agentBuilder.oauthProviderOrgId | string | `""` |  |
-| config.agentMigration.enabled | bool | `false` | Migrate existing tracing projects and experiments to Agent Platform agents after upgrade. Requires authenticated auth (`authType` `mixed` or `oauth`) and runs on the existing ingest queue workers. |
+| config.agentMigration.enabled | bool | `true` | Migrate existing tracing projects and experiments to Agent Platform agents after upgrade. Runs on the existing ingest queue workers; installs with `authType` `none` skip it. Once it has run, do not downgrade to an app version from before the migration. |
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
 | config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
 | config.basePath | string | `""` | Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith. WARNING: Changing basePath after LangSmith Deployments have been created will break existing deployments. Existing deployments will need to be recreated for the new basePath to take effect. |
@@ -1754,9 +1849,10 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com). |
 | config.customLogo | object | `{"coBrandingEnabled":true,"darkModeLogoUrl":"","enabled":false,"lightModeLogoUrl":"","logoUrl":""}` | Custom logo configuration. If enabled, set either logoUrl, or lightModeLogoUrl and darkModeLogoUrl to use a different logo per color scheme. Setting only one of the three uses it in both schemes. Each value is a URL to an image like png, jpg, or svg. Co-branding shows the LangSmith and customer logos side by side. |
 | config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
-| config.deployment | object | `{"basePath":"","enabled":false,"ingressHealthCheckEnabled":true,"scalingOverridesEnabled":false,"tlsEnabled":true,"uncappedResourcesEnabled":false}` | Configuration for LangSmith Deployments features |
+| config.deployment | object | `{"basePath":"","enabled":false,"extraManifestsEnabled":false,"ingressHealthCheckEnabled":true,"scalingOverridesEnabled":false,"tlsEnabled":true,"uncappedResourcesEnabled":false}` | Configuration for LangSmith Deployments features |
 | config.deployment.basePath | string | `""` | Base path for LangSmith Deployments routes managed by the operator. |
 | config.deployment.enabled | bool | `false` | Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information. |
+| config.deployment.extraManifestsEnabled | bool | `false` | Let standalone self-hosted deployments declare extra ServiceAccount and SecretProviderClass manifests. Requires coordinated supporting images and the LGP CRD; see the Extra manifests section. |
 | config.deployment.scalingOverridesEnabled | bool | `false` | Let users override LangSmith Deployment autoscaling CPU targets and scale-up/scale-down behavior. Opt-in for self-hosted. |
 | config.deployment.uncappedResourcesEnabled | bool | `false` | Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted. |
 | config.disableSecretCreation | bool | `false` |  |
@@ -1791,13 +1887,15 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | config.security.cors.alwaysAllowPathsRegex | string | `""` | Regular expression pattern for paths that should always allow CORS from any origin. Useful for public endpoints like webhooks or public API endpoints. Example: ".*(/feedback/tokens/|/public/).*" |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
 | config.settings.redisRunsExpirySeconds | string | `"21600"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
-| config.signingJwks | string | `""` | Ed25519/OKP JWKS (JSON) signing the OAuth AS / remote MCP (and LLM-auth-proxy) tokens; public keys are served at /.well-known/jwks.json. Set it here (stored in the chart secret) or as key `langsmith_signing_jwks` in config.existingSecretName. The remote MCP server / OAuth AS stay inert until this is set. |
+| config.signingJwks | string | `""` | JWKS (JSON) of LangSmith's signing keys. Key 0 must be Ed25519/OKP: it signs the OAuth AS / remote MCP (and LLM-auth-proxy) tokens. RSA keys after key 0 (RS256, at least 2048 bits) sign workload identity tokens and, with fleet.agentAccessToken.enabled, agent access tokens; the first RSA key signs. Public keys are served at /.well-known/jwks.json. Set it here (stored in the chart secret) or as key `langsmith_signing_jwks` in config.existingSecretName. The remote MCP server / OAuth AS stay inert until this is set. |
 | config.skipValidation | bool | `false` | Skip validation checks in validate.yaml. Used by AWS Marketplace for helm template verification. |
-| config.superAdmins | list | `[]` | Email addresses of super admins who can export usage data. These are the only users allowed to use the usage backfill export unless orgAdminsInstallationUsageExportEnabled is set. |
+| config.superAdmins | list | `[]` | Email addresses of the installation's super admins. With the organization's installation operations permission, they can view instance health, restart backfills, and create organizations when organization creation is disabled. They are also the only users allowed to use the usage backfill export unless orgAdminsInstallationUsageExportEnabled is set. |
 | config.telemetry.logs | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
 | config.telemetry.metrics | bool | `true` |  |
 | config.telemetry.traces | bool | `true` |  |
-| config.ttl | object | `{"enabled":true,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
+| config.ttl | object | `{"enabled":true,"longlivedAllowedDays":[],"perProjectRetention":{"enabled":false},"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
+| config.ttl.longlivedAllowedDays | list | `[]` | Long-lived retention options in days, for SmithDB-only installs. Empty keeps the default options (30 to 400, up to ttl_period_seconds.longlived). At most 10 values, each at least 14. Every value is offered, also above ttl_period_seconds.longlived, which stays the default. Create a bucket lifecycle rule for each ttl_<N>d/ prefix, or blobs under it never expire. |
+| config.ttl.perProjectRetention.enabled | bool | `false` | Per-project extended retention, off by default. Set to true to turn it on. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
 | config.userOrgCreationDisabled | bool | `true` | Prevent organization creation by users. This includes admins. |
 | config.workspaceScopeOrgInvitesEnabled | bool | `false` | Enable Workspace Admins to invite users to the org and workspace. |
@@ -2686,6 +2784,9 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | platformBackend.pdb.enabled | bool | `false` |  |
 | platformBackend.pdb.labels | object | `{}` |  |
 | platformBackend.pdb.minAvailable | int | `1` |  |
+| platformBackend.rbac.annotations | object | `{}` |  |
+| platformBackend.rbac.create | bool | `true` | Create the RBAC that lets platform-backend check Fleet's pod tokens: a ClusterRole and ClusterRoleBinding to create TokenReviews and read the cluster's service account keys, and a Role and RoleBinding to read pods, ReplicaSets and Deployments in the release namespace. Used only with `fleet.agentAccessToken.enabled`. Set to false to grant that access yourself. |
+| platformBackend.rbac.labels | object | `{}` |  |
 | platformBackend.rollout | object | `{"enabled":false,"strategy":{"canary":{"steps":[{"setWeight":100}]}}}` | ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/ |
 | platformBackend.rollout.strategy | object | `{"canary":{"steps":[{"setWeight":100}]}}` | Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/ |
 | platformBackend.service.annotations | object | `{}` |  |
@@ -2960,11 +3061,11 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | redis.external.clientCert.keySecretKey | string | `"tls.key"` |  |
 | redis.external.clientCert.secretName | string | `""` |  |
 | redis.external.cluster.enabled | bool | `false` |  |
-| redis.external.cluster.nodeUris | list | `[]` |  |
-| redis.external.cluster.nodeUrisSecretKey | string | `"redis_cluster_node_uris"` |  |
-| redis.external.cluster.password | string | `""` |  |
-| redis.external.cluster.passwordSecretKey | string | `"redis_cluster_password"` |  |
-| redis.external.cluster.tlsEnabled | bool | `true` |  |
+| redis.external.cluster.nodeUris | list | `[]` | Deprecated in v0.18, supported through v0.19: use `redis.external.connectionUrl`. Node URIs take precedence over the connection URL when set. Format: '["redis://host:port", "redis://host:port", "redis://host:port"]' |
+| redis.external.cluster.nodeUrisSecretKey | string | `"redis_cluster_node_uris"` | Deprecated in v0.18, supported through v0.19: use `redis.external.connectionUrlSecretKey`. |
+| redis.external.cluster.password | string | `""` | Deprecated in v0.18, supported through v0.19: put the password in `redis.external.connectionUrl`. |
+| redis.external.cluster.passwordSecretKey | string | `"redis_cluster_password"` | Deprecated in v0.18, supported through v0.19: put the password in the URL under `redis.external.connectionUrlSecretKey`. |
+| redis.external.cluster.tlsEnabled | bool | `true` | Deprecated in v0.18, supported through v0.19: applies only to `redis.external.cluster.nodeUris`. With `redis.external.connectionUrl`, TLS comes from the URL scheme (`rediss://`). |
 | redis.external.clusterSafeMode | bool | `false` |  |
 | redis.external.connectionUrl | string | `""` |  |
 | redis.external.connectionUrlSecretKey | string | `"connection_url"` |  |

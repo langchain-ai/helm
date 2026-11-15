@@ -1,0 +1,94 @@
+suite: external Redis Cluster seeds
+templates:
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - operator/config-map.yaml
+  - queue/deployment.yaml
+tests:
+  - it: seeds the cluster from connectionUrl
+    set:
+      redis.external.enabled: true
+      redis.external.cluster.enabled: true
+      redis.external.connectionUrl: "rediss://:secret@10.1.2.3:6379"
+    asserts:
+      - template: redis/secrets.yaml
+        equal:
+          path: data.connection_url
+          value: cmVkaXNzOi8vOnNlY3JldEAxMC4xLjIuMzo2Mzc5
+      - template: redis/secrets.yaml
+        notExists:
+          path: data.redis_cluster_node_uris
+      - template: redis/secrets.yaml
+        equal:
+          path: data.redis_cluster_password
+          value: ""
+      - template: queue/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_DATABASE_URI
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-redis
+                key: connection_url
+                optional: true
+      - template: queue/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_CLUSTER_ENABLED
+            value: "true"
+
+  - it: keeps the deprecated node URIs and password
+    set:
+      redis.external.enabled: true
+      redis.external.cluster.enabled: true
+      redis.external.cluster.nodeUris:
+        - "redis://node-0:6379"
+      redis.external.cluster.password: "secret"
+    asserts:
+      - template: redis/secrets.yaml
+        equal:
+          path: data.redis_cluster_node_uris
+          value: WyJyZWRpczovL25vZGUtMDo2Mzc5Il0=
+      - template: redis/secrets.yaml
+        equal:
+          path: data.redis_cluster_password
+          value: c2VjcmV0
+      - template: redis/secrets.yaml
+        notExists:
+          path: data.connection_url
+      - template: queue/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_CLUSTER_DATABASE_URIS
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-redis
+                key: redis_cluster_node_uris
+                optional: true
+
+  - it: reads connection_url from an existing Secret
+    set:
+      redis.external.enabled: true
+      redis.external.cluster.enabled: true
+      redis.external.existingSecretName: "my-redis"
+    asserts:
+      - template: redis/secrets.yaml
+        hasDocuments:
+          count: 0
+      - template: queue/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_DATABASE_URI
+            valueFrom:
+              secretKeyRef:
+                name: my-redis
+                key: connection_url
+                optional: true

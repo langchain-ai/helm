@@ -55,9 +55,58 @@ tests:
       - failedTemplate:
           errorPattern: "config.apiKeySecretKey must name the key"
 
+  - it: fails when a relay also names targets
+    values:
+      - common-values.yaml
+    set:
+      config.relay.enabled: true
+    asserts:
+      - failedTemplate:
+          errorPattern: "Set only one of config.targets or config.relay.enabled"
+
+  - it: fails when relay rules are set without relay mode
+    values:
+      - common-values.yaml
+    set:
+      config.relay.allow: ["10.0.0.0/8"]
+    asserts:
+      - failedTemplate:
+          errorPattern: "config.relay.allow and config.relay.deny require config.relay.enabled=true"
+
+  - it: fails when a relay rule is a string instead of a list
+    set:
+      config.connectionId: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
+      config.apiKey: "k"
+      config.relay.enabled: true
+      config.relay.deny: "10.0.9.0/24"
+    asserts:
+      - failedTemplate:
+          errorPattern: "config.relay.deny must be a list"
+
+  - it: fails when a relay rule holds a comma
+    set:
+      config.connectionId: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
+      config.apiKey: "k"
+      config.relay.enabled: true
+      config.relay.allow: ["10.0.0.0/8,db.internal.example"]
+    asserts:
+      - failedTemplate:
+          errorPattern: "config.relay.allow takes one non-empty rule per entry"
+
   - it: renders nothing when configuration is valid
     values:
       - common-values.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders nothing for a relay with rules and no targets
+    set:
+      config.connectionId: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
+      config.apiKey: "k"
+      config.relay.enabled: true
+      config.relay.allow: ["10.0.0.0/8"]
+      config.relay.deny: ["10.0.9.0/24"]
     asserts:
       - hasDocuments:
           count: 0

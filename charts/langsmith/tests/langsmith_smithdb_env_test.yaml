@@ -43,3 +43,21 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "Duplicate keys detected: [SMITHDB_QUERY__METRICS__MODE]"
+
+  - it: disables query memory attribution by default
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: { name: SMITHDB_QUERY__MEMORY_ATTRIBUTION_ENABLED, value: "false" }
+
+  - it: lets extraEnv re-enable query memory attribution
+    set:
+      smithdb.query.deployment.extraEnv:
+        - { name: SMITHDB_QUERY__MEMORY_ATTRIBUTION_ENABLED, value: "true" }
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: { name: SMITHDB_QUERY__MEMORY_ATTRIBUTION_ENABLED, value: "true" }
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content: { name: SMITHDB_QUERY__MEMORY_ATTRIBUTION_ENABLED, value: "false" }

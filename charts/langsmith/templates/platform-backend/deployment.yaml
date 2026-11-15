@@ -7,12 +7,15 @@
 - name: TRAJECTORY_GRPC_PORT
   value: "8086"
 {{- end }}
+# Tool Gateway (managed tools) is served in-process by the platform backend.
+- name: MANAGED_TOOLS_EMBEDDED
+  value: "true"
 {{- with .Values.config.basePath }}
 - name: DOCS_PREFIX
   value: /{{ . }}/api
 {{- end }}
-# OAuth AS / remote MCP (and LLM-auth-proxy) signing key. Always wired (optional) from
-# the chart secret, so don't set LANGSMITH_SIGNING_JWKS manually — it trips detectDuplicates.
+# Always wired (optional) from the chart secret, so don't set LANGSMITH_SIGNING_JWKS
+# manually — it trips detectDuplicates.
 - name: LANGSMITH_SIGNING_JWKS
   valueFrom:
     secretKeyRef:
@@ -35,10 +38,30 @@
   value: {{ .Values.sandboxes.quotas.maxEphemeralStorageGib | quote }}
 - name: SANDBOX_MAX_SANDBOXES
   value: {{ .Values.sandboxes.quotas.maxSandboxes | quote }}
+- name: LANGSMITH_APP_VERSION
+  value: {{ include "langsmith.sandboxes.hostImageTag" . | quote }}
+- name: SANDBOX_DEPLOYMENT_MODE
+  value: {{ ternary "separateCluster" "sameCluster" .Values.sandboxes.external.enabled | quote }}
+{{- with include "langsmith.sandboxes.serviceAuthPreviousSecretKey" . }}
+- name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" $ }}
+      key: {{ . }}
+      optional: {{ $.Values.config.disableSecretCreation }}
+{{- end }}
+{{- with .Values.sandboxes.clusterName }}
+- name: SANDBOX_K8S_CLUSTER_NAME
+  value: {{ . | quote }}
+{{- end }}
 {{- if .Values.sandboxes.serviceUrlBaseUrl }}
 {{- /* Keyed by the name the runtime resolves and stores on each sandbox. */}}
 - name: SANDBOX_SERVICE_URLS
-  value: {{ dict "incluster" .Values.sandboxes.serviceUrlBaseUrl | toJson | quote }}
+  value: {{ dict (.Values.sandboxes.clusterName | default "incluster") .Values.sandboxes.serviceUrlBaseUrl | toJson | quote }}
+{{- end }}
+{{- with .Values.sandboxes.external.hostIngressEndpoint }}
+- name: SANDBOX_HOST_INGRESS_ENDPOINT
+  value: {{ . | quote }}
 {{- end }}
 - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
   valueFrom:
@@ -46,6 +69,22 @@
       name: {{ include "langsmith.secretsName" . }}
       key: sandbox_callback_signing_jwk
       optional: true
+{{- end }}
+{{- if eq (include "langsmith.fleet.agentAccessTokenEnabled" .) "true" }}
+- name: AGENT_ACCESS_TOKEN_ENABLED
+  value: "true"
+- name: AGENT_ACCESS_TOKEN_FLEET_DEPLOYMENT_IDS
+  value: {{ include "langsmith.fleet.deploymentId" . | quote }}
+- name: AGENT_ACCESS_TOKEN_FLEET_SERVICE_ACCOUNTS
+  value: {{ include "langsmith.fleet.agentAccessTokenServiceAccounts" . | quote }}
+- name: AGENT_ACCESS_TOKEN_FLEET_WORKLOADS
+  value: {{ include "langsmith.fleet.agentAccessTokenWorkloads" . | quote }}
+- name: AGENT_ACCESS_TOKEN_POD_TOKEN_REVIEW_ENABLED
+  value: "true"
+{{- with .Values.fleet.agentAccessToken.egressAudience }}
+- name: AGENT_ACCESS_TOKEN_EGRESS_AUDIENCES
+  value: {{ . | quote }}
+{{- end }}
 {{- end }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "platformBackendEnvVars" . | fromYamlArray) .Values.platformBackend.deployment.extraEnv -}}

@@ -3,8 +3,21 @@
   value: {{ .Values.config.endpoint | quote }}
 - name: LANGSMITH_CONNECTION_ID
   value: {{ .Values.config.connectionId | quote }}
+{{- if .Values.config.relay.enabled }}
+- name: LANGSMITH_CONNECTOR_RELAY_MODE
+  value: "true"
+{{- with .Values.config.relay.allow }}
+- name: LANGSMITH_CONNECTOR_RELAY_ALLOW
+  value: {{ join "," . | quote }}
+{{- end }}
+{{- with .Values.config.relay.deny }}
+- name: LANGSMITH_CONNECTOR_RELAY_DENY
+  value: {{ join "," . | quote }}
+{{- end }}
+{{- else }}
 - name: LANGSMITH_CONNECTOR_TARGETS
   value: {{ include "connector.targetsEnv" . | quote }}
+{{- end }}
 - name: LANGSMITH_API_KEY_FILE
   value: /var/run/secrets/langsmith/{{ .Values.config.apiKeySecretKey }}
 {{- end -}}

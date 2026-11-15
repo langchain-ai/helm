@@ -65,25 +65,25 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.17rc1"
+    tag: "0.18.29rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.17rc1"
+    tag: "0.18.29rc1"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.18.17rc1"
+    tag: "0.18.29rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.18.17rc1"
+    tag: "0.18.29rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "0.1.64"
+    tag: "0.1.66"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -109,19 +109,19 @@ images:
   clickhouseImage:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
-    tag: "25.12"
+    tag: "26.3.62.3"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.18.17rc1"
+    tag: "0.18.29rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.18.17rc1"
+    tag: "0.18.29rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.18.17rc1"
+    tag: "0.18.29rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -131,7 +131,8 @@ images:
   sandboxHostImage:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
-    tag: ""
+    # -- Release tag, kept equal to the chart's appVersion and the other LangSmith image tags so the release bump moves them together, including on a Helm upgrade that reuses the previous values. An empty tag also resolves to the appVersion.
+    tag: "0.18.29rc1"
   # The images the operator gives each agent deployment's Redis and PostgreSQL
   # (operator.templates.redis and operator.templates.db). They follow
   # images.registry like the rest; the tag is the image's own, not the chart's.
@@ -167,13 +168,29 @@ istioGateway:
   labels: {}
 
 
-# -- LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS, GCP/GKE, or Azure/AKS. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving.
+# -- LangSmith Sandboxes on AWS/EKS, GCP/GKE, or Azure/AKS. By default this release deploys the sandbox runtime (sandbox-host) in this cluster; with external.enabled the runtime is installed separately with the langsmith-sandbox chart.
 sandboxes:
   enabled: false
+  external:
+    # -- If enabled, the sandbox runtime is installed outside this release with the langsmith-sandbox chart, usually in a dedicated cluster, and this release deploys no sandbox-host. It keeps the Sandbox API and control plane. The external runtime must be the langsmith-sandbox chart on this chart's appVersion; other runtimes are not supported.
+    enabled: false
+    # -- Optional origin through which the LangSmith control plane reaches the external runtime's sandbox-host, usually the langsmith-sandbox chart's host ingress. Use an `https://` origin. Leave empty to call node IPs on port 19190 directly; that traffic is plain HTTP, so do this only on a private network you trust. No path or trailing slash.
+    hostIngressEndpoint: ""
   # -- Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed.
   callbackSigningJwk: ""
+  serviceAuth:
+    # -- Sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET), which signs calls between the control plane and sandbox hosts. Stored as `sandbox_service_auth_secret` in the chart-managed Secret. Required with external.enabled, as a new random value different from `config.apiKeySalt`. With the embedded runtime, empty keeps today's value, `config.apiKeySalt`. With config.existingSecretName, put it in that Secret and set `secretKey` instead.
+    secret: ""
+    # -- Key in config.existingSecretName holding the sandbox service-auth secret. Empty uses `api_key_salt`, today's shared value, which an external runtime (external.enabled) does not allow; point it at a dedicated key to give sandboxes their own secret. Leave empty when the chart manages the Secret.
+    secretKey: ""
+    # -- Previous sandbox service-auth secret, accepted alongside the current one during a rotation. Stored as `sandbox_service_auth_secret_previous` in the chart-managed Secret. With config.existingSecretName, use `previousSecretKey` instead.
+    previousSecret: ""
+    # -- Key in config.existingSecretName holding the previous sandbox service-auth secret during a rotation. Empty sets none.
+    previousSecretKey: ""
   # -- Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path.
   serviceUrlBaseUrl: ""
+  # -- Name of the sandbox runtime cluster this install uses, set as SANDBOX_K8S_CLUSTER_NAME on platform-backend and ingest-queue. Empty keeps the default, `incluster`. Choose it at install time: renaming hides every existing sandbox, private registry and host record. Do not also set SANDBOX_K8S_CLUSTER_NAME through extraEnv.
+  clusterName: ""
   quotas:
     maxCpuCores: 200
     maxMemoryGb: 400
@@ -218,6 +235,8 @@ sandboxes:
         - --cache-size=51200
         - --cache-large-write
   juicefsFormatJob:
+    # -- Time limit for the JuiceFS formatter Job, in seconds. It includes scheduling and the pull of the sandbox-host image, which can take minutes on a new node.
+    activeDeadlineSeconds: 900
     # -- Additional labels applied to the JuiceFS formatter pod. For Azure Workload Identity, set `azure.workload.identity/use` to `true`.
     labels: {}
     # -- Additional annotations applied to the JuiceFS formatter Job and pod.
@@ -317,6 +336,11 @@ fleet:
   namePrefix: "standalone-fleet"
   enableTracing: true
   encryptionKey: ""
+  egressProxy:
+    # -- Proxy for HTTPS egress from the Fleet runtime, tool server and trigger server, such as `http://proxy.corp:3128`, without credentials.
+    url: ""
+    # -- Hosts or domain suffixes to reach directly, besides in-cluster services and config.hostname. CIDR ranges aren't supported.
+    noProxy: []
   oauth:
     providerOrgId: ""
     googleOAuthProvider: ""
@@ -328,6 +352,11 @@ fleet:
     salesforceOAuthProvider: ""
     slackSigningSecret: ""
     slackBotId: ""
+  agentAccessToken:
+    # -- Give Fleet's pods signed agent access tokens. Each pod trades its Kubernetes service account token for short-lived tokens that name the agent and the user. Needs `config.hostname` and an RSA key after key 0 in `config.signingJwks`. See the Fleet agent access tokens section.
+    enabled: false
+    # -- Audience that your egress gateway checks in agent access tokens. Optional.
+    egressAudience: ""
   apiServer:
     name: "api-server"
     containerPort: 8000
@@ -627,7 +656,7 @@ engineInsightsAgent:
         httpGet:
           path: /ok?check_db=1
           port: 8000
-        failureThreshold: 6
+        failureThreshold: 30
         periodSeconds: 10
         timeoutSeconds: 1
       readinessProbe:
@@ -697,7 +726,7 @@ engineInsightsAgent:
         httpGet:
           path: "/ok"
           port: 8000
-        failureThreshold: 6
+        failureThreshold: 30
         periodSeconds: 10
         timeoutSeconds: 1
       readinessProbe:
@@ -1093,6 +1122,8 @@ config:
     uncappedResourcesEnabled: false
     # -- Let users override LangSmith Deployment autoscaling CPU targets and scale-up/scale-down behavior. Opt-in for self-hosted.
     scalingOverridesEnabled: false
+    # -- Let standalone self-hosted deployments declare extra ServiceAccount and SecretProviderClass manifests. Requires coordinated supporting images and the LGP CRD; see the Extra manifests section.
+    extraManifestsEnabled: false
 
 
   # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
@@ -1150,17 +1181,20 @@ config:
 
   agentMigration:
     # -- Migrate existing tracing projects and experiments to Agent Platform agents after upgrade.
-    # Requires authenticated auth (`authType` `mixed` or `oauth`) and runs on the existing ingest queue workers.
-    enabled: false
+    # Runs on the existing ingest queue workers; installs with `authType` `none` skip it.
+    # Once it has run, do not downgrade to an app version from before the migration.
+    enabled: true
 
   basicAuth:
     enabled: false
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
     initialOrgAdminPassword: ""
     jwtSecret: ""
-  # -- Email addresses of super admins who can export usage data.
-  # These are the only users allowed to use the usage backfill export
-  # unless orgAdminsInstallationUsageExportEnabled is set.
+  # -- Email addresses of the installation's super admins. With the
+  # organization's installation operations permission, they can view instance
+  # health, restart backfills, and create organizations when organization
+  # creation is disabled. They are also the only users allowed to use the
+  # usage backfill export unless orgAdminsInstallationUsageExportEnabled is set.
   superAdmins: []
   # -- When true, any org admin can use the usage backfill export.
   orgAdminsInstallationUsageExportEnabled: false
@@ -1204,10 +1238,12 @@ config:
     # -- When true, percent-encode spaces in the OIDC authorization request as %20 instead of '+'. Enable for IdPs (e.g. SiteMinder) that reject '+'-encoded scope lists. Requires authType 'mixed' with an OAuth client secret.
     urlEncodeScopeSpaces: false
 
-  # -- Ed25519/OKP JWKS (JSON) signing the OAuth AS / remote MCP (and LLM-auth-proxy)
-  # tokens; public keys are served at /.well-known/jwks.json. Set it here (stored in the
-  # chart secret) or as key `langsmith_signing_jwks` in config.existingSecretName. The
-  # remote MCP server / OAuth AS stay inert until this is set.
+  # -- JWKS (JSON) of LangSmith's signing keys. Key 0 must be Ed25519/OKP: it signs the
+  # OAuth AS / remote MCP (and LLM-auth-proxy) tokens. RSA keys after key 0 (RS256, at least
+  # 2048 bits) sign workload identity tokens and, with fleet.agentAccessToken.enabled, agent
+  # access tokens; the first RSA key signs. Public keys are served at /.well-known/jwks.json.
+  # Set it here (stored in the chart secret) or as key `langsmith_signing_jwks` in
+  # config.existingSecretName. The remote MCP server / OAuth AS stay inert until this is set.
   signingJwks: ""
   # -- Optional issuer (iss claim) for tokens minted by the LLM auth proxy. Maps to
   # LLM_AUTH_PROXY_ISSUER. Must match the jwtIssuer configured in the auth proxy chart.
@@ -1221,6 +1257,14 @@ config:
       # -- 400 day longlived and 14 day shortlived
       longlived: "34560000"
       shortlived: "1209600"
+    # -- Long-lived retention options in days, for SmithDB-only installs. Empty keeps the default
+    # options (30 to 400, up to ttl_period_seconds.longlived). At most 10 values, each at least 14.
+    # Every value is offered, also above ttl_period_seconds.longlived, which stays the default.
+    # Create a bucket lifecycle rule for each ttl_<N>d/ prefix, or blobs under it never expire.
+    longlivedAllowedDays: []
+    perProjectRetention:
+      # -- Per-project extended retention, off by default. Set to true to turn it on.
+      enabled: false
 
   # Blob storage configuration
   # Optional. Used to store inputs, outputs, and errors in Blob Storage.
@@ -1508,6 +1552,9 @@ smithdb:
         kmsEncryptionEnabled: false
         # -- KMS key ARN for SSE-KMS. When empty, S3 encrypts with the AWS managed aws/s3 key, not the bucket default key.
         kmsKeyArn: ""
+      gcs:
+        # -- Optional GCS endpoint override, such as a sovereign cloud storage endpoint. A trailing slash is removed.
+        endpoint: ""
       azure:
         # -- Azure Storage account name. Required when type is azure.
         accountName: ""
@@ -2197,18 +2244,17 @@ smithdb:
       priorityClassName: ""
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       terminationGracePeriodSeconds: 120
       resources:
         requests:
           cpu: "8"
           memory: "32Gi"
-          ephemeral-storage: "100Gi"
         limits:
           cpu: "8"
           memory: "32Gi"
-          ephemeral-storage: "100Gi"
       # -- Runs taskdb schema migrations, then one-shot self-hosted migrate-all: discover tenants,
       # -- register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode.
       command:
@@ -2225,7 +2271,9 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumes: []
-      volumeMounts: []
+      volumeMounts:
+        - name: cache
+          mountPath: /tmp
       initContainers: []
     taskdb:
       postgres:
@@ -3245,6 +3293,11 @@ platformBackend:
     labels: {}
     annotations: {}
     automountServiceAccountToken: true
+  rbac:
+    # -- Create the RBAC that lets platform-backend check Fleet's pod tokens: a ClusterRole and ClusterRoleBinding to create TokenReviews and read the cluster's service account keys, and a Role and RoleBinding to read pods, ReplicaSets and Deployments in the release namespace. Used only with `fleet.agentAccessToken.enabled`. Set to false to grant that access yourself.
+    create: true
+    labels: {}
+    annotations: {}
 
 operator:
   name: "operator"
@@ -3909,15 +3962,22 @@ redis:
       keySecretKey: "tls.key"
     # This flag disables cluster-unsafe operations. Needed for Azure EnterpriseCluster, which connects with the standalone client, but requires cluster-safe operations
     clusterSafeMode: false
-    # Redis cluster configuration.
+    # Redis cluster configuration. Set connectionUrl (or connectionUrlSecretKey in existingSecretName) to an
+    # endpoint the cluster client can discover the other nodes from, e.g. a Memorystore discovery endpoint or an
+    # ElastiCache configuration endpoint. Put the password in the URL (redis://:password@host:port) and use
+    # rediss:// for TLS, as for standalone Redis.
     cluster:
       enabled: false
-      # Node URIs and password can also be set in the secret above (existingSecretName).
-      # Node URIs should be in the format: '["redis://host:port", "redis://host:port", "redis://host:port"]'
+      # -- Deprecated in v0.18, supported through v0.19: use `redis.external.connectionUrl`. Node URIs take precedence over the connection URL when set.
+      # Format: '["redis://host:port", "redis://host:port", "redis://host:port"]'
       nodeUris: []
+      # -- Deprecated in v0.18, supported through v0.19: use `redis.external.connectionUrlSecretKey`.
       nodeUrisSecretKey: "redis_cluster_node_uris"
+      # -- Deprecated in v0.18, supported through v0.19: put the password in `redis.external.connectionUrl`.
       password: ""
+      # -- Deprecated in v0.18, supported through v0.19: put the password in the URL under `redis.external.connectionUrlSecretKey`.
       passwordSecretKey: "redis_cluster_password"
+      # -- Deprecated in v0.18, supported through v0.19: applies only to `redis.external.cluster.nodeUris`. With `redis.external.connectionUrl`, TLS comes from the URL scheme (`rediss://`).
       tlsEnabled: true
   containerPort: 6379
   statefulSet:

@@ -98,3 +98,97 @@ tests:
       - template: smithdb/compaction-worker-deployment.yaml
         notExists:
           path: spec.template.spec.containers[0].env[?(@.name == "SMITHDB_COMPACTION_WORKER__EXECUTOR__LONG_TERM_RETENTION")]
+
+  - it: should render the allowed days and keep the long-lived retention
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.ttl.longlivedAllowedDays: [90, 30, 365]
+    asserts:
+      - template: backend/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LONGLIVED_TTL_ALLOWED_DAYS
+            value: "[90,30,365]"
+      - template: backend/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TRACE_TIER_TTL_DURATION_SEC_MAP
+            value: '{ "longlived": 34560000, "shortlived": 1209600 }'
+      - template: smithdb/query-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LONG_TERM_RETENTION
+            value: "34560000s"
+
+  - it: should not render the allowed days when the list is empty
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: backend/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "LONGLIVED_TTL_ALLOWED_DAYS")]
+
+  - it: should reject an allowed day value below 14
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.ttl.longlivedAllowedDays: [7, 30]
+    template: backend/deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "below the 14-day minimum"
+
+  - it: should reject more than 10 allowed day values
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.ttl.longlivedAllowedDays: [14, 30, 60, 90, 120, 150, 180, 240, 300, 365, 400]
+    template: backend/deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "at most 10 values"
+
+  - it: should turn on per-project retention and its SmithDB sync job when enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.ttl.perProjectRetention.enabled: true
+    template: backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_PER_PROJECT_RETENTION_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PROJECT_TTL_SMITHDB_SYNC_ENABLED
+            value: "true"
+
+  - it: should leave per-project retention and its SmithDB sync job off by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: backend/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "FF_PER_PROJECT_RETENTION_ENABLED")]
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "PROJECT_TTL_SMITHDB_SYNC_ENABLED")]
+
+  - it: should not turn on per-project retention when TTL is off
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.ttl.enabled: false
+      config.ttl.perProjectRetention.enabled: true
+    template: backend/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "FF_PER_PROJECT_RETENTION_ENABLED")]
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "PROJECT_TTL_SMITHDB_SYNC_ENABLED")]

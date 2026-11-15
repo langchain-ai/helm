@@ -14,3 +14,6 @@ credentials.json
 node_modules/
 __pycache__/
 .venv/
+# Vendored by `helm dependency build`; the dependency is a version range, so no lock is kept.
+charts/langsmith/charts/*
+charts/langsmith/Chart.lock
