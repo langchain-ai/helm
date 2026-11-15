@@ -1051,7 +1051,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | rustfs.pdb.enabled | bool | `false` |  |
 | rustfs.pdb.labels | object | `{}` |  |
 | rustfs.pdb.minAvailable | int | `1` |  |
-| rustfs.secretKey | string | `"langsmith-rustfs"` | RustFS secret key. Ignored when existingSecretName is set. |
+| rustfs.secretKey | string | `""` | RustFS secret key. Ignored when existingSecretName is set. When empty, the chart generates a random key on install and keeps it on upgrade. Set it, or use existingSecretName, if you render with `helm template` (for example Argo CD), which cannot read the existing key and would generate a new one on every render. |
 | rustfs.secretKeySecretKey | string | `"secret_key"` |  |
 | rustfs.service.annotations | object | `{}` |  |
 | rustfs.service.labels | object | `{}` |  |

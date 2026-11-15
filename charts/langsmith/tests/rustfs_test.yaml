@@ -86,6 +86,49 @@ tests:
                 name: langsmith-rustfs
                 key: secret_key
 
+  - it: generates a random RustFS secret key
+    template: rustfs/secrets.yaml
+    asserts:
+      - matchRegex:
+          path: data.secret_key
+          # base64 of 40 alphanumeric characters
+          pattern: ^[A-Za-z0-9+/]{54}==$
+      - notEqual:
+          path: data.secret_key
+          value: bGFuZ3NtaXRoLXJ1c3Rmcw==
+
+  - it: keeps the RustFS secret key from an earlier install
+    template: rustfs/secrets.yaml
+    kubernetesProvider:
+      scheme:
+        "v1/Secret":
+          gvr:
+            version: "v1"
+            resource: "secrets"
+          namespaced: true
+      objects:
+        - kind: Secret
+          apiVersion: v1
+          metadata:
+            name: langsmith-rustfs
+            namespace: langsmith
+          data:
+            access_key: bGFuZ3NtaXRo
+            secret_key: a2VwdC1rZXk=
+    asserts:
+      - equal:
+          path: data.secret_key
+          value: a2VwdC1rZXk=
+
+  - it: uses rustfs.secretKey when set
+    template: rustfs/secrets.yaml
+    set:
+      rustfs.secretKey: my-secret-key
+    asserts:
+      - equal:
+          path: data.secret_key
+          value: bXktc2VjcmV0LWtleQ==
+
   - it: uses an existing secret for the RustFS credentials
     set:
       rustfs.existingSecretName: my-rustfs

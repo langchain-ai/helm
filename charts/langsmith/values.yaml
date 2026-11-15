@@ -4071,8 +4071,10 @@ rustfs:
   bucketName: "langsmith"
   # -- RustFS access key. Ignored when existingSecretName is set.
   accessKey: "langsmith"
-  # -- RustFS secret key. Ignored when existingSecretName is set.
-  secretKey: "langsmith-rustfs"
+  # -- RustFS secret key. Ignored when existingSecretName is set. When empty, the chart generates a random key
+  # on install and keeps it on upgrade. Set it, or use existingSecretName, if you render with `helm template`
+  # (for example Argo CD), which cannot read the existing key and would generate a new one on every render.
+  secretKey: ""
   # -- Existing secret holding the RustFS credentials under accessKeySecretKey and secretKeySecretKey.
   existingSecretName: ""
   accessKeySecretKey: "access_key"
