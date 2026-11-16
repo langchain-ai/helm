@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.54](https://img.shields.io/badge/Version-0.17.54-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.77](https://img.shields.io/badge/AppVersion-0.17.77-informational?style=flat-square)
+![Version: 0.17.55](https://img.shields.io/badge/Version-0.17.55-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.77](https://img.shields.io/badge/AppVersion-0.17.77-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -606,7 +606,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | images.backendImage.tag | string | `"0.17.77"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
-| images.clickhouseImage.tag | string | `"25.12"` |  |
+| images.clickhouseImage.tag | string | `"26.3.62.3"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
 | images.engineInsightsAgentImage.tag | string | `"0.17.77"` |  |
