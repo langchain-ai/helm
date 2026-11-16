@@ -1,0 +1,76 @@
+# Datadog Autodiscovery annotations for the Engine tab.
+# Apply after your LangSmith values, and after the SmithDB values if you use them:
+#   helm upgrade ... -f values.yaml [-f ../smithdb/datadog-values.yaml] -f datadog-values.yaml
+# Helm replaces annotation values and lists rather than merging them:
+# - The platformBackend and ingestQueue checks below include the SmithDB metrics,
+#   so layering this file after the SmithDB values keeps both tabs working.
+# - engineInsightsAgent.queue.deployment.extraEnv replaces any extraEnv you already
+#   set there. Copy your existing entries into this list.
+
+engineInsightsAgent:
+  queue:
+    deployment:
+      # Serves run outcome and latency metrics on /metrics. Without it the queue
+      # serves only worker and queue-depth metrics.
+      extraEnv:
+        - name: EXPOSE_INTERNAL_METRICS_PROMETHEUS
+          value: "true"
+      annotations:
+        ad.datadoghq.com/queue.checks: |
+          {
+            "openmetrics": {
+              "init_config": {},
+              "instances": [
+                {
+                  "openmetrics_endpoint": "http://%%host%%:8000/metrics",
+                  "metrics": ["lg_api_.*"],
+                  "histogram_buckets_as_distributions": true,
+                  "collect_counters_with_distributions": true
+                }
+              ]
+            }
+          }
+
+# Scan outcomes, issue filing and usage reports.
+platformBackend:
+  deployment:
+    annotations:
+      ad.datadoghq.com/platform-backend.checks: |
+        {
+          "openmetrics": {
+            "init_config": {},
+            "instances": [
+              {
+                "openmetrics_endpoint": "http://%%host%%:1986/metrics",
+                "metrics": [
+                  "langsmith_asynq_ingestion_queue_pending",
+                  "langsmith_issues_agent_.*",
+                  "langsmith_engine_.*"
+                ]
+              }
+            ]
+          }
+        }
+
+# Scan dispatch skips, run callback backlog, usage aggregation and upload.
+ingestQueue:
+  deployment:
+    annotations:
+      ad.datadoghq.com/ingest-queue.checks: |
+        {
+          "openmetrics": {
+            "init_config": {},
+            "instances": [
+              {
+                "openmetrics_endpoint": "http://%%host%%:1989/metrics",
+                "metrics": [
+                  "langsmith_ingestion_.*_latency_seconds",
+                  "langsmith_issues_agent_.*",
+                  "langsmith_engine_.*"
+                ],
+                "histogram_buckets_as_distributions": true,
+                "collect_counters_with_distributions": true
+              }
+            ]
+          }
+        }

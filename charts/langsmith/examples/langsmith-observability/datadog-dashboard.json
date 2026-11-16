@@ -39,6 +39,12 @@
       "prefix": "bucketname",
       "available_values": [],
       "default": "replace-with-bucket-name"
+    },
+    {
+      "name": "engine_deployment",
+      "prefix": "kube_deployment",
+      "available_values": [],
+      "default": "*standalone-insights*"
     }
   ],
   "widgets": [
@@ -9808,6 +9814,1560 @@
         "height": 11
       },
       "id": 20139
+    },
+    {
+      "definition": {
+        "type": "note",
+        "content": "Import into your own Datadog organization. Requires the Engine collection values in the accompanying README. Missing data means no samples were collected, not zero.",
+        "background_color": "transparent",
+        "font_size": "14",
+        "text_align": "left",
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": 12,
+        "height": 2
+      },
+      "id": 30000
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Scans",
+        "background_color": "blue",
+        "layout_type": "ordered",
+        "show_title": true,
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "Engine scans as recorded by platform-backend when each scan finishes. Success counts scans that ended with `status:success`, including scans that found nothing to file. Fix, validation and investigation runs are not counted. Skips happen in the ingest-queue worker before a scan is dispatched.",
+              "background_color": "transparent",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true
+            },
+            "layout": {
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 2
+            },
+            "id": 30002
+          },
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "Scan success rate",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "100 * ok / total",
+                      "alias": "Scan success rate",
+                      "number_format": {
+                        "unit": {
+                          "type": "canonical_unit",
+                          "unit_name": "percent"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "ok",
+                      "query": "sum:langsmith_issues_agent_main_runs_finished.count{$env,kube_cluster_name:$cluster.value,$namespace,status:success}.as_count()",
+                      "aggregator": "sum"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_issues_agent_main_runs_finished.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()",
+                      "aggregator": "sum"
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "aggregator": "sum"
+                }
+              ],
+              "autoscale": true,
+              "precision": 0
+            },
+            "layout": {
+              "x": 0,
+              "y": 2,
+              "width": 4,
+              "height": 2
+            },
+            "id": 30003
+          },
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "Finished scans",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "Finished scans",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "scans"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_issues_agent_main_runs_finished.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()",
+                      "aggregator": "sum"
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "aggregator": "sum"
+                }
+              ],
+              "autoscale": true,
+              "precision": 0
+            },
+            "layout": {
+              "x": 4,
+              "y": 2,
+              "width": 4,
+              "height": 2
+            },
+            "id": 30004
+          },
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "Unsuccessful scans",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "Unsuccessful scans",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "scans"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_issues_agent_main_runs_finished.count{$env,kube_cluster_name:$cluster.value,$namespace,!status:success}.as_count()",
+                      "aggregator": "sum"
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "aggregator": "sum"
+                }
+              ],
+              "autoscale": true,
+              "precision": 0
+            },
+            "layout": {
+              "x": 8,
+              "y": 2,
+              "width": 4,
+              "height": 2
+            },
+            "id": 30005
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Finished scans by status",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "scans"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_issues_agent_main_runs_finished.count{$env,kube_cluster_name:$cluster.value,$namespace} by {status}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 0,
+              "y": 4,
+              "width": 6,
+              "height": 4
+            },
+            "id": 30006
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Unsuccessful scans by status and failure",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "scans"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_issues_agent_main_runs_finished.count{$env,kube_cluster_name:$cluster.value,$namespace,!status:success} by {status,failure}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 6,
+              "y": 4,
+              "width": 6,
+              "height": 4
+            },
+            "id": 30007
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Scans skipped before dispatch",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "no active plan",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "scans"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_issues_agent_no_plan_skipped.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "spend limit reached",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "scans"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_issues_agent_lcu_spend_limit_exceeded.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "workspace concurrency cap",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "scans"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_issues_agent_tenant_cap_exceeded.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 0,
+              "y": 8,
+              "width": 6,
+              "height": 4
+            },
+            "id": 30008
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Oldest run awaiting its completion callback",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "Oldest pending run age",
+                      "number_format": {
+                        "unit": {
+                          "type": "canonical_unit",
+                          "unit_name": "second"
+                        },
+                        "unit_scale": {
+                          "type": "canonical_unit",
+                          "unit_name": "second"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "max:langsmith_issues_agent_thread_status_oldest_pending_age_seconds{$env,kube_cluster_name:$cluster.value,$namespace}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "style": {
+                    "has_value_labels": true
+                  }
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 6,
+              "y": 8,
+              "width": 6,
+              "height": 4
+            },
+            "id": 30009
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Runs awaiting completion callback",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "Pending runs",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "runs"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "max:langsmith_issues_agent_thread_status_pending_rows{$env,kube_cluster_name:$cluster.value,$namespace}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "style": {
+                    "has_value_labels": true
+                  }
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 0,
+              "y": 12,
+              "width": 6,
+              "height": 4
+            },
+            "id": 30010
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Issue filing attempts by outcome",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "calls"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_issues_agent_create_issue_calls.count{$env,kube_cluster_name:$cluster.value,$namespace} by {outcome}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 6,
+              "y": 12,
+              "width": 6,
+              "height": 4
+            },
+            "id": 30011
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "width": 12,
+        "height": 17
+      },
+      "id": 30001
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Agent server (shared with Insights)",
+        "background_color": "purple",
+        "layout_type": "ordered",
+        "show_title": true,
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "The Engine and Insights share one agent server, so these panels include Insights runs when Insights is enabled. Run outcome and latency panels need `EXPOSE_INTERNAL_METRICS_PROMETHEUS=true` on the queue pods; see the collection values.",
+              "background_color": "transparent",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true
+            },
+            "layout": {
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 2
+            },
+            "id": 30013
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Queue workers: active vs max",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "active",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "workers"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:lg_api_workers_active{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "style": {
+                    "has_value_labels": true
+                  }
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "max",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "workers"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:lg_api_workers_max{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "style": {
+                    "has_value_labels": true
+                  }
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 0,
+              "y": 2,
+              "width": 6,
+              "height": 4
+            },
+            "id": 30014
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Runs: pending vs running",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "pending",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "runs"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "max:lg_api_num_pending_runs{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "style": {
+                    "has_value_labels": true
+                  }
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "running",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "runs"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "max:lg_api_num_running_runs{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "style": {
+                    "has_value_labels": true
+                  }
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 6,
+              "y": 2,
+              "width": 6,
+              "height": 4
+            },
+            "id": 30015
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Run outcomes",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "succeeded",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "runs"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:lg_api_run_success_counter.count{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "failed after retries",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "runs"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:lg_api_run_failed_after_retry_counter.count{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 0,
+              "y": 6,
+              "width": 6,
+              "height": 4
+            },
+            "id": 30016
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Run execution time",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "p50",
+                      "number_format": {
+                        "unit": {
+                          "type": "canonical_unit",
+                          "unit_name": "millisecond"
+                        },
+                        "unit_scale": {
+                          "type": "canonical_unit",
+                          "unit_name": "millisecond"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "p50:lg_api_run_execution_latency{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "style": {
+                    "has_value_labels": true
+                  }
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "p95",
+                      "number_format": {
+                        "unit": {
+                          "type": "canonical_unit",
+                          "unit_name": "millisecond"
+                        },
+                        "unit_scale": {
+                          "type": "canonical_unit",
+                          "unit_name": "millisecond"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "p95:lg_api_run_execution_latency{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "style": {
+                    "has_value_labels": true
+                  }
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 6,
+              "y": 6,
+              "width": 6,
+              "height": 4
+            },
+            "id": 30017
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Run queue wait (first attempt)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "p50",
+                      "number_format": {
+                        "unit": {
+                          "type": "canonical_unit",
+                          "unit_name": "millisecond"
+                        },
+                        "unit_scale": {
+                          "type": "canonical_unit",
+                          "unit_name": "millisecond"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "p50:lg_api_run_queue_wait_time_1st_attempt{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "style": {
+                    "has_value_labels": true
+                  }
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "p95",
+                      "number_format": {
+                        "unit": {
+                          "type": "canonical_unit",
+                          "unit_name": "millisecond"
+                        },
+                        "unit_scale": {
+                          "type": "canonical_unit",
+                          "unit_name": "millisecond"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "p95:lg_api_run_queue_wait_time_1st_attempt{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "style": {
+                    "has_value_labels": true
+                  }
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 0,
+              "y": 10,
+              "width": 12,
+              "height": 4
+            },
+            "id": 30018
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 19,
+        "width": 12,
+        "height": 15
+      },
+      "id": 30012
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Pods",
+        "background_color": "gray",
+        "layout_type": "ordered",
+        "show_title": true,
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "Kubernetes metrics from the Datadog Agent for the Engine api-server and queue deployments, selected by `engine_deployment`.",
+              "background_color": "transparent",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true
+            },
+            "layout": {
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 2
+            },
+            "id": 30020
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "CPU usage by deployment",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "usage / 1000000000",
+                      "alias": "CPU",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "cores"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "usage",
+                      "query": "sum:kubernetes.cpu.usage.total{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment} by {kube_deployment}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "style": {
+                    "has_value_labels": true
+                  }
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 0,
+              "y": 2,
+              "width": 6,
+              "height": 4
+            },
+            "id": 30021
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Memory working set by deployment",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "Working set",
+                      "number_format": {
+                        "unit": {
+                          "type": "canonical_unit",
+                          "unit_name": "byte"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:kubernetes.memory.working_set{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment} by {kube_deployment}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "style": {
+                    "has_value_labels": true
+                  }
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "Limit",
+                      "number_format": {
+                        "unit": {
+                          "type": "canonical_unit",
+                          "unit_name": "byte"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:kubernetes.memory.limits{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment} by {kube_deployment}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "style": {
+                    "has_value_labels": true
+                  }
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 6,
+              "y": 2,
+              "width": 6,
+              "height": 4
+            },
+            "id": 30022
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Container restarts by pod (cumulative)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "Restarts",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "restarts"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "max:kubernetes.containers.restarts{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment} by {pod_name}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line",
+                  "style": {
+                    "has_value_labels": true
+                  }
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 0,
+              "y": 6,
+              "width": 12,
+              "height": 4
+            },
+            "id": 30023
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 34,
+        "width": 12,
+        "height": 11
+      },
+      "id": 30019
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Usage recording and upload",
+        "background_color": "green",
+        "layout_type": "ordered",
+        "show_title": true,
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "The Engine reports each model call's token usage to platform-backend; the ingest-queue worker aggregates it and uploads it to LangSmith Intelligence. Upload panels stay empty on air-gapped installs, which export usage from Settings > Usage export instead.",
+              "background_color": "transparent",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true
+            },
+            "layout": {
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 2
+            },
+            "id": 30025
+          },
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "Prompt cache hit rate",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "100 * cached / (cached + uncached + written)",
+                      "alias": "Cache hit rate",
+                      "number_format": {
+                        "unit": {
+                          "type": "canonical_unit",
+                          "unit_name": "percent"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "cached",
+                      "query": "sum:langsmith_engine_usage_tokens.count{$env,kube_cluster_name:$cluster.value,$namespace,token_type:cache_read}.as_count()",
+                      "aggregator": "sum"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "uncached",
+                      "query": "sum:langsmith_engine_usage_tokens.count{$env,kube_cluster_name:$cluster.value,$namespace,token_type:input}.as_count()",
+                      "aggregator": "sum"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "written",
+                      "query": "sum:langsmith_engine_usage_tokens.count{$env,kube_cluster_name:$cluster.value,$namespace,token_type:cache_creation}.as_count()",
+                      "aggregator": "sum"
+                    }
+                  ],
+                  "response_format": "scalar",
+                  "aggregator": "sum"
+                }
+              ],
+              "autoscale": true,
+              "precision": 0
+            },
+            "layout": {
+              "x": 0,
+              "y": 2,
+              "width": 4,
+              "height": 4
+            },
+            "id": 30026
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Input tokens by type and provider",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "tokens"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_engine_usage_tokens.count{$env,kube_cluster_name:$cluster.value,$namespace} by {token_type,provider}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 4,
+              "y": 2,
+              "width": 8,
+              "height": 4
+            },
+            "id": 30027
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Usage reports rejected or not stored",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "reports"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_issues_agent_usage_request_rejections.count{$env,kube_cluster_name:$cluster.value,$namespace} by {reason}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "storage write errors",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "reports"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_issues_agent_usage_bucket_write_errors.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 0,
+              "y": 6,
+              "width": 6,
+              "height": 4
+            },
+            "id": 30028
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Usage aggregation failures",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "sweep failures",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "failures"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_issues_agent_usage_sweep_failures.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "insert failures",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "failures"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_issues_agent_usage_insert_failures.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 6,
+              "y": 6,
+              "width": 6,
+              "height": 4
+            },
+            "id": 30029
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Upload to LangSmith Intelligence",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "rows sent",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "rows"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_engine_lsi_usage_rows_sent.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "batches failed",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "batches"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_engine_lsi_usage_batches_failed.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "license rejected",
+                      "number_format": {
+                        "unit": {
+                          "type": "custom_unit_label",
+                          "label": "uploads"
+                        }
+                      }
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_engine_lsi_usage_license_rejected.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "bars"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "vertical",
+              "legend_size": "4",
+              "legend_columns": [
+                "value",
+                "avg",
+                "max"
+              ],
+              "yaxis": {
+                "min": "0"
+              }
+            },
+            "layout": {
+              "x": 0,
+              "y": 10,
+              "width": 12,
+              "height": 4
+            },
+            "id": 30030
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 45,
+        "width": 12,
+        "height": 15
+      },
+      "id": 30024
     }
   ],
   "tabs": [
@@ -9843,6 +11403,17 @@
         20125,
         20131,
         20139
+      ]
+    },
+    {
+      "id": "8bacb1a0-7084-55a3-80dc-52510bafdc89",
+      "name": "Engine",
+      "widget_ids": [
+        30000,
+        30001,
+        30012,
+        30019,
+        30024
       ]
     }
   ]

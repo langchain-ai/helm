@@ -18,6 +18,8 @@ The Datadog Sandboxes tab adds host capacity, lifecycle, execution, resources, n
 
 The Grafana Sandboxes tab covers the same host and JuiceFS signals using Prometheus. It shares Data source and Namespace(s) with SmithDB. Sandbox cluster applies only to Sandboxes because the SmithDB example does not guarantee a `cluster` label. API/APM and provider bucket metrics require other integrations and are not included. See the [Sandbox collection guide](components/sandboxes/README.md).
 
+The Datadog Engine tab covers Engine scan outcomes and skips, runs waiting on their completion callback, issue filing, the agent server's queue workers and runs, Engine pod resources, and token usage recording and upload to LangSmith Intelligence. The Engine shares its agent server with Insights, so agent server panels include Insights runs when Insights is enabled. Pod panels select the Engine deployments with `engine_deployment`, which matches the chart's default `standalone-insights` name prefix; change it if you set `engineInsightsAgent.namePrefix`. Model provider calls are not covered. The Grafana dashboard has no Engine tab.
+
 ## Collect component metrics
 
 Apply collection settings only for the components you operate. These examples do not install Datadog, Prometheus, Grafana, or the monitored components. Merge with your existing annotations and scrape jobs to avoid duplicate collection; schedule any pod rollout through your normal release process.
@@ -26,8 +28,11 @@ Apply collection settings only for the components you operate. These examples do
 | --- | --- | --- |
 | SmithDB | [Autodiscovery values](components/smithdb/datadog-values.yaml) | [Scrape annotations](components/smithdb/prometheus-values.yaml) |
 | Sandboxes | [Host values](components/sandboxes/datadog-values.yaml), or [host and JuiceFS values](components/sandboxes/datadog-juicefs-values.yaml) | [Host scrape job](components/sandboxes/prometheus/host-scrape.yaml), plus [optional JuiceFS job](components/sandboxes/prometheus/juicefs-scrape.yaml) |
+| Engine | [Engine values](components/engine/datadog-values.yaml) | Not included |
 
 SmithDB's examples also collect LangSmith ingest-queue metrics on port `1989` and platform-backend queue metrics on port `1986`. Keep metrics listeners private. Prometheus must already discover the supplied annotations and attach the `namespace` label. The Datadog example uses the `smithdb.` metric prefix; the Grafana queries use raw Prometheus names. Datadog's SmithDB error panels additionally require logs matching `service:smithdb*`.
+
+The Engine values scrape the Engine queue pods on port `8000`, platform-backend on `1986` and ingest-queue on `1989`, and set `EXPOSE_INTERNAL_METRICS_PROMETHEUS=true` on the queue pods so they also serve run outcome and latency metrics. Their platform-backend and ingest-queue checks include the SmithDB metrics, so apply them after the SmithDB values. Helm replaces lists, so the Engine values' `engineInsightsAgent.queue.deployment.extraEnv` replaces any you already set; copy your entries into it.
 
 With `smithdb.topology: unified`, the `unified` entry scrapes the SmithDB pod on port `8060`.
 
