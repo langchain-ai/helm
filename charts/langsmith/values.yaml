@@ -3288,6 +3288,7 @@ operator:
   name: "operator"
   enabled: true
   createCRDs: true
+  # -- Comma-separated namespaces where the operator manages deployments, such as `"langsmith"` or `"langsmith,agents"`. Leave out spaces. Empty means every namespace: the chart then grants the operator its permissions through a ClusterRole. See the Deployments operator scope section.
   watchNamespaces: ""
   kedaEnabled: true
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/

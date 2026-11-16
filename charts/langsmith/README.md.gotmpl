@@ -92,6 +92,24 @@ Online evaluations on trajectories use an internal gRPC listener in `platformBac
 
 The trajectory Service is cluster-internal; no public route is added. Trajectory processing can be memory intensive, consider setting [GOMEMLIMIT](https://pkg.go.dev/runtime#hdr-Environment_Variables) relative to your memory limit to mitigate OOMKilled errors for this service. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
 
+## Deployments operator scope
+
+With `config.deployment.enabled=true`, the operator creates and updates the Deployments, StatefulSets, Services, and other resources that run each LangSmith Deployment. `operator.watchNamespaces` sets where it can do that:
+
+- **Empty, the default:** the operator manages deployments in every namespace. The chart grants its permissions through a ClusterRole and ClusterRoleBinding.
+- **A comma-separated list:** the operator manages deployments only in the listed namespaces. The chart grants the same permissions through a Role and RoleBinding in each listed namespace and creates no ClusterRole for them.
+
+Set a list unless the operator must manage deployments across the whole cluster. For example, to keep deployments in the release namespace:
+
+```yaml
+operator:
+  watchNamespaces: "langsmith"
+```
+
+Use your own namespace names, separated by commas without spaces. Each listed namespace must exist before you install or upgrade. Before you narrow an existing installation, list every namespace that already has deployments; the operator stops managing deployments in namespaces you leave out. Without Gateway API or Istio, the operator also updates the shared Ingress in the LangSmith namespace, so include that namespace in the list. Do not let two operators manage the same namespace.
+
+An operator that can create Deployments in a namespace can run them as any ServiceAccount in that namespace. Keep privileged ServiceAccounts out of the namespaces it manages, and use admission policies to limit which ServiceAccounts and pod settings deployments can use. With `operator.rbac.create=false`, `operator.watchNamespaces` limits what the operator manages but not the permissions you grant it, so scope those permissions yourself.
+
 ## Extra manifests
 
 `config.deployment.extraManifestsEnabled` defaults to `false`. Set it to `true` to let standalone self-hosted deployments declare extra ServiceAccounts and SecretProviderClasses. It needs `config.deployment.enabled=true` and the operator. The chart passes `LGP_EXTRA_MANIFESTS_ENABLED` to the operator and, through the shared ConfigMap, to the host backend, listener, and platform backend. Deployments on a remote listener are unsupported. Do not override the flag through environment values.
@@ -102,7 +120,7 @@ The API and the operator validate every manifest and return the reason for a rej
 
 Manifests are stored in plaintext in the LangSmith database and in the deployment's custom resource. Do not put credentials in them.
 
-Enabling the feature grants the operator SecretProviderClass `get`, `create`, `patch`, and `delete`. ServiceAccount permissions already exist. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
+Enabling the feature grants the operator ServiceAccount and SecretProviderClass `get`, `create`, `patch`, and `delete`. Without the feature, the operator gets no ServiceAccount permissions. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
 
 Scope each workload identity's federation to the namespace and the full prefixed ServiceAccount name. For Azure Key Vault, install the Secrets Store CSI driver and Azure provider, and configure Azure Workload Identity and the federated identity credential. This chart does not install those prerequisites.
 

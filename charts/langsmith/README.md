@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.79](https://img.shields.io/badge/Version-0.18.0--rc.79-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.80](https://img.shields.io/badge/Version-0.18.0--rc.80-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -95,6 +95,24 @@ Online evaluations on trajectories use an internal gRPC listener in `platformBac
 
 The trajectory Service is cluster-internal; no public route is added. Trajectory processing can be memory intensive, consider setting [GOMEMLIMIT](https://pkg.go.dev/runtime#hdr-Environment_Variables) relative to your memory limit to mitigate OOMKilled errors for this service. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
 
+## Deployments operator scope
+
+With `config.deployment.enabled=true`, the operator creates and updates the Deployments, StatefulSets, Services, and other resources that run each LangSmith Deployment. `operator.watchNamespaces` sets where it can do that:
+
+- **Empty, the default:** the operator manages deployments in every namespace. The chart grants its permissions through a ClusterRole and ClusterRoleBinding.
+- **A comma-separated list:** the operator manages deployments only in the listed namespaces. The chart grants the same permissions through a Role and RoleBinding in each listed namespace and creates no ClusterRole for them.
+
+Set a list unless the operator must manage deployments across the whole cluster. For example, to keep deployments in the release namespace:
+
+```yaml
+operator:
+  watchNamespaces: "langsmith"
+```
+
+Use your own namespace names, separated by commas without spaces. Each listed namespace must exist before you install or upgrade. Before you narrow an existing installation, list every namespace that already has deployments; the operator stops managing deployments in namespaces you leave out. Without Gateway API or Istio, the operator also updates the shared Ingress in the LangSmith namespace, so include that namespace in the list. Do not let two operators manage the same namespace.
+
+An operator that can create Deployments in a namespace can run them as any ServiceAccount in that namespace. Keep privileged ServiceAccounts out of the namespaces it manages, and use admission policies to limit which ServiceAccounts and pod settings deployments can use. With `operator.rbac.create=false`, `operator.watchNamespaces` limits what the operator manages but not the permissions you grant it, so scope those permissions yourself.
+
 ## Extra manifests
 
 `config.deployment.extraManifestsEnabled` defaults to `false`. Set it to `true` to let standalone self-hosted deployments declare extra ServiceAccounts and SecretProviderClasses. It needs `config.deployment.enabled=true` and the operator. The chart passes `LGP_EXTRA_MANIFESTS_ENABLED` to the operator and, through the shared ConfigMap, to the host backend, listener, and platform backend. Deployments on a remote listener are unsupported. Do not override the flag through environment values.
@@ -105,7 +123,7 @@ The API and the operator validate every manifest and return the reason for a rej
 
 Manifests are stored in plaintext in the LangSmith database and in the deployment's custom resource. Do not put credentials in them.
 
-Enabling the feature grants the operator SecretProviderClass `get`, `create`, `patch`, and `delete`. ServiceAccount permissions already exist. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
+Enabling the feature grants the operator ServiceAccount and SecretProviderClass `get`, `create`, `patch`, and `delete`. Without the feature, the operator gets no ServiceAccount permissions. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
 
 Scope each workload identity's federation to the namespace and the full prefixed ServiceAccount name. For Azure Key Vault, install the Secrets Store CSI driver and Azure provider, and configure Azure Workload Identity and the federated identity credential. This chart does not install those prerequisites.
 
@@ -2623,7 +2641,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | operator.templates.deployment | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  replicas: ${replicas}\n  revisionHistoryLimit: 10\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      enableServiceLinks: false\n      {{- with .Values.images.imagePullSecrets }}\n      imagePullSecrets:\n        {{- toYaml . | nindent 8 }}\n      {{- end }}\n      containers:\n      - name: api-server\n        image: ${image}\n        ports:\n        - name: api-server\n          containerPort: 8000\n          protocol: TCP\n        livenessProbe:\n          httpGet:\n            path: /ok\n            port: 8000\n          periodSeconds: 15\n          timeoutSeconds: 5\n          failureThreshold: 6\n        readinessProbe:\n          httpGet:\n            path: /ok\n            port: 8000\n          periodSeconds: 15\n          timeoutSeconds: 5\n          failureThreshold: 6\n"` |  |
 | operator.templates.redis | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${service_name}\n  namespace: ${namespace}\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: ${service_name}\n  template:\n    metadata:\n      labels:\n        app: ${service_name}\n    spec:\n      enableServiceLinks: false\n      {{- with .Values.images.imagePullSecrets }}\n      imagePullSecrets:\n        {{- toYaml . | nindent 8 }}\n      {{- end }}\n      containers:\n      - name: redis\n        image: {{ include \"langsmith.image\" (dict \"Values\" .Values \"Chart\" .Chart \"component\" \"deploymentRedisImage\") }}\n        ports:\n        - containerPort: 6379\n          name: redis\n        livenessProbe:\n          exec:\n            command:\n            - redis-cli\n            - ping\n          initialDelaySeconds: 30\n          periodSeconds: 10\n        readinessProbe:\n          tcpSocket:\n            port: 6379\n          initialDelaySeconds: 10\n          periodSeconds: 5\n"` |  |
 | operator.templates.service | string | `"apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  type: ClusterIP\n  selector:\n    app: ${name}\n  ports:\n  - name: api-server\n    protocol: TCP\n    port: 8000\n    targetPort: 8000\n"` |  |
-| operator.watchNamespaces | string | `""` |  |
+| operator.watchNamespaces | string | `""` | Comma-separated namespaces where the operator manages deployments, such as `"langsmith"` or `"langsmith,agents"`. Leave out spaces. Empty means every namespace: the chart then grants the operator its permissions through a ClusterRole. See the Deployments operator scope section. |
 
 ## Platform Backend
 

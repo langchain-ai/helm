@@ -29,6 +29,15 @@ rules:
   - create
   - patch
   - delete
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
+  verbs:
+  - get
+  - create
+  - patch
+  - delete
 {{- end }}
 - apiGroups:
   - apps
@@ -92,9 +101,7 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - pods
   - services
-  - serviceaccounts
   - persistentvolumeclaims
   verbs:
   - create
@@ -107,8 +114,9 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - pods/log
+  - pods
   verbs:
+  - delete
   - get
   - list
   - watch
@@ -207,7 +215,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: {{ include "operator.serviceAccountName" $ }}
-    namespace: {{ $.Release.Namespace }}
+    namespace: {{ $.Values.namespace | default $.Release.Namespace }}
 roleRef:
   kind: Role
   name: {{ include "langsmith.fullname" $ }}-operator
@@ -236,6 +244,15 @@ rules:
   - secrets-store.csi.x-k8s.io
   resources:
   - secretproviderclasses
+  verbs:
+  - get
+  - create
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
   verbs:
   - get
   - create
@@ -304,9 +321,7 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - pods
   - services
-  - serviceaccounts
   - persistentvolumeclaims
   verbs:
   - create
@@ -319,8 +334,9 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - pods/log
+  - pods
   verbs:
+  - delete
   - get
   - list
   - watch
