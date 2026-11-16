@@ -142,6 +142,40 @@ tests:
       - failedTemplate:
           errorPattern: "below the 14-day minimum"
 
+  - it: should accept an allowed day value of 36500
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.ttl.longlivedAllowedDays: [30, 36500]
+      config.ttl.ttl_period_seconds.longlived: "3153600000"
+    template: backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LONGLIVED_TTL_ALLOWED_DAYS
+            value: "[30,36500]"
+
+  - it: should reject an allowed day value above 36500
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.ttl.longlivedAllowedDays: [30, 36501]
+    template: backend/deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "above the 36500-day maximum"
+
+  - it: should reject a long-lived retention above 36500 days
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.ttl.ttl_period_seconds.longlived: "3153600001"
+    template: backend/deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "above the 36500-day maximum"
+
   - it: should reject more than 10 allowed day values
     values:
       - ./values/smithdb-enabled.yaml
