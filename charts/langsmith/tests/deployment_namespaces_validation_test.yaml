@@ -1,0 +1,38 @@
+suite: Deployment namespaces validation
+templates:
+  - validate.yaml
+release:
+  namespace: langsmith
+set:
+  config.deployment.enabled: true
+  insights.enabled: false
+  # Optional checks are skipped; the namespace checks must still run.
+  config.skipValidation: true
+tests:
+  - it: rejects a namespace listed under two workspaces
+    template: validate.yaml
+    set:
+      config.deployment.namespaces:
+        00000000-0000-0000-0000-000000000001: [agents-a]
+        00000000-0000-0000-0000-000000000002: [agents-a]
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.deployment.namespaces lists namespace agents-a under more than one workspace"
+
+  - it: rejects a system namespace
+    template: validate.yaml
+    set:
+      config.deployment.namespaces:
+        00000000-0000-0000-0000-000000000001: [kube-system]
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.deployment.namespaces must not list the system namespace kube-system"
+
+  - it: rejects a key that is not a workspace ID
+    template: validate.yaml
+    set:
+      config.deployment.namespaces:
+        my-workspace: [agents-a]
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.deployment.namespaces keys must be workspace IDs, got my-workspace"

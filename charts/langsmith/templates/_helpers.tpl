@@ -2204,3 +2204,26 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- end }}
 {{- end }}
 {{- end -}}
+
+{{/* Namespaces outside the release namespace that LangSmith Deployments may be placed in, comma-separated. */}}
+{{- define "langsmith.deploymentNamespaces" -}}
+{{- $release := .Values.namespace | default .Release.Namespace -}}
+{{- $all := list -}}
+{{- range $_, $namespaces := (.Values.config.deployment.namespaces | default dict) -}}
+{{- $all = concat $all $namespaces -}}
+{{- end -}}
+{{- without ($all | uniq) $release | sortAlpha | join "," -}}
+{{- end -}}
+
+{{/* The operator's watch list plus the deployment namespaces; an empty list keeps the operator cluster-wide. */}}
+{{- define "langsmith.operatorWatchNamespaces" -}}
+{{- $watch := list -}}
+{{- range $ns := splitList "," (.Values.operator.watchNamespaces | default "") -}}
+{{- if trim $ns }}{{- $watch = append $watch (trim $ns) }}{{- end -}}
+{{- end -}}
+{{- if and $watch .Values.config.deployment.enabled -}}
+{{- $watch = concat $watch (include "langsmith.deploymentNamespaces" . | splitList "," | compact) -}}
+{{- end -}}
+{{- $watch | uniq | join "," -}}
+{{- end -}}
+
