@@ -38,7 +38,7 @@ def section_scans():
         scalar(
             "Scan success rate",
             request(
-                "100 * ok / total",
+                "100 * default_zero(ok) / total",
                 {
                     "ok": query(SCANS, scope=SCOPE + ",status:success", rollup=COUNT),
                     "total": query(SCANS, rollup=COUNT),
