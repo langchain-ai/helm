@@ -9843,7 +9843,7 @@
           {
             "definition": {
               "type": "note",
-              "content": "Engine scans as recorded by platform-backend when each scan finishes. Success counts scans that ended with `status:success`, including scans that found nothing to file. Fix, validation and investigation runs are not counted. Skips happen in the ingest-queue worker before a scan is dispatched.",
+              "content": "Engine scans as recorded by platform-backend when each scan finishes. Success counts scans that ended with `status:success`, including scans that found nothing to file. Fix, validation and investigation runs are not counted. Skips happen in the ingest-queue worker before a scan is dispatched. A run whose completion callback never arrived stays pending in the `gt_24h` age bucket and does not clear on its own, so watch the younger buckets and the 24h share for current problems.",
               "background_color": "transparent",
               "font_size": "14",
               "text_align": "left",
@@ -10091,29 +10091,6 @@
                   "formulas": [
                     {
                       "formula": "q",
-                      "alias": "no active plan",
-                      "number_format": {
-                        "unit": {
-                          "type": "custom_unit_label",
-                          "label": "scans"
-                        }
-                      }
-                    }
-                  ],
-                  "queries": [
-                    {
-                      "data_source": "metrics",
-                      "name": "q",
-                      "query": "sum:langsmith_issues_agent_no_plan_skipped.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
-                    }
-                  ],
-                  "response_format": "timeseries",
-                  "display_type": "bars"
-                },
-                {
-                  "formulas": [
-                    {
-                      "formula": "q",
                       "alias": "spend limit reached",
                       "number_format": {
                         "unit": {
@@ -10180,21 +10157,16 @@
           {
             "definition": {
               "type": "timeseries",
-              "title": "Oldest run awaiting its completion callback",
+              "title": "Runs awaiting completion callback, by age",
               "requests": [
                 {
                   "formulas": [
                     {
                       "formula": "q",
-                      "alias": "Oldest pending run age",
                       "number_format": {
                         "unit": {
-                          "type": "canonical_unit",
-                          "unit_name": "second"
-                        },
-                        "unit_scale": {
-                          "type": "canonical_unit",
-                          "unit_name": "second"
+                          "type": "custom_unit_label",
+                          "label": "runs"
                         }
                       }
                     }
@@ -10203,14 +10175,11 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "max:langsmith_issues_agent_thread_status_oldest_pending_age_seconds{$env,kube_cluster_name:$cluster.value,$namespace}"
+                      "query": "max:langsmith_issues_agent_thread_status_pending_rows_by_age_bucket{$env,kube_cluster_name:$cluster.value,$namespace} by {age_bucket}"
                     }
                   ],
                   "response_format": "timeseries",
-                  "display_type": "line",
-                  "style": {
-                    "has_value_labels": true
-                  }
+                  "display_type": "bars"
                 }
               ],
               "show_legend": true,
@@ -10236,17 +10205,17 @@
           {
             "definition": {
               "type": "timeseries",
-              "title": "Runs awaiting completion callback",
+              "title": "Share of the last 24h's runs still awaiting callback",
               "requests": [
                 {
                   "formulas": [
                     {
-                      "formula": "q",
-                      "alias": "Pending runs",
+                      "formula": "100 * ratio",
+                      "alias": "Still pending",
                       "number_format": {
                         "unit": {
-                          "type": "custom_unit_label",
-                          "label": "runs"
+                          "type": "canonical_unit",
+                          "unit_name": "percent"
                         }
                       }
                     }
@@ -10254,8 +10223,8 @@
                   "queries": [
                     {
                       "data_source": "metrics",
-                      "name": "q",
-                      "query": "max:langsmith_issues_agent_thread_status_pending_rows{$env,kube_cluster_name:$cluster.value,$namespace}"
+                      "name": "ratio",
+                      "query": "max:langsmith_issues_agent_thread_status_pending_ratio_24h{$env,kube_cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "timeseries",

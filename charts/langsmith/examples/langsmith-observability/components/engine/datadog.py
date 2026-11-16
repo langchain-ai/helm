@@ -33,7 +33,7 @@ def counter(name, scope=SCOPE, by="", alias=None, unit=None):
 def section_scans():
     return [
         note(
-            "Engine scans as recorded by platform-backend when each scan finishes. Success counts scans that ended with `status:success`, including scans that found nothing to file. Fix, validation and investigation runs are not counted. Skips happen in the ingest-queue worker before a scan is dispatched."
+            "Engine scans as recorded by platform-backend when each scan finishes. Success counts scans that ended with `status:success`, including scans that found nothing to file. Fix, validation and investigation runs are not counted. Skips happen in the ingest-queue worker before a scan is dispatched. A run whose completion callback never arrived stays pending in the `gt_24h` age bucket and does not clear on its own, so watch the younger buckets and the 24h share for current problems."
         ),
         scalar(
             "Scan success rate",
@@ -75,11 +75,6 @@ def section_scans():
         series(
             "Scans skipped before dispatch",
             counter(
-                "langsmith_issues_agent_no_plan_skipped.count",
-                alias="no active plan",
-                unit="scans",
-            ),
-            counter(
                 "langsmith_issues_agent_lcu_spend_limit_exceeded.count",
                 alias="spend limit reached",
                 unit="scans",
@@ -91,25 +86,29 @@ def section_scans():
             ),
         ),
         series(
-            "Oldest run awaiting its completion callback",
+            "Runs awaiting completion callback, by age",
             metric(
                 query(
-                    "langsmith_issues_agent_thread_status_oldest_pending_age_seconds",
+                    "langsmith_issues_agent_thread_status_pending_rows_by_age_bucket",
                     aggregation="max",
+                    by="age_bucket",
                 ),
-                alias="Oldest pending run age",
-                unit="second",
+                unit="runs",
+                display="bars",
             ),
         ),
         series(
-            "Runs awaiting completion callback",
-            metric(
-                query(
-                    "langsmith_issues_agent_thread_status_pending_rows",
-                    aggregation="max",
-                ),
-                alias="Pending runs",
-                unit="runs",
+            "Share of the last 24h's runs still awaiting callback",
+            request(
+                "100 * ratio",
+                {
+                    "ratio": query(
+                        "langsmith_issues_agent_thread_status_pending_ratio_24h",
+                        aggregation="max",
+                    )
+                },
+                alias="Still pending",
+                unit="percent",
             ),
         ),
         series(
