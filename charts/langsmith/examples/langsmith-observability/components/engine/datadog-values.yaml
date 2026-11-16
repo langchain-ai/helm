@@ -1,20 +1,20 @@
 # Datadog Autodiscovery annotations for the Engine tab.
 # Apply after your LangSmith values, and after the SmithDB values if you use them:
 #   helm upgrade ... -f values.yaml [-f ../smithdb/datadog-values.yaml] -f datadog-values.yaml
-# Helm replaces annotation values and lists rather than merging them:
-# - The platformBackend and ingestQueue checks below include the SmithDB metrics,
-#   so layering this file after the SmithDB values keeps both tabs working.
-# - engineInsightsAgent.queue.deployment.extraEnv replaces any extraEnv you already
-#   set there. Copy your existing entries into this list.
+# Helm replaces each annotation's value rather than merging it, so the
+# platformBackend and ingestQueue checks below include the SmithDB metrics.
+# Layering this file after the SmithDB values keeps both tabs working.
+#
+# Also add this entry to your own engineInsightsAgent.queue.deployment.extraEnv
+# list. It is not set here because Helm would replace your existing list:
+#   - name: EXPOSE_INTERNAL_METRICS_PROMETHEUS
+#     value: "true"
+# Without it the queue serves only worker and queue-depth metrics, and the run
+# outcome and latency panels stay empty.
 
 engineInsightsAgent:
   queue:
     deployment:
-      # Serves run outcome and latency metrics on /metrics. Without it the queue
-      # serves only worker and queue-depth metrics.
-      extraEnv:
-        - name: EXPOSE_INTERNAL_METRICS_PROMETHEUS
-          value: "true"
       annotations:
         ad.datadoghq.com/queue.checks: |
           {

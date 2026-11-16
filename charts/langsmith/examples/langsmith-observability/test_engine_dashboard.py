@@ -84,6 +84,16 @@ class EngineDashboardTests(unittest.TestCase):
                     if key != "metrics":
                         self.assertEqual(after.get(key), value)
 
+    def test_engine_values_set_no_lists(self):
+        # Helm replaces lists, so a list here would drop the user's own entries.
+        text = local_path("components/engine/datadog-values.yaml").read_text()
+        for line in text.splitlines():
+            if line.lstrip().startswith("#"):
+                continue
+            with self.subTest(line=line):
+                self.assertFalse(re.match(r"\s*- ", line))
+                self.assertFalse(re.search(r"\b(extraEnv|envFrom):", line))
+
     def test_queries_use_shared_filters(self):
         self.assertEqual(self.variables["cluster"], "cluster_name")
         self.assertEqual(self.variables["namespace"], "kube_namespace")

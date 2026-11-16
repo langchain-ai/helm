@@ -126,7 +126,7 @@ def section_scans():
 def section_agent_server():
     return [
         note(
-            "The Engine and Insights share one agent server, so these panels include Insights runs when Insights is enabled. Run outcome and latency panels need `EXPOSE_INTERNAL_METRICS_PROMETHEUS=true` on the queue pods; see the collection values."
+            "The Engine and Insights share one agent server, so these panels include Insights runs when Insights is enabled. Run outcome and latency panels need `EXPOSE_INTERNAL_METRICS_PROMETHEUS=true` in `engineInsightsAgent.queue.deployment.extraEnv`; see the README."
         ),
         series(
             "Queue workers: active vs max",
@@ -240,13 +240,12 @@ def section_pods():
             ),
         ),
         series(
-            "Container restarts by pod (cumulative)",
+            "Container restarts of running pods, by deployment",
             metric(
                 query(
                     "kubernetes.containers.restarts",
-                    aggregation="max",
                     scope=AGENT,
-                    by="pod_name",
+                    by="kube_deployment",
                 ),
                 alias="Restarts",
                 unit="restarts",

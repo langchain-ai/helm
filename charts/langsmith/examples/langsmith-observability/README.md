@@ -32,7 +32,7 @@ Apply collection settings only for the components you operate. These examples do
 
 SmithDB's examples also collect LangSmith ingest-queue metrics on port `1989` and platform-backend queue metrics on port `1986`. Keep metrics listeners private. Prometheus must already discover the supplied annotations and attach the `namespace` label. The Datadog example uses the `smithdb.` metric prefix; the Grafana queries use raw Prometheus names. Datadog's SmithDB error panels additionally require logs matching `service:smithdb*`.
 
-The Engine values scrape the Engine queue pods on port `8000`, platform-backend on `1986` and ingest-queue on `1989`, and set `EXPOSE_INTERNAL_METRICS_PROMETHEUS=true` on the queue pods so they also serve run outcome and latency metrics. Their platform-backend and ingest-queue checks include the SmithDB metrics, so apply them after the SmithDB values. Helm replaces lists, so the Engine values' `engineInsightsAgent.queue.deployment.extraEnv` replaces any you already set; copy your entries into it.
+The Engine values scrape the Engine queue pods on port `8000`, platform-backend on `1986` and ingest-queue on `1989`. Their platform-backend and ingest-queue checks include the SmithDB metrics, so apply them after the SmithDB values. The Engine queue also needs `EXPOSE_INTERNAL_METRICS_PROMETHEUS=true` to serve run outcome and latency metrics. Add it to your own `engineInsightsAgent.queue.deployment.extraEnv`; the Engine values leave that list alone because Helm would replace yours.
 
 With `smithdb.topology: unified`, the `unified` entry scrapes the SmithDB pod on port `8060`.
 

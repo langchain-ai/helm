@@ -10354,7 +10354,7 @@
           {
             "definition": {
               "type": "note",
-              "content": "The Engine and Insights share one agent server, so these panels include Insights runs when Insights is enabled. Run outcome and latency panels need `EXPOSE_INTERNAL_METRICS_PROMETHEUS=true` on the queue pods; see the collection values.",
+              "content": "The Engine and Insights share one agent server, so these panels include Insights runs when Insights is enabled. Run outcome and latency panels need `EXPOSE_INTERNAL_METRICS_PROMETHEUS=true` in `engineInsightsAgent.queue.deployment.extraEnv`; see the README.",
               "background_color": "transparent",
               "font_size": "14",
               "text_align": "left",
@@ -10936,7 +10936,7 @@
           {
             "definition": {
               "type": "timeseries",
-              "title": "Container restarts by pod (cumulative)",
+              "title": "Container restarts of running pods, by deployment",
               "requests": [
                 {
                   "formulas": [
@@ -10955,7 +10955,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "max:kubernetes.containers.restarts{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment} by {pod_name}"
+                      "query": "sum:kubernetes.containers.restarts{$env,kube_cluster_name:$cluster.value,$namespace,$engine_deployment} by {kube_deployment}"
                     }
                   ],
                   "response_format": "timeseries",
