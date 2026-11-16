@@ -3,6 +3,11 @@
 {{- $apiServerServicePort := .Values.apiServer.service.httpPort -}}
 Thank you for installing LangGraph Cloud!
 
+The API Service defaults to ClusterIP. Incoming API authentication is not enabled
+by default. Server license and tracing keys do not authenticate API clients.
+Before enabling external access, configure authentication, authorization, TLS,
+and network restrictions. See the chart README for access and upgrade guidance.
+
 This chart deploys a LangGraph Cloud instance. All pods should be running! You can access the docs for your API Server by running the following command:
 
   kubectl -n {{ $namespace }} port-forward svc/{{ $apiServerServiceName }} 8080:{{ $apiServerServicePort }}
