@@ -797,7 +797,7 @@ JSON list of the smithdb.* keys of the rendered SmithDB service workloads.
 {{- if include "langsmith.smithdb.unifiedTopology" . -}}
 {{- $components = list "unified" -}}
 {{- else if include "langsmith.smithdb.clusterTopology" . -}}
-{{- range $component := list "query" "mutations" "runRules" "statsQuery" "ingestion" "compaction" "compactionWorker" "clusterManager" -}}
+{{- range $component := list "query" "mutations" "runRules" "statsQuery" "exportQuery" "ingestion" "compaction" "compactionWorker" "clusterManager" -}}
 {{- if dig "enabled" true (index $.Values.smithdb $component) -}}
 {{- $components = append $components $component -}}
 {{- end -}}

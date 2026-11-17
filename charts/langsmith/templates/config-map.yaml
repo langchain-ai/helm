@@ -112,6 +112,9 @@ data:
   SMITHDB_STATS_QUERY_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "statsQuery" "port" .Values.smithdb.statsQuery.service.port) | quote }}
   SMITHDB_STATS_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE: "1073741824"
   {{- end }}
+  {{- if .Values.smithdb.exportQuery.enabled }}
+  SMITHDB_EXPORT_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "exportQuery" "port" .Values.smithdb.exportQuery.service.port) | quote }}
+  {{- end }}
   {{- end }}
   {{- if .Values.config.hostname }}
   # Remote MCP server / OAuth Authorization Server (served under /api). The AS only
