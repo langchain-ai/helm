@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - '*-stable'
+      # `*` does not match `/`, so the product-prefixed stable branches need their own pattern.
+      - 'langsmith/stable-*'
 
 permissions: write-all
 

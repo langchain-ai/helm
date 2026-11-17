@@ -1,0 +1,25 @@
+suite: super admins
+set:
+  config.existingSecretName: langsmith-secrets
+  config.skipValidation: true
+tests:
+  - it: renders super admins as both instance admins and usage export admins
+    template: templates/config-map.yaml
+    set:
+      config.superAdmins:
+        - admin@example.com
+    asserts:
+      - equal:
+          path: data.INSTANCE_ADMIN_EMAILS
+          value: '["admin@example.com"]'
+      - equal:
+          path: data.USAGE_EXPORT_ADMIN_EMAILS
+          value: '["admin@example.com"]'
+
+  - it: leaves both lists unset without super admins
+    template: templates/config-map.yaml
+    asserts:
+      - notExists:
+          path: data.INSTANCE_ADMIN_EMAILS
+      - notExists:
+          path: data.USAGE_EXPORT_ADMIN_EMAILS

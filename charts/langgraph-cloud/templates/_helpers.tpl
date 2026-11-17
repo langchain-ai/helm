@@ -273,3 +273,30 @@ Creates the image reference used for LangGraph Cloud deployments. If registry is
 {{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Redis args capping its memory at 75% of the container memory limit, with
+noeviction: a full Redis refuses writes with OOM errors until keys expire,
+instead of being OOM-killed and restarting empty, which drops queued runs and
+open streams. The other quarter is headroom for a write that starts under the
+cap and runs past it, and for allocator fragmentation. Takes the container's
+resources. Renders nothing without a memory limit, since there is nothing to
+size the cap from. Values numbers arrive as float64, --set integers as int64.
+*/}}
+{{- define "langGraphCloud.redisMaxMemoryArgs" -}}
+{{- $limit := dig "limits" "memory" "" (default (dict) .) -}}
+{{- $bytes := 0.0 -}}
+{{- if or (kindIs "float64" $limit) (kindIs "int64" $limit) (kindIs "int" $limit) -}}
+{{- $bytes = float64 $limit -}}
+{{- else if $limit -}}
+{{- $suffix := regexFind "(Ki|Mi|Gi|Ti|Pi|Ei|m|k|M|G|T|P|E)$" $limit -}}
+{{- $units := dict "" 1 "m" 0.001 "k" 1e3 "M" 1e6 "G" 1e9 "T" 1e12 "P" 1e15 "E" 1e18 "Ki" 1024 "Mi" 1048576 "Gi" 1073741824 "Ti" 1099511627776 "Pi" 1125899906842624 "Ei" 1152921504606846976 -}}
+{{- $bytes = mulf (trimSuffix $suffix $limit) (index $units $suffix) -}}
+{{- end -}}
+{{- if gt $bytes 0.0 -}}
+- --maxmemory
+- {{ mulf $bytes 0.75 | floor | int64 | quote }}
+- --maxmemory-policy
+- noeviction
+{{- end -}}
+{{- end -}}
