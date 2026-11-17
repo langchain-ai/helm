@@ -142,6 +142,8 @@ the user or some other secret provisioning mechanism
 
 {{/* Include these env vars if they aren't defined in .Values.commonEnv */}}
 {{- define "langsmith.conditionalEnvVars" -}}
+- name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+  value: {{ .Values.fleet.enabled | quote }}
 - name: X_SERVICE_AUTH_JWT_SECRET
   valueFrom:
     secretKeyRef:

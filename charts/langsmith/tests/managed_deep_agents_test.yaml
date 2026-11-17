@@ -1,0 +1,68 @@
+suite: managed deep agents feature gate
+set:
+  config.existingSecretName: langsmith-secrets
+  config.oauth.enabled: true
+  config.authType: oauth
+  hostBackend.enabled: true
+tests:
+  - it: enables managed deep agents when Fleet is enabled
+    set:
+      fleet.enabled: true
+    templates:
+      - templates/backend/deployment.yaml
+      - templates/host-backend/deployment.yaml
+      - templates/platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+            value: "true"
+
+  - it: disables managed deep agents when Fleet is disabled
+    set:
+      fleet.enabled: false
+    templates:
+      - templates/backend/deployment.yaml
+      - templates/host-backend/deployment.yaml
+      - templates/platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+            value: "false"
+
+  - it: preserves an explicit commonEnv opt-out
+    set:
+      fleet.enabled: true
+      commonEnv:
+        - name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+          value: "false"
+    templates:
+      - templates/backend/deployment.yaml
+      - templates/host-backend/deployment.yaml
+      - templates/platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+            value: "false"
+
+  - it: accepts an existing commonEnv opt-in without duplicate variables
+    set:
+      fleet.enabled: true
+      commonEnv:
+        - name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+          value: "true"
+    templates:
+      - templates/backend/deployment.yaml
+      - templates/host-backend/deployment.yaml
+      - templates/platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+            value: "true"
