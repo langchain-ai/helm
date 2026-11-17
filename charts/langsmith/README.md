@@ -1289,7 +1289,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | smithdb.exportQuery.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.exportQuery.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
 | smithdb.exportQuery.deployment.volumeMounts[0].name | string | `"cache"` |  |
-| smithdb.exportQuery.enabled | bool | `false` | Run bulk exports on their own query service instead of smithdb.query, so long export scans do not compete with interactive queries. |
+| smithdb.exportQuery.enabled | bool | `false` |  |
 | smithdb.exportQuery.name | string | `"export"` |  |
 | smithdb.exportQuery.pdb.annotations | object | `{}` |  |
 | smithdb.exportQuery.pdb.enabled | bool | `false` |  |

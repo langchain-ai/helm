@@ -1915,7 +1915,6 @@ smithdb:
         scalePodCount: 1
 
   exportQuery:
-    # -- Run bulk exports on their own query service instead of smithdb.query, so long export scans do not compete with interactive queries.
     enabled: false
     name: "export"
     containerPort: 8060
