@@ -1571,6 +1571,10 @@ Extra env vars for fleet api-server and queue pods.
 {{- end -}}
 {{- end -}}
 
+{{- define "langsmith.managedToolsEndpoint" -}}
+{{- printf "%s/v1/managed-tools" (include "langsmith.platformBackendEndpoint" .) -}}
+{{- end -}}
+
 {{- define "langsmith.fleet.serviceAccountNames" -}}
 {{- $names := dict "apiServer" (include "fleetApiServer.serviceAccountName" .) -}}
 {{- if .Values.fleet.queue.enabled -}}
