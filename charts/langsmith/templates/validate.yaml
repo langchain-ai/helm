@@ -74,6 +74,10 @@ AWS Marketplace Helm template verification).
 {{- $_ := set $namespaceOwners $ns $workspaceId -}}
 {{- end -}}
 {{- end -}}
+{{- /* TODO: allow the shared ingress once the operator routes deployments outside the release namespace. */ -}}
+{{- if and .Values.config.deployment.namespaces (not (or .Values.gateway.enabled .Values.istioGateway.enabled)) -}}
+{{- fail "config.deployment.namespaces needs gateway.enabled or istioGateway.enabled: the shared ingress only routes deployments in the release namespace" -}}
+{{- end -}}
 
 {{- if not .Values.config.skipValidation -}}
 

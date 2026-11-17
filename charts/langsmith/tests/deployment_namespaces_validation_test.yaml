@@ -6,6 +6,7 @@ release:
 set:
   config.deployment.enabled: true
   insights.enabled: false
+  polly.enabled: false
   # Optional checks are skipped; the namespace checks must still run.
   config.skipValidation: true
 tests:
@@ -36,3 +37,31 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "config.deployment.namespaces keys must be workspace IDs, got my-workspace"
+
+  - it: rejects deployment namespaces behind the shared ingress
+    template: validate.yaml
+    set:
+      config.deployment.namespaces:
+        00000000-0000-0000-0000-000000000001: [agents-a]
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.deployment.namespaces needs gateway.enabled or istioGateway.enabled: the shared ingress only routes deployments in the release namespace"
+
+  - it: accepts deployment namespaces behind Istio
+    template: validate.yaml
+    set:
+      istioGateway.enabled: true
+      config.deployment.namespaces:
+        00000000-0000-0000-0000-000000000001: [agents-a]
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: accepts deployment namespaces behind a Gateway API gateway
+    template: validate.yaml
+    set:
+      gateway.enabled: true
+      config.deployment.namespaces:
+        00000000-0000-0000-0000-000000000001: [agents-a]
+    asserts:
+      - notFailedTemplate: {}
+
