@@ -190,6 +190,16 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
+        # API keys still calling deprecated endpoints, same routing as legacy-api-usage above
+        location = /{{ .Values.config.basePath }}/api/v1/workspaces/current/deprecated-api-usage {
+            rewrite ^/{{ .Values.config.basePath }}(/api/v1/.*)$ $1 break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
         # Agent and address APIs served by the platform backend; anchored so /api/v1/agent-auth/ and /api/v1/agents-* keep their routes
         location ~ ^/{{ .Values.config.basePath }}/api/v1/agents(?:/|$) {
             rewrite ^/{{ .Values.config.basePath }}(/api/v1/.*)$ $1 break;
@@ -947,6 +957,15 @@ data:
         # Deprecated API usage for the workspace, served by the platform backend under
         # its /api/v1 path; exact so the rest of /api/v1/workspaces/ stays on the backend
         location = /api/v1/workspaces/current/legacy-api-usage {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # API keys still calling deprecated endpoints, same routing as legacy-api-usage above
+        location = /api/v1/workspaces/current/deprecated-api-usage {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;

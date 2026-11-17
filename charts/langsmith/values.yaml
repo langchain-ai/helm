@@ -65,21 +65,21 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.25rc1"
+    tag: "0.18.29rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.25rc1"
+    tag: "0.18.29rc1"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.18.25rc1"
+    tag: "0.18.29rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.18.25rc1"
+    tag: "0.18.29rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -99,19 +99,19 @@ images:
   clickhouseImage:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
-    tag: "25.12"
+    tag: "26.3.62.3"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.18.25rc1"
+    tag: "0.18.29rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.18.25rc1"
+    tag: "0.18.29rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.18.25rc1"
+    tag: "0.18.29rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -122,7 +122,7 @@ images:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
     # -- Release tag, kept equal to the chart's appVersion and the other LangSmith image tags so the release bump moves them together, including on a Helm upgrade that reuses the previous values. An empty tag also resolves to the appVersion.
-    tag: "0.18.25rc1"
+    tag: "0.18.29rc1"
   # The images the operator gives each agent deployment's Redis and PostgreSQL
   # (operator.templates.redis and operator.templates.db). They follow
   # images.registry like the rest; the tag is the image's own, not the chart's.
@@ -343,10 +343,8 @@ fleet:
     slackSigningSecret: ""
     slackBotId: ""
   agentAccessToken:
-    # -- Give Fleet's pods signed agent access tokens. Each pod trades its Kubernetes service account token for short-lived tokens that name the agent and the user. Needs `config.hostname`. See the Fleet agent access tokens section.
+    # -- Give Fleet's pods signed agent access tokens. Each pod trades its Kubernetes service account token for short-lived tokens that name the agent and the user. Needs `config.hostname` and an RSA key after key 0 in `config.signingJwks`. See the Fleet agent access tokens section.
     enabled: false
-    # -- JSON Web Key Set with the RSA private key that signs agent access tokens. Stored in the chart-managed Secret as `agent_access_token_signing_jwks`. With `config.existingSecretName` or `config.disableSecretCreation`, add that key to your Secret instead.
-    signingJwks: ""
     # -- Audience that your egress gateway checks in agent access tokens. Optional.
     egressAudience: ""
   apiServer:
@@ -648,7 +646,7 @@ engineInsightsAgent:
         httpGet:
           path: /ok?check_db=1
           port: 8000
-        failureThreshold: 6
+        failureThreshold: 30
         periodSeconds: 10
         timeoutSeconds: 1
       readinessProbe:
@@ -718,7 +716,7 @@ engineInsightsAgent:
         httpGet:
           path: "/ok"
           port: 8000
-        failureThreshold: 6
+        failureThreshold: 30
         periodSeconds: 10
         timeoutSeconds: 1
       readinessProbe:
@@ -1182,9 +1180,11 @@ config:
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
     initialOrgAdminPassword: ""
     jwtSecret: ""
-  # -- Email addresses of super admins who can export usage data.
-  # These are the only users allowed to use the usage backfill export
-  # unless orgAdminsInstallationUsageExportEnabled is set.
+  # -- Email addresses of the installation's super admins. With the
+  # organization's installation operations permission, they can view instance
+  # health, restart backfills, and create organizations when organization
+  # creation is disabled. They are also the only users allowed to use the
+  # usage backfill export unless orgAdminsInstallationUsageExportEnabled is set.
   superAdmins: []
   # -- When true, any org admin can use the usage backfill export.
   orgAdminsInstallationUsageExportEnabled: false
@@ -1228,10 +1228,12 @@ config:
     # -- When true, percent-encode spaces in the OIDC authorization request as %20 instead of '+'. Enable for IdPs (e.g. SiteMinder) that reject '+'-encoded scope lists. Requires authType 'mixed' with an OAuth client secret.
     urlEncodeScopeSpaces: false
 
-  # -- Ed25519/OKP JWKS (JSON) signing the OAuth AS / remote MCP (and LLM-auth-proxy)
-  # tokens; public keys are served at /.well-known/jwks.json. Set it here (stored in the
-  # chart secret) or as key `langsmith_signing_jwks` in config.existingSecretName. The
-  # remote MCP server / OAuth AS stay inert until this is set.
+  # -- JWKS (JSON) of LangSmith's signing keys. Key 0 must be Ed25519/OKP: it signs the
+  # OAuth AS / remote MCP (and LLM-auth-proxy) tokens. RSA keys after key 0 (RS256, at least
+  # 2048 bits) sign workload identity tokens and, with fleet.agentAccessToken.enabled, agent
+  # access tokens; the first RSA key signs. Public keys are served at /.well-known/jwks.json.
+  # Set it here (stored in the chart secret) or as key `langsmith_signing_jwks` in
+  # config.existingSecretName. The remote MCP server / OAuth AS stay inert until this is set.
   signingJwks: ""
   # -- Optional issuer (iss claim) for tokens minted by the LLM auth proxy. Maps to
   # LLM_AUTH_PROXY_ISSUER. Must match the jwtIssuer configured in the auth proxy chart.
@@ -1242,14 +1244,17 @@ config:
   ttl:
     enabled: true
     ttl_period_seconds:
-      # -- 400 day longlived and 14 day shortlived
+      # -- 400 day longlived and 14 day shortlived. longlived is at most 36500 days (3153600000).
       longlived: "34560000"
       shortlived: "1209600"
     # -- Long-lived retention options in days, for SmithDB-only installs. Empty keeps the default
-    # options (30 to 400, up to ttl_period_seconds.longlived). At most 10 values, each at least 14.
+    # options (30 to 400, up to ttl_period_seconds.longlived). At most 10 values, each between 14 and 36500.
     # Every value is offered, also above ttl_period_seconds.longlived, which stays the default.
     # Create a bucket lifecycle rule for each ttl_<N>d/ prefix, or blobs under it never expire.
     longlivedAllowedDays: []
+    perProjectRetention:
+      # -- Per-project extended retention, off by default. Set to true to turn it on.
+      enabled: false
 
   # Blob storage configuration
   # Optional. Used to store inputs, outputs, and errors in Blob Storage.

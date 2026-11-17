@@ -204,6 +204,9 @@ Allowed long-lived days as JSON. Fails at render time on values the backend refu
 {{- if lt (int .) 14 -}}
 {{- fail (printf "config.ttl.longlivedAllowedDays: %v is below the 14-day minimum" .) -}}
 {{- end -}}
+{{- if gt (int .) 36500 -}}
+{{- fail (printf "config.ttl.longlivedAllowedDays: %v is above the 36500-day maximum" .) -}}
+{{- end -}}
 {{- end -}}
 {{- toJson $days -}}
 {{- end -}}
@@ -407,11 +410,20 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.ttl.enabled | quote }}
 - name: FF_UPGRADE_TRACE_TIER_ENABLED
   value: "true"
+{{- if gt (int64 .Values.config.ttl.ttl_period_seconds.longlived) 3153600000 }}
+{{- fail (printf "config.ttl.ttl_period_seconds.longlived: %v is above the 36500-day maximum (3153600000 seconds)" .Values.config.ttl.ttl_period_seconds.longlived) }}
+{{- end }}
 - name: TRACE_TIER_TTL_DURATION_SEC_MAP
   value: "{ \"longlived\": {{ .Values.config.ttl.ttl_period_seconds.longlived }}, \"shortlived\": {{ .Values.config.ttl.ttl_period_seconds.shortlived }} }"
 {{- if .Values.config.ttl.longlivedAllowedDays }}
 - name: LONGLIVED_TTL_ALLOWED_DAYS
   value: {{ include "langsmith.longlivedAllowedDays" . | quote }}
+{{- end }}
+{{- if (.Values.config.ttl.perProjectRetention | default dict).enabled }}
+- name: FF_PER_PROJECT_RETENTION_ENABLED
+  value: "true"
+- name: PROJECT_TTL_SMITHDB_SYNC_ENABLED
+  value: "true"
 {{- end }}
 {{- end }}
 {{- if .Values.config.workspaceScopeOrgInvitesEnabled }}
@@ -1534,6 +1546,29 @@ Extra env vars for fleet api-server and queue pods.
 
 {{- define "langsmith.fleet.agentAccessTokenEnabled" -}}
 {{- and .Values.fleet.enabled .Values.fleet.agentAccessToken.enabled -}}
+{{- end -}}
+
+{{- define "langsmith.fleet.validateSigningJwks" -}}
+{{- $keys := (fromJson (. | default "{}")).keys -}}
+{{- if not (and (kindIs "slice" $keys) $keys) -}}
+{{- fail "fleet.agentAccessToken.enabled needs config.signingJwks: a JSON Web Key Set with an Ed25519 key 0 and an RSA key after it. With config.existingSecretName or config.disableSecretCreation, put it in your Secret under langsmith_signing_jwks instead." -}}
+{{- end -}}
+{{- $keyZero := first $keys -}}
+{{- if not (and (kindIs "map" $keyZero) (eq (get $keyZero "kty") "OKP") (eq (get $keyZero "crv") "Ed25519") (get $keyZero "d")) -}}
+{{- fail "Key 0 of config.signingJwks must be an Ed25519 private key: it signs LangSmith's own tokens. Put RSA keys after it." -}}
+{{- end -}}
+{{- $signingKey := dict -}}
+{{- range rest $keys -}}
+{{- if and (not $signingKey) (kindIs "map" .) (eq (get . "kty") "RSA") -}}
+{{- $signingKey = . -}}
+{{- end -}}
+{{- end -}}
+{{- if not $signingKey -}}
+{{- fail "fleet.agentAccessToken.enabled needs an RSA key after key 0 in config.signingJwks: the first one signs agent access tokens." -}}
+{{- end -}}
+{{- if not (and (get $signingKey "kid") (get $signingKey "d") (eq (get $signingKey "alg" | default "RS256") "RS256") (eq (get $signingKey "use" | default "sig") "sig")) -}}
+{{- fail "The first RSA key after key 0 in config.signingJwks signs agent access tokens, so it needs a kid and its private part, and alg RS256 and use sig when they are set." -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "langsmith.fleet.serviceAccountNames" -}}

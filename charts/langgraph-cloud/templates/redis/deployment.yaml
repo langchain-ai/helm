@@ -54,6 +54,12 @@ spec:
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- if not (hasKey (default (dict) .Values.redis.deployment.extraContainerConfig) "args") }}
+          {{- with include "langGraphCloud.redisMaxMemoryArgs" .Values.redis.deployment.resources }}
+          args:
+            {{- . | nindent 12 }}
+          {{- end }}
+          {{- end }}
           {{- if .Values.redis.deployment.extraEnv }}
           env:
             {{- with .Values.redis.deployment.extraEnv}}
