@@ -148,7 +148,7 @@ If the cluster does not serve `/openid/v1/jwks`, the platform backend relies on 
 With `config.existingSecretName` or `config.disableSecretCreation`, add `agent_access_token_public_jwks` to your Secret yourself. Without it, the Tool Gateway does not check agent access tokens. Its value is the public part of every RSA key after key 0 in `langsmith_signing_jwks`, for example:
 
 ```bash
-jq -c '{keys: [.keys[1:][] | select(.kty == "RSA") | {kty, kid, n, e}]}' signing-jwks.json
+jq -c '{keys: [.keys[1:][] | select(.kty == "RSA" and .kid and ((.alg // "RS256") == "RS256") and ((.use // "sig") == "sig")) | {kty, kid, n, e}]}' signing-jwks.json
 ```
 
 Update it whenever you change `langsmith_signing_jwks`.
