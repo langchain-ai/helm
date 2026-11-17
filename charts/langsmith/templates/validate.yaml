@@ -431,6 +431,7 @@ AWS Marketplace Helm template verification).
   "mutations" .Values.smithdb.mutations
   "runRules" .Values.smithdb.runRules
   "statsQuery" .Values.smithdb.statsQuery
+  "exportQuery" .Values.smithdb.exportQuery
   "ingestion" .Values.smithdb.ingestion
   "compaction" .Values.smithdb.compaction
   "compactionWorker" .Values.smithdb.compactionWorker
@@ -499,6 +500,7 @@ AWS Marketplace Helm template verification).
   "mutations" .Values.smithdb.mutations
   "runRules" .Values.smithdb.runRules
   "statsQuery" .Values.smithdb.statsQuery
+  "exportQuery" .Values.smithdb.exportQuery
   "ingestion" .Values.smithdb.ingestion
   "compaction" .Values.smithdb.compaction
   "clusterManager" .Values.smithdb.clusterManager
@@ -527,6 +529,7 @@ AWS Marketplace Helm template verification).
   "mutations" .Values.smithdb.mutations
   "runRules" .Values.smithdb.runRules
   "statsQuery" .Values.smithdb.statsQuery
+  "exportQuery" .Values.smithdb.exportQuery
   "ingestion" .Values.smithdb.ingestion
 -}}
 {{- range $workloadName, $workload := $smithdbHpaAutoscalingWorkloads -}}
