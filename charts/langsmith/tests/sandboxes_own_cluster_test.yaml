@@ -166,3 +166,13 @@ tests:
     asserts:
       - notExists:
           path: spec.template.spec.containers[0].env[?(@.name =~ /SANDBOX_CLUSTER/)]
+
+  - it: refuses a non-boolean ownCluster.enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.ownCluster.enabled: "false"
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.ownCluster.enabled must be true or false."

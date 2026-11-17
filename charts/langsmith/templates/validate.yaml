@@ -284,6 +284,9 @@ service-to-service calls and must not leave this cluster. */ -}}
 {{- end -}}
 {{- end -}}
 {{- $ownCluster := .Values.sandboxes.ownCluster | default dict -}}
+{{- if and (hasKey $ownCluster "enabled") (not (kindIs "bool" $ownCluster.enabled)) -}}
+{{- fail "sandboxes.ownCluster.enabled must be true or false." -}}
+{{- end -}}
 {{- if and $external (hasKey $ownCluster "enabled") (not $ownCluster.enabled) -}}
 {{- fail "sandboxes.ownCluster.enabled: false cannot be set with sandboxes.external.enabled: the external runtime is this install's own cluster." -}}
 {{- end -}}
