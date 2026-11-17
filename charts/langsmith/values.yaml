@@ -1170,7 +1170,8 @@ config:
   defaultWorkspaceName: "Workspace 1"
 
   agentMigration:
-    # -- Migrate existing tracing projects and experiments to Agent Platform agents after upgrade.
+    # -- Migrate existing tracing projects to agents after upgrade. Experiments are
+    # classified as experiments and are not converted to agents.
     # Runs on the existing ingest queue workers; installs with `authType` `none` skip it.
     # Once it has run, do not downgrade to an app version from before the migration.
     enabled: true
