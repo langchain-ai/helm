@@ -1,0 +1,168 @@
+suite: sandboxes.ownCluster.enabled
+templates:
+  - validate.yaml
+  # Read by the Deployments' checksum annotations.
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - backend/deployment.yaml
+  - queue/deployment.yaml
+  - frontend/deployment.yaml
+  - platform-backend/deployment.yaml
+  - ingest-queue/deployment.yaml
+  - sandboxes/sandbox-host-deployment.yaml
+  - sandboxes/sandbox-host-service-account.yaml
+  - sandboxes/sandbox-host-rbac.yaml
+  - sandboxes/sandbox-host-pdb.yaml
+  - sandboxes/proxy-ca.yaml
+  - sandboxes/juicefs-config.yaml
+  - sandboxes/juicefs-format-job.yaml
+tests:
+  - it: renders today's in-cluster sandbox-host when ownCluster is unset
+    values:
+      - ./values/sandboxes-enabled.yaml
+    templates:
+      - sandboxes/sandbox-host-deployment.yaml
+      - sandboxes/juicefs-format-job.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+  - it: renders today's deployment mode and no own-cluster env when ownCluster is unset
+    values:
+      - ./values/sandboxes-enabled.yaml
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_OWN_CLUSTER_ENABLED
+          any: true
+  - it: renders sameCluster on platform-backend when ownCluster is unset
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_DEPLOYMENT_MODE
+            value: sameCluster
+
+  - it: renders no in-cluster sandbox-host and sets SANDBOX_OWN_CLUSTER_ENABLED=false on platform-backend and ingest-queue when ownCluster.enabled is false
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.ownCluster.enabled: false
+    templates:
+      - sandboxes/sandbox-host-deployment.yaml
+      - sandboxes/sandbox-host-service-account.yaml
+      - sandboxes/sandbox-host-rbac.yaml
+      - sandboxes/sandbox-host-pdb.yaml
+      - sandboxes/proxy-ca.yaml
+      - sandboxes/juicefs-config.yaml
+      - sandboxes/juicefs-format-job.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: sets SANDBOX_OWN_CLUSTER_ENABLED=false and separateCluster on platform-backend when ownCluster.enabled is false
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.ownCluster.enabled: false
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_OWN_CLUSTER_ENABLED
+            value: "false"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_DEPLOYMENT_MODE
+            value: separateCluster
+  - it: sets SANDBOX_OWN_CLUSTER_ENABLED=false on ingest-queue when ownCluster.enabled is false
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.ownCluster.enabled: false
+    template: ingest-queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_OWN_CLUSTER_ENABLED
+            value: "false"
+
+  - it: refuses ownCluster.enabled false with external.enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: https://langsmith.example.com
+      sandboxes.external.enabled: true
+      sandboxes.external.hostIngressEndpoint: https://sandbox-a.example.com
+      sandboxes.serviceAuth.secretKey: sandbox_a_service_auth
+      sandboxes.ownCluster.enabled: false
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.ownCluster.enabled: false cannot be set with sandboxes.external.enabled: the external runtime is this install's own cluster."
+  - it: accepts ownCluster.enabled true with external.enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: https://langsmith.example.com
+      sandboxes.external.enabled: true
+      sandboxes.external.hostIngressEndpoint: https://sandbox-a.example.com
+      sandboxes.serviceAuth.secretKey: sandbox_a_service_auth
+      sandboxes.ownCluster.enabled: true
+    template: validate.yaml
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: external keeps rendering the own-name entry unchanged
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: https://langsmith.example.com
+      sandboxes.external.enabled: true
+      sandboxes.external.hostIngressEndpoint: https://sandbox-a.example.com
+      sandboxes.serviceAuth.secretKey: sandbox_a_service_auth
+      sandboxes.clusterName: sandbox-a
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_K8S_CLUSTER_NAME
+            value: sandbox-a
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_INGRESS_ENDPOINT
+            value: https://sandbox-a.example.com
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_DEPLOYMENT_MODE
+            value: separateCluster
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_OWN_CLUSTER_ENABLED
+          any: true
+
+  - it: renders no SANDBOX_CLUSTERS and no per-cluster secret env
+    values:
+      - ./values/sandboxes-enabled.yaml
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name =~ /SANDBOX_CLUSTER/)]

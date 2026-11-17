@@ -1,4 +1,4 @@
-{{- if and (eq (include "langsmith.sandboxes.inclusterEnabled" .) "true") (not .Values.sandboxes.juicefs.existingSecretName) }}
+{{- if and (eq (include "langsmith.sandboxes.ownClusterEnabled" .) "true") (not .Values.sandboxes.juicefs.existingSecretName) }}
 {{- include "langsmithSandbox.render.juicefsConfig" (dict
   "name" (include "langsmith.sandboxes.juicefsConfigSecretName" .)
   "namespace" (.Values.namespace | default .Release.Namespace)

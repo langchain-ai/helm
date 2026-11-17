@@ -28,14 +28,9 @@ As a next step, it is strongly recommended you work with your infrastructure adm
 
 Sandboxes use an external runtime. Install exactly one langsmith-sandbox release for this install, using the newest langsmith-sandbox chart whose appVersion is {{ .Chart.AppVersion }}, and upgrade it within days of every langsmith upgrade. Its Secret needs two values from this release's Secret: key {{ include "langsmith.sandboxes.serviceAuthSecretKey" . }} (the sandbox service-auth secret), stored under the runtime chart's serviceAuth.secretKey (default sandbox_service_auth_secret), and key sandbox_callback_signing_jwk, stored under its config.callbackSigningJwkSecretKey. Copy only those two values, never the whole Secret.
 {{- end }}
-{{- $addedSandboxClusters := include "langsmith.sandboxes.addedClusterNames" . | fromJsonArray }}
-{{- if and .Values.sandboxes.enabled $addedSandboxClusters }}
+{{- if and .Values.sandboxes.enabled (not .Values.sandboxes.external.enabled) (eq (include "langsmith.sandboxes.ownClusterEnabled" .) "") }}
 
-Sandboxes: this install adds the sandbox clusters {{ join ", " $addedSandboxClusters }}. Install one langsmith-sandbox release in each of those clusters. Its Secret needs two values from config.existingSecretName, copied one by one, never the whole Secret:
-{{- range $name := $addedSandboxClusters }}
-- {{ $name }}: key {{ ((index $.Values.sandboxes.clusters $name).serviceAuth | default dict).secretKey }}, stored under the runtime chart's serviceAuth.secretKey, and key sandbox_callback_signing_jwk, stored under its config.callbackSigningJwkSecretKey.
-{{- end }}
-Added clusters start cordoned: activate one before sending sandboxes to it, and move default: true to it only after it is active.
+Sandboxes: sandboxes.ownCluster.enabled is false, so this install runs no sandbox cluster of its own. Register a sandbox cluster through the instance admin API before creating sandboxes. The registered service-auth secret must differ from every other cluster's.
 {{- end }}
 {{- if and .Values.redis.external.enabled .Values.redis.external.cluster.enabled (or .Values.redis.external.cluster.nodeUris .Values.redis.external.cluster.password) }}
 
