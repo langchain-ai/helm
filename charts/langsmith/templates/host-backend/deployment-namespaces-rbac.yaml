@@ -1,8 +1,9 @@
 {{- if and .Values.config.deployment.enabled .Values.hostBackend.rbac.create }}
 {{- $namespaces := include "langsmith.deploymentNamespaces" . | splitList "," | compact }}
 {{- if $namespaces }}
-{{- $role := printf "%s-deployment-namespaces" (include "langsmith.fullname" .) }}
 {{- $releaseNamespace := .Values.namespace | default .Release.Namespace }}
+{{- /* The ClusterRole is cluster-scoped, so the release namespace keeps installs that share a cluster apart. */}}
+{{- $role := printf "%s-%s-deployment-namespaces" (include "langsmith.fullname" .) $releaseNamespace }}
 ---
 # Access host-backend and the listener need to deploy, monitor and delete deployments in a selected namespace.
 apiVersion: rbac.authorization.k8s.io/v1
