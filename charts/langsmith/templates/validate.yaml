@@ -48,7 +48,7 @@ AWS Marketplace Helm template verification).
 {{- fail "smithdb.topology must be one of: cluster, unified." -}}
 {{- end -}}
 {{- if include "langsmith.smithdb.unifiedTopology" . -}}
-{{- range $component := list "mutations" "runRules" "statsQuery" -}}
+{{- range $component := list "mutations" "runRules" "statsQuery" "exportQuery" -}}
 {{- if (index $.Values.smithdb $component).enabled -}}
 {{- fail (printf "smithdb.%s.enabled is not supported with smithdb.topology unified; the unified pod serves every query path." $component) -}}
 {{- end -}}
@@ -546,6 +546,7 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
   "mutations" .Values.smithdb.mutations
   "runRules" .Values.smithdb.runRules
   "statsQuery" .Values.smithdb.statsQuery
+  "exportQuery" .Values.smithdb.exportQuery
   "ingestion" .Values.smithdb.ingestion
   "compaction" .Values.smithdb.compaction
   "compactionWorker" .Values.smithdb.compactionWorker
@@ -652,6 +653,7 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
   "mutations" .Values.smithdb.mutations
   "runRules" .Values.smithdb.runRules
   "statsQuery" .Values.smithdb.statsQuery
+  "exportQuery" .Values.smithdb.exportQuery
   "ingestion" .Values.smithdb.ingestion
   "compaction" .Values.smithdb.compaction
   "clusterManager" .Values.smithdb.clusterManager
@@ -680,6 +682,7 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
   "mutations" .Values.smithdb.mutations
   "runRules" .Values.smithdb.runRules
   "statsQuery" .Values.smithdb.statsQuery
+  "exportQuery" .Values.smithdb.exportQuery
   "ingestion" .Values.smithdb.ingestion
 -}}
 {{- range $workloadName, $workload := $smithdbHpaAutoscalingWorkloads -}}

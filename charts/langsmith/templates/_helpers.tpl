@@ -797,7 +797,7 @@ JSON list of the smithdb.* keys of the rendered SmithDB service workloads.
 {{- if include "langsmith.smithdb.unifiedTopology" . -}}
 {{- $components = list "unified" -}}
 {{- else if include "langsmith.smithdb.clusterTopology" . -}}
-{{- range $component := list "query" "mutations" "runRules" "statsQuery" "ingestion" "compaction" "compactionWorker" "clusterManager" -}}
+{{- range $component := list "query" "mutations" "runRules" "statsQuery" "exportQuery" "ingestion" "compaction" "compactionWorker" "clusterManager" -}}
 {{- if dig "enabled" true (index $.Values.smithdb $component) -}}
 {{- $components = append $components $component -}}
 {{- end -}}
@@ -1569,6 +1569,10 @@ Extra env vars for fleet api-server and queue pods.
 {{- if not (and (get $signingKey "kid") (get $signingKey "d") (eq (get $signingKey "alg" | default "RS256") "RS256") (eq (get $signingKey "use" | default "sig") "sig")) -}}
 {{- fail "The first RSA key after key 0 in config.signingJwks signs agent access tokens, so it needs a kid and its private part, and alg RS256 and use sig when they are set." -}}
 {{- end -}}
+{{- end -}}
+
+{{- define "langsmith.managedToolsEndpoint" -}}
+{{- printf "%s/v1/managed-tools" (include "langsmith.platformBackendEndpoint" .) -}}
 {{- end -}}
 
 {{- define "langsmith.fleet.serviceAccountNames" -}}
