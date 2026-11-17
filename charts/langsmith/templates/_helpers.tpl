@@ -1571,6 +1571,30 @@ Extra env vars for fleet api-server and queue pods.
 {{- end -}}
 {{- end -}}
 
+{{- define "langsmith.fleet.agentAccessTokenPublicJwks" -}}
+{{- $keys := (fromJson (.Values.config.signingJwks | default "{}")).keys | default list -}}
+{{- $seen := dict -}}
+{{- $public := list -}}
+{{- range $i, $key := $keys -}}
+{{- if kindIs "map" $key -}}
+{{- $kid := get $key "kid" | toString -}}
+{{- $rsa := and (gt $i 0) (eq (get $key "kty") "RSA") -}}
+{{- $usable := and $rsa $kid (not (hasKey $seen $kid)) (eq (get $key "alg" | default "RS256") "RS256") (eq (get $key "use" | default "sig") "sig") -}}
+{{- if $usable -}}
+{{- $public = append $public (dict "kty" "RSA" "kid" $kid "n" (get $key "n") "e" (get $key "e")) -}}
+{{- end -}}
+{{- if or (not $rsa) $usable -}}
+{{- $_ := set $seen $kid true -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- dict "keys" $public | toJson -}}
+{{- end -}}
+
+{{- define "langsmith.managedToolsEndpoint" -}}
+{{- printf "%s/v1/managed-tools" (include "langsmith.platformBackendEndpoint" .) -}}
+{{- end -}}
+
 {{- define "langsmith.fleet.serviceAccountNames" -}}
 {{- $names := dict "apiServer" (include "fleetApiServer.serviceAccountName" .) -}}
 {{- if .Values.fleet.queue.enabled -}}

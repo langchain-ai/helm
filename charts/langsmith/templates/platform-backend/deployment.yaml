@@ -81,6 +81,14 @@
   value: {{ include "langsmith.fleet.agentAccessTokenWorkloads" . | quote }}
 - name: AGENT_ACCESS_TOKEN_POD_TOKEN_REVIEW_ENABLED
   value: "true"
+- name: MANAGED_TOOLS_ENDPOINT
+  value: {{ include "langsmith.managedToolsEndpoint" . | quote }}
+- name: AGENT_ACCESS_TOKEN_PUBLIC_JWKS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: agent_access_token_public_jwks
+      optional: true
 {{- with .Values.fleet.agentAccessToken.egressAudience }}
 - name: AGENT_ACCESS_TOKEN_EGRESS_AUDIENCES
   value: {{ . | quote }}

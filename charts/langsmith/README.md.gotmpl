@@ -138,8 +138,17 @@ When the feature is on, the chart:
 - tells the platform backend which service accounts belong to Fleet. They map to one deployment ID, derived from the release name and namespace, so it stays the same across upgrades. Fleet names the same ID when its sandboxes ask for tokens.
 - creates a ClusterRole and a ClusterRoleBinding for the platform backend. With them, the platform backend checks each pod token's signature against the cluster's service account keys (`/openid/v1/jwks`), then asks the Kubernetes API server to confirm the token with a TokenReview.
 - creates a Role and a RoleBinding in the release namespace. With them, the platform backend reads the pod each token names, then its ReplicaSet and its Deployment, and accepts the token only when Fleet's own Deployment runs that pod. A pod that merely runs as a Fleet service account gets no token.
+- lets the Tool Gateway in the platform backend check the tokens Fleet sends it. It sets the gateway's audience to the platform backend's in-cluster URL plus `/v1/managed-tools`, which is the audience Fleet asks for, and reads its public keys from the Secret key `agent_access_token_public_jwks`. With the chart's managed Secret, the chart fills that key from the RSA keys after key 0 in `config.signingJwks`.
 
 If the cluster does not serve `/openid/v1/jwks`, the platform backend relies on the TokenReview alone and logs a warning.
+
+With `config.existingSecretName` or `config.disableSecretCreation`, add `agent_access_token_public_jwks` to your Secret yourself. Without it, the Tool Gateway does not check agent access tokens. Its value is the public part of every RSA key after key 0 in `langsmith_signing_jwks`, for example:
+
+```bash
+jq -c '{keys: [.keys[1:][] | select(.kty == "RSA") | {kty, kid, n, e}]}' signing-jwks.json
+```
+
+Update it whenever you change `langsmith_signing_jwks`.
 
 To grant that access yourself, set `platformBackend.rbac.create=false`. Then give the platform backend's service account `create` on `tokenreviews` in the `authentication.k8s.io` API group and `get` on the non-resource URL `/openid/v1/jwks` across the cluster, and `get` on `pods`, and on `replicasets` and `deployments` in the `apps` API group, in the release namespace.
 
