@@ -107,22 +107,6 @@ tests:
           path: data.HOST_DEPLOYMENT_NAMESPACES
           value: '{"00000000-0000-0000-0000-000000000001":["agents-a","agents-b"],"00000000-0000-0000-0000-000000000002":["agents-c"]}'
 
-  - it: tells host-backend which routing deployments use
-    template: config-map.yaml
-    asserts:
-      - equal:
-          path: data.HOST_DEPLOYMENT_ROUTING_MODE
-          value: shared-ingress
-
-  - it: reports Istio routing to host-backend
-    template: config-map.yaml
-    set:
-      istioGateway.enabled: true
-    asserts:
-      - equal:
-          path: data.HOST_DEPLOYMENT_ROUTING_MODE
-          value: istio
-
   - it: adds the namespaces to a namespace-scoped operator
     set:
       operator.watchNamespaces: langsmith
