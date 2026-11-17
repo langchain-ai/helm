@@ -1,10 +1,10 @@
 {{- if .Values.smithdb.enabled }}
-{{- range $component := list "mutations" "runRules" "statsQuery" }}
+{{- range $component := list "mutations" "runRules" "statsQuery" "exportQuery" }}
 {{ $componentValues := index $.Values.smithdb $component }}
 {{- if $componentValues.enabled }}
 {{- $componentName := include "langsmith.smithdb.componentName" (dict "root" $ "component" $component) }}
 {{- $displayName := printf "smithdb-%s" $componentValues.name }}
-{{- $clusterManagerServiceTypes := dict "mutations" "mutations" "runRules" "rules_query" "statsQuery" "stats_query" }}
+{{- $clusterManagerServiceTypes := dict "mutations" "mutations" "runRules" "rules_query" "statsQuery" "stats_query" "exportQuery" "export_query" }}
 {{- $resources := include "langsmith.smithdb.resources" (dict "root" $ "component" $component) | fromYaml -}}
 {{- $volumes := concat $.Values.commonVolumes (include "langsmith.smithdb.volumes" (dict "root" $ "component" $component) | fromYamlArray) -}}
 {{- $chartEnv := include "langsmith.smithdb.componentEnv" (dict "root" $ "service" "QUERY" "displayName" $displayName) | fromYamlArray -}}

@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.57](https://img.shields.io/badge/Version-0.17.57-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.2026111700](https://img.shields.io/badge/AppVersion-0.17.2026111700-informational?style=flat-square)
+![Version: 0.17.58](https://img.shields.io/badge/Version-0.17.58-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.2026111700](https://img.shields.io/badge/AppVersion-0.17.2026111700-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -40,7 +40,7 @@ When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSa
 
 Explicit component `resources` or `volumes` replace the tier values. Cache overrides must be named `cache` and use an `emptyDir` or inline ephemeral PVC; existing PVCs are unsupported. To cache on local SSD, set matching `emptyDir.sizeLimit` and `ephemeral-storage` requests and limits.
 
-The query disk cache limit is set automatically from the PVC storage request or, for `emptyDir`, the container's `ephemeral-storage` limit. Enabled `mutations`, `runRules`, and `statsQuery` use the query tier. Replica counts and autoscaling are configured per component.
+The query disk cache limit is set automatically from the PVC storage request or, for `emptyDir`, the container's `ephemeral-storage` limit. Enabled `mutations`, `runRules`, `statsQuery`, and `exportQuery` use the query tier. Replica counts and autoscaling are configured per component.
 
 | Component | Small | Medium | Large |
 |---|---|---|---|
@@ -1130,6 +1130,61 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.config.objectStore.s3.secretAccessKeySecretKey | string | `""` |  |
 | smithdb.config.objectStore.type | string | `"s3"` | Supported values: s3, gcs, azure. |
 | smithdb.enabled | bool | `false` | SmithDB is opt-in. Setup guide: https://docs.langchain.com/langsmith/self-host-smithdb. Users are encouraged to reach out to LangChain support (https://support.langchain.com/) before enabling it. |
+| smithdb.exportQuery.autoscaling.hpa.enabled | bool | `true` |  |
+| smithdb.exportQuery.autoscaling.hpa.maxReplicas | int | `5` |  |
+| smithdb.exportQuery.autoscaling.hpa.minReplicas | int | `1` |  |
+| smithdb.exportQuery.autoscaling.hpa.scaleDownStabilizationWindowSeconds | int | `900` |  |
+| smithdb.exportQuery.autoscaling.hpa.scalePodCount | int | `1` |  |
+| smithdb.exportQuery.autoscaling.hpa.scaleUpStabilizationWindowSeconds | int | `300` |  |
+| smithdb.exportQuery.autoscaling.hpa.targetCPUUtilizationPercentage | int | `40` |  |
+| smithdb.exportQuery.containerGrpcPort | int | `8080` |  |
+| smithdb.exportQuery.containerPort | int | `8060` |  |
+| smithdb.exportQuery.deployment.affinity | object | `{}` |  |
+| smithdb.exportQuery.deployment.annotations | object | `{}` |  |
+| smithdb.exportQuery.deployment.command[0] | string | `"./smithdb"` |  |
+| smithdb.exportQuery.deployment.command[1] | string | `"query"` |  |
+| smithdb.exportQuery.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.exportQuery.deployment.extraEnv | list | `[]` |  |
+| smithdb.exportQuery.deployment.initContainers | list | `[]` |  |
+| smithdb.exportQuery.deployment.labels | object | `{}` |  |
+| smithdb.exportQuery.deployment.nodeSelector | object | `{}` |  |
+| smithdb.exportQuery.deployment.podSecurityContext.fsGroup | int | `1001` |  |
+| smithdb.exportQuery.deployment.priorityClassName | string | `""` |  |
+| smithdb.exportQuery.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.exportQuery.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.exportQuery.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.exportQuery.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.exportQuery.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.exportQuery.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.exportQuery.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.exportQuery.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.exportQuery.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.exportQuery.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.exportQuery.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.exportQuery.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.exportQuery.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
+| smithdb.exportQuery.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.exportQuery.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.exportQuery.deployment.replicas | int | `1` |  |
+| smithdb.exportQuery.deployment.securityContext | object | `{}` |  |
+| smithdb.exportQuery.deployment.sidecars | list | `[]` |  |
+| smithdb.exportQuery.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
+| smithdb.exportQuery.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
+| smithdb.exportQuery.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.exportQuery.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| smithdb.exportQuery.deployment.tolerations | list | `[]` |  |
+| smithdb.exportQuery.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.exportQuery.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
+| smithdb.exportQuery.deployment.volumeMounts[0].name | string | `"cache"` |  |
+| smithdb.exportQuery.enabled | bool | `false` |  |
+| smithdb.exportQuery.name | string | `"export"` |  |
+| smithdb.exportQuery.pdb.annotations | object | `{}` |  |
+| smithdb.exportQuery.pdb.enabled | bool | `false` |  |
+| smithdb.exportQuery.pdb.labels | object | `{}` |  |
+| smithdb.exportQuery.pdb.minAvailable | int | `1` |  |
+| smithdb.exportQuery.service.annotations | object | `{}` |  |
+| smithdb.exportQuery.service.labels | object | `{}` |  |
+| smithdb.exportQuery.service.port | int | `8080` |  |
 | smithdb.ingestion.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.ingestion.autoscaling.hpa.maxReplicas | int | `10` |  |
 | smithdb.ingestion.autoscaling.hpa.minReplicas | int | `1` |  |
