@@ -1,0 +1,19 @@
+charts/langsmith/tests/ingest_queue_resources_test.yaml
+  s_352a42db860627::t_cb22b165ebb9c2 11-12,14-20,24,34,44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2157c6f42cc011835d3f4a9cf0a7e43360532348",
+  "prompts": {},
+  "sessions": {
+    "s_352a42db860627": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "602f375b-a985-461a-b535-e7590962619a",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Kiewan Villatel <kiewan@langchain.dev>"
+    }
+  }
+}

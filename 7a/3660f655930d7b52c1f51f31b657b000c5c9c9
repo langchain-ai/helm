@@ -1,0 +1,23 @@
+.github/workflows/version_bump_diff_guard.yaml
+  s_45ce6cb3804470::t_9166d434d5a8e0 57,59
+  s_45ce6cb3804470::t_37238049cdb388 69-75
+  s_45ce6cb3804470::t_a9409535d15da8 27
+hack/check_version_bump_diff.py
+  s_45ce6cb3804470::t_1b6e6f7317eebe 176-180,188-189
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7a3660f655930d7b52c1f51f31b657b000c5c9c9",
+  "prompts": {},
+  "sessions": {
+    "s_45ce6cb3804470": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "c6f5b80a-c2c7-4691-a461-8b0450f235e1",
+        "model": "auto-smart"
+      },
+      "human_author": "Joaquin Borggio <joaquin@langchain.dev>"
+    }
+  }
+}
