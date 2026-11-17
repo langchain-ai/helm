@@ -16,7 +16,7 @@ tests:
           count: 0
         template: host-backend/deployment-namespaces-rbac.yaml
       - notExists:
-          path: data.HOST_BYOC_DEPLOYMENT_NAMESPACES
+          path: data.HOST_DEPLOYMENT_NAMESPACES
         template: config-map.yaml
 
   - it: binds host-backend and the listener in each allowed namespace
@@ -89,7 +89,7 @@ tests:
         00000000-0000-0000-0000-000000000002: [agents-c]
     asserts:
       - equal:
-          path: data.HOST_BYOC_DEPLOYMENT_NAMESPACES
+          path: data.HOST_DEPLOYMENT_NAMESPACES
           value: '{"00000000-0000-0000-0000-000000000001":["agents-a","agents-b"],"00000000-0000-0000-0000-000000000002":["agents-c"]}'
 
   - it: adds the namespaces to a namespace-scoped operator
