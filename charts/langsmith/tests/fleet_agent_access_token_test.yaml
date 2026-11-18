@@ -175,6 +175,32 @@ tests:
           content:
             name: AGENT_ACCESS_TOKEN_POD_TOKEN_REVIEW_ENABLED
           any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MANAGED_TOOLS_ENDPOINT
+          any: true
+
+  - it: points the Tool Gateway audience at the LANGSMITH_AUTH_ENDPOINT Fleet uses
+    templates:
+      - templates/platform-backend/deployment.yaml
+      - templates/config-map.yaml
+    set:
+      namespace: other
+      clusterDomain: cluster.example
+      platformBackend.name: pb
+      platformBackend.service.port: 2000
+    asserts:
+      - equal:
+          path: data.LANGSMITH_AUTH_ENDPOINT
+          value: http://ls-langsmith-pb.other.svc.cluster.example:2000
+        template: templates/config-map.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MANAGED_TOOLS_ENDPOINT
+            value: http://ls-langsmith-pb.other.svc.cluster.example:2000/v1/managed-tools
+        template: templates/platform-backend/deployment.yaml
 
   - it: leaves platform-backend unchanged when Fleet is off
     template: templates/platform-backend/deployment.yaml

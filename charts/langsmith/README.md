@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.80](https://img.shields.io/badge/Version-0.18.0--rc.80-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
+![Version: 0.19.0-rc.2](https://img.shields.io/badge/Version-0.19.0--rc.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -69,7 +69,7 @@ When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSa
 
 Explicit component `resources` or `volumes` replace the tier values. Cache overrides must be named `cache` and use an `emptyDir` or inline ephemeral PVC; existing PVCs are unsupported. To cache on local SSD, set matching `emptyDir.sizeLimit` and `ephemeral-storage` requests and limits.
 
-The query disk cache limit is set automatically from the PVC storage request or, for `emptyDir`, the container's `ephemeral-storage` limit. Enabled `mutations`, `runRules`, and `statsQuery` use the query tier. Replica counts and autoscaling are configured per component.
+The query disk cache limit is set automatically from the PVC storage request or, for `emptyDir`, the container's `ephemeral-storage` limit. Enabled `mutations`, `runRules`, `statsQuery`, and `exportQuery` use the query tier. Replica counts and autoscaling are configured per component.
 
 | Component | Small | Medium | Large |
 |---|---|---|---|
@@ -81,7 +81,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 
 ### Unified topology
 
-`smithdb.topology: unified` replaces the components above with one `smithdb all` pod: no cluster manager, no compaction workers, and one cache volume. The process splits the volume between the query cache and ingestion staging, and mounts it at `/tmp` for compaction scratch. Memory and disk shares come from the pod's limits. `mutations`, `runRules`, and `statsQuery` are not supported in this topology. The pod runs one replica; use `cluster` when SmithDB needs to scale out.
+`smithdb.topology: unified` replaces the components above with one `smithdb all` pod: no cluster manager, no compaction workers, and one cache volume. The process splits the volume between the query cache and ingestion staging, and mounts it at `/tmp` for compaction scratch. Memory and disk shares come from the pod's limits. `mutations`, `runRules`, `statsQuery`, and `exportQuery` are not supported in this topology. The pod runs one replica; use `cluster` when SmithDB needs to scale out.
 
 | Tier | Small | Medium | Large |
 |---|---|---|---|
@@ -95,24 +95,6 @@ Online evaluations on trajectories use an internal gRPC listener in `platformBac
 
 The trajectory Service is cluster-internal; no public route is added. Trajectory processing can be memory intensive, consider setting [GOMEMLIMIT](https://pkg.go.dev/runtime#hdr-Environment_Variables) relative to your memory limit to mitigate OOMKilled errors for this service. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
 
-## Deployments operator scope
-
-With `config.deployment.enabled=true`, the operator creates and updates the Deployments, StatefulSets, Services, and other resources that run each LangSmith Deployment. `operator.watchNamespaces` sets where it can do that:
-
-- **Empty, the default:** the operator manages deployments in every namespace. The chart grants its permissions through a ClusterRole and ClusterRoleBinding.
-- **A comma-separated list:** the operator manages deployments only in the listed namespaces. The chart grants the same permissions through a Role and RoleBinding in each listed namespace and creates no ClusterRole for them.
-
-Set a list unless the operator must manage deployments across the whole cluster. For example, to keep deployments in the release namespace:
-
-```yaml
-operator:
-  watchNamespaces: "langsmith"
-```
-
-Use your own namespace names, separated by commas without spaces. Each listed namespace must exist before you install or upgrade. Before you narrow an existing installation, list every namespace that already has deployments; the operator stops managing deployments in namespaces you leave out. Without Gateway API or Istio, the operator also updates the shared Ingress in the LangSmith namespace, so include that namespace in the list. Do not let two operators manage the same namespace.
-
-An operator that can create Deployments in a namespace can run them as any ServiceAccount in that namespace. Keep privileged ServiceAccounts out of the namespaces it manages, and use admission policies to limit which ServiceAccounts and pod settings deployments can use. With `operator.rbac.create=false`, `operator.watchNamespaces` limits what the operator manages but not the permissions you grant it, so scope those permissions yourself.
-
 ## Extra manifests
 
 `config.deployment.extraManifestsEnabled` defaults to `false`. Set it to `true` to let standalone self-hosted deployments declare extra ServiceAccounts and SecretProviderClasses. It needs `config.deployment.enabled=true` and the operator. The chart passes `LGP_EXTRA_MANIFESTS_ENABLED` to the operator and, through the shared ConfigMap, to the host backend, listener, and platform backend. Deployments on a remote listener are unsupported. Do not override the flag through environment values.
@@ -123,7 +105,7 @@ The API and the operator validate every manifest and return the reason for a rej
 
 Manifests are stored in plaintext in the LangSmith database and in the deployment's custom resource. Do not put credentials in them.
 
-Enabling the feature grants the operator ServiceAccount and SecretProviderClass `get`, `create`, `patch`, and `delete`. Without the feature, the operator gets no ServiceAccount permissions. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
+Enabling the feature grants the operator SecretProviderClass `get`, `create`, `patch`, and `delete`. ServiceAccount permissions already exist. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
 
 Scope each workload identity's federation to the namespace and the full prefixed ServiceAccount name. For Azure Key Vault, install the Secrets Store CSI driver and Azure provider, and configure Azure Workload Identity and the federated identity credential. This chart does not install those prerequisites.
 
@@ -159,6 +141,7 @@ When the feature is on, the chart:
 - tells the platform backend which service accounts belong to Fleet. They map to one deployment ID, derived from the release name and namespace, so it stays the same across upgrades. Fleet names the same ID when its sandboxes ask for tokens.
 - creates a ClusterRole and a ClusterRoleBinding for the platform backend. With them, the platform backend checks each pod token's signature against the cluster's service account keys (`/openid/v1/jwks`), then asks the Kubernetes API server to confirm the token with a TokenReview.
 - creates a Role and a RoleBinding in the release namespace. With them, the platform backend reads the pod each token names, then its ReplicaSet and its Deployment, and accepts the token only when Fleet's own Deployment runs that pod. A pod that merely runs as a Fleet service account gets no token.
+- sets the Tool Gateway's audience to the platform backend's in-cluster URL plus `/v1/managed-tools`, the audience Fleet asks for, so the gateway checks the tokens Fleet sends it.
 
 If the cluster does not serve `/openid/v1/jwks`, the platform backend relies on the TokenReview alone and logs a warning.
 
@@ -1261,6 +1244,61 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | smithdb.config.objectStore.s3.secretAccessKeySecretKey | string | `""` |  |
 | smithdb.config.objectStore.type | string | `"s3"` | Supported values: s3, gcs, azure. |
 | smithdb.enabled | bool | `false` | SmithDB is opt-in. Setup guide: https://docs.langchain.com/langsmith/self-host-smithdb. Users are encouraged to reach out to LangChain support (https://support.langchain.com/) before enabling it. |
+| smithdb.exportQuery.autoscaling.hpa.enabled | bool | `true` |  |
+| smithdb.exportQuery.autoscaling.hpa.maxReplicas | int | `5` |  |
+| smithdb.exportQuery.autoscaling.hpa.minReplicas | int | `1` |  |
+| smithdb.exportQuery.autoscaling.hpa.scaleDownStabilizationWindowSeconds | int | `900` |  |
+| smithdb.exportQuery.autoscaling.hpa.scalePodCount | int | `1` |  |
+| smithdb.exportQuery.autoscaling.hpa.scaleUpStabilizationWindowSeconds | int | `300` |  |
+| smithdb.exportQuery.autoscaling.hpa.targetCPUUtilizationPercentage | int | `40` |  |
+| smithdb.exportQuery.containerGrpcPort | int | `8080` |  |
+| smithdb.exportQuery.containerPort | int | `8060` |  |
+| smithdb.exportQuery.deployment.affinity | object | `{}` |  |
+| smithdb.exportQuery.deployment.annotations | object | `{}` |  |
+| smithdb.exportQuery.deployment.command[0] | string | `"./smithdb"` |  |
+| smithdb.exportQuery.deployment.command[1] | string | `"query"` |  |
+| smithdb.exportQuery.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.exportQuery.deployment.extraEnv | list | `[]` |  |
+| smithdb.exportQuery.deployment.initContainers | list | `[]` |  |
+| smithdb.exportQuery.deployment.labels | object | `{}` |  |
+| smithdb.exportQuery.deployment.nodeSelector | object | `{}` |  |
+| smithdb.exportQuery.deployment.podSecurityContext.fsGroup | int | `1001` |  |
+| smithdb.exportQuery.deployment.priorityClassName | string | `""` |  |
+| smithdb.exportQuery.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.exportQuery.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.exportQuery.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.exportQuery.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.exportQuery.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.exportQuery.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.exportQuery.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.exportQuery.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.exportQuery.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.exportQuery.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.exportQuery.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.exportQuery.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.exportQuery.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
+| smithdb.exportQuery.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.exportQuery.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.exportQuery.deployment.replicas | int | `1` |  |
+| smithdb.exportQuery.deployment.securityContext | object | `{}` |  |
+| smithdb.exportQuery.deployment.sidecars | list | `[]` |  |
+| smithdb.exportQuery.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
+| smithdb.exportQuery.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
+| smithdb.exportQuery.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.exportQuery.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| smithdb.exportQuery.deployment.tolerations | list | `[]` |  |
+| smithdb.exportQuery.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.exportQuery.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
+| smithdb.exportQuery.deployment.volumeMounts[0].name | string | `"cache"` |  |
+| smithdb.exportQuery.enabled | bool | `false` |  |
+| smithdb.exportQuery.name | string | `"export"` |  |
+| smithdb.exportQuery.pdb.annotations | object | `{}` |  |
+| smithdb.exportQuery.pdb.enabled | bool | `false` |  |
+| smithdb.exportQuery.pdb.labels | object | `{}` |  |
+| smithdb.exportQuery.pdb.minAvailable | int | `1` |  |
+| smithdb.exportQuery.service.annotations | object | `{}` |  |
+| smithdb.exportQuery.service.labels | object | `{}` |  |
+| smithdb.exportQuery.service.port | int | `8080` |  |
 | smithdb.ingestion.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.ingestion.autoscaling.hpa.maxReplicas | int | `10` |  |
 | smithdb.ingestion.autoscaling.hpa.minReplicas | int | `1` |  |
@@ -1783,6 +1821,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | config.deployment.basePath | string | `""` | Base path for LangSmith Deployments routes managed by the operator. |
 | config.deployment.enabled | bool | `false` | Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information. |
 | config.deployment.extraManifestsEnabled | bool | `false` | Let standalone self-hosted deployments declare extra ServiceAccount and SecretProviderClass manifests. Requires coordinated supporting images and the LGP CRD; see the Extra manifests section. |
+| config.deployment.namespaces | object | `{}` | Optional. Kubernetes namespaces each workspace may place its LangSmith Deployments in, keyed by workspace ID, for example `{"<workspace-id>": ["agents-production"]}`. For each namespace the chart binds the host-backend and listener service accounts to a role with the access deployments need and, when `operator.watchNamespaces` is set, adds it to the operator's watched namespaces. Requires `gateway.enabled` or `istioGateway.enabled`, and a Gateway API gateway must allow routes from these namespaces. The namespaces must already exist, and when `images.imagePullSecrets` is set they must each contain Secrets with the same names, because pods resolve pull secrets in their own namespace; the chart creates neither. A namespace may belong to one workspace, and system namespaces are rejected. Delete a namespace's deployments before removing it from this map. |
 | config.deployment.scalingOverridesEnabled | bool | `false` | Let users override LangSmith Deployment autoscaling CPU targets and scale-up/scale-down behavior. Opt-in for self-hosted. |
 | config.deployment.uncappedResourcesEnabled | bool | `false` | Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted. |
 | config.disableSecretCreation | bool | `false` |  |
@@ -2641,7 +2680,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | operator.templates.deployment | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  replicas: ${replicas}\n  revisionHistoryLimit: 10\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      enableServiceLinks: false\n      {{- with .Values.images.imagePullSecrets }}\n      imagePullSecrets:\n        {{- toYaml . | nindent 8 }}\n      {{- end }}\n      containers:\n      - name: api-server\n        image: ${image}\n        ports:\n        - name: api-server\n          containerPort: 8000\n          protocol: TCP\n        livenessProbe:\n          httpGet:\n            path: /ok\n            port: 8000\n          periodSeconds: 15\n          timeoutSeconds: 5\n          failureThreshold: 6\n        readinessProbe:\n          httpGet:\n            path: /ok\n            port: 8000\n          periodSeconds: 15\n          timeoutSeconds: 5\n          failureThreshold: 6\n"` |  |
 | operator.templates.redis | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${service_name}\n  namespace: ${namespace}\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: ${service_name}\n  template:\n    metadata:\n      labels:\n        app: ${service_name}\n    spec:\n      enableServiceLinks: false\n      {{- with .Values.images.imagePullSecrets }}\n      imagePullSecrets:\n        {{- toYaml . | nindent 8 }}\n      {{- end }}\n      containers:\n      - name: redis\n        image: {{ include \"langsmith.image\" (dict \"Values\" .Values \"Chart\" .Chart \"component\" \"deploymentRedisImage\") }}\n        ports:\n        - containerPort: 6379\n          name: redis\n        livenessProbe:\n          exec:\n            command:\n            - redis-cli\n            - ping\n          initialDelaySeconds: 30\n          periodSeconds: 10\n        readinessProbe:\n          tcpSocket:\n            port: 6379\n          initialDelaySeconds: 10\n          periodSeconds: 5\n"` |  |
 | operator.templates.service | string | `"apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  type: ClusterIP\n  selector:\n    app: ${name}\n  ports:\n  - name: api-server\n    protocol: TCP\n    port: 8000\n    targetPort: 8000\n"` |  |
-| operator.watchNamespaces | string | `""` | Comma-separated namespaces where the operator manages deployments, such as `"langsmith"` or `"langsmith,agents"`. Leave out spaces. Empty means every namespace: the chart then grants the operator its permissions through a ClusterRole. See the Deployments operator scope section. |
+| operator.watchNamespaces | string | `""` |  |
 
 ## Platform Backend
 

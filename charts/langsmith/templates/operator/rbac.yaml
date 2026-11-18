@@ -1,6 +1,7 @@
 {{- if and .Values.config.deployment.enabled .Values.operator.enabled .Values.operator.rbac.create -}}
-{{- if .Values.operator.watchNamespaces }}
-{{- $watchNamespacesList := splitList "," .Values.operator.watchNamespaces }}
+{{- $watchNamespaces := include "langsmith.operatorWatchNamespaces" . }}
+{{- if $watchNamespaces }}
+{{- $watchNamespacesList := splitList "," $watchNamespaces }}
 {{- range $ns := $watchNamespacesList }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1

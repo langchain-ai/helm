@@ -25,7 +25,7 @@ set -euo pipefail
 CHART_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # LangSmith images published with a -fips variant.
-FIPS_VARIANTS=" langsmith-backend langsmith-frontend langsmith-ace-backend langgraph-operator "
+FIPS_VARIANTS=" langsmith-backend langsmith-frontend langsmith-ace-backend langgraph-operator smithdb "
 
 ###############################################################################
 # CLI parsing

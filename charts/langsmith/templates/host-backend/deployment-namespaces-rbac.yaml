@@ -1,0 +1,69 @@
+{{- if and .Values.config.deployment.enabled .Values.hostBackend.rbac.create }}
+{{- $namespaces := include "langsmith.deploymentNamespaces" . | splitList "," | compact }}
+{{- if $namespaces }}
+{{- $releaseNamespace := .Values.namespace | default .Release.Namespace }}
+{{- /* The ClusterRole is cluster-scoped, so the release namespace keeps installs that share a cluster apart. */}}
+{{- $role := printf "%s-%s-deployment-namespaces" (include "langsmith.fullname" .) $releaseNamespace }}
+---
+# Access host-backend and the listener need to deploy, monitor and delete deployments in a selected namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $role }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [list]
+  - apiGroups: [""]
+    resources: [pods/log]
+    verbs: [get]
+  - apiGroups: [""]
+    resources: [secrets]
+    verbs: [get, create, update, delete]
+  - apiGroups: [""]
+    resources: [services]
+    verbs: [delete]
+  - apiGroups: [""]
+    resources: [persistentvolumeclaims]
+    verbs: [list, delete]
+  - apiGroups: [apps]
+    resources: [replicasets, deployments/status]
+    verbs: [get]
+  - apiGroups: [apps]
+    resources: [deployments]
+    verbs: [get, delete]
+  - apiGroups: [apps]
+    resources: [statefulsets]
+    verbs: [delete]
+  - apiGroups: [apps.langchain.ai]
+    resources: [lgps]
+    verbs: [get, create, update, delete]
+{{- range $ns := $namespaces }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $role }}
+  namespace: {{ $ns }}
+  labels:
+    {{- include "langsmith.labels" $ | nindent 4 }}
+  annotations:
+    {{- include "langsmith.annotations" $ | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "hostBackend.serviceAccountName" $ }}
+    namespace: {{ $releaseNamespace }}
+  - kind: ServiceAccount
+    name: {{ include "listener.serviceAccountName" $ }}
+    namespace: {{ $releaseNamespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ $role }}
+{{- end }}
+{{- end }}
+{{- end }}
