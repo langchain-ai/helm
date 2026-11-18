@@ -140,13 +140,26 @@ ClickHouse-attributed findings will be re-triaged under standard SLA.
 
 ## Verifying image authenticity
 
-LangChain does not currently publish cosign signatures or SLSA provenance
-attestations for self-hosted images. Customers requiring cryptographic image
-verification should use digest-pinned references (available in each Helm
-chart's `values.yaml`) and verify the source registry
-(`docker.io/langchain/*`). Image signing is planned; contact
-[security@langchain.dev](mailto:security@langchain.dev) for current status or
-to register interest.
+Self-hosted release images on `docker.io/langchain/*` are signed at release
+time with keyless [Sigstore cosign](https://docs.sigstore.dev/cosign/overview/).
+The signing identity is the GitHub Actions OIDC identity of the
+`release_self_hosted_on_version_bump.yaml` workflow in
+`langchain-ai/langchainplus` (issuer
+`https://token.actions.githubusercontent.com`), so a verified signature
+attests that the image was produced by that release pipeline. Each signed
+image also carries a CycloneDX SBOM attestation per platform, attached with
+`cosign attest --type cyclonedx`. LangChain does not publish SLSA provenance
+attestations.
+
+Signing covers the DockerHub release tags of the LangSmith application images
+(backend, frontend, ace-backend, clio, insights-engine, polly,
+agent-builder-deep-agent, sandbox-host, and their `-fips` variants). It does
+not cover `docker.io/langchain/smithdb`, `docker.io/langchain/langgraph-operator`,
+or the `langsmith.azurecr.io/*` copies.
+
+For the verification commands, including the certificate identity and issuer
+to pin, see
+[Verifying image signatures](https://docs.langchain.com/langsmith/self-host-mirroring-images#verifying-image-signatures).
 
 ---
 
