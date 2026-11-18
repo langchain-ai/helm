@@ -23,10 +23,11 @@ tests:
       smithdb.mutations.enabled: true
       smithdb.runRules.enabled: true
       smithdb.statsQuery.enabled: true
+      smithdb.exportQuery.enabled: true
     template: smithdb/query-services-deployments.yaml
     asserts:
       - hasDocuments:
-          count: 3
+          count: 4
       - equal:
           path: metadata.name
           value: RELEASE-NAME-langsmith-smithdb-mutations
@@ -55,6 +56,16 @@ tests:
             name: SMITHDB_QUERY__CLUSTER_MANAGER__SERVICE_TYPE
             value: rules_query
         documentIndex: 1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-export
+        documentIndex: 3
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__CLUSTER_MANAGER__SERVICE_TYPE
+            value: export_query
+        documentIndex: 3
 
   - it: should enable distributed stats on stats-query only
     values:
@@ -180,6 +191,7 @@ tests:
       smithdb.mutations.enabled: true
       smithdb.runRules.enabled: true
       smithdb.statsQuery.enabled: true
+      smithdb.exportQuery.enabled: true
     template: smithdb/services.yaml
     asserts:
       - equal:
@@ -194,6 +206,10 @@ tests:
           path: metadata.name
           value: RELEASE-NAME-langsmith-smithdb-stats-query
         documentIndex: 3
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-export
+        documentIndex: 4
 
   - it: should render a PDB for an enabled separate query workload
     values:
@@ -219,6 +235,7 @@ tests:
       smithdb.mutations.enabled: true
       smithdb.runRules.enabled: true
       smithdb.statsQuery.enabled: true
+      smithdb.exportQuery.enabled: true
     template: config-map.yaml
     asserts:
       - equal:
@@ -236,6 +253,9 @@ tests:
       - equal:
           path: data.SMITHDB_STATS_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE
           value: "1073741824"
+      - equal:
+          path: data.SMITHDB_EXPORT_SERVICE_URL
+          value: RELEASE-NAME-langsmith-smithdb-export.NAMESPACE.svc.cluster.local:8080
 
   - it: should keep routing mutations to query when separate services are disabled
     values:
@@ -251,3 +271,5 @@ tests:
           path: data.SMITHDB_INTERNAL_QUERY_SERVICE_URL
       - notExists:
           path: data.SMITHDB_STATS_QUERY_SERVICE_URL
+      - notExists:
+          path: data.SMITHDB_EXPORT_SERVICE_URL

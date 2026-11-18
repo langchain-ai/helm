@@ -65,7 +65,7 @@ When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSa
 
 Explicit component `resources` or `volumes` replace the tier values. Cache overrides must be named `cache` and use an `emptyDir` or inline ephemeral PVC; existing PVCs are unsupported. To cache on local SSD, set matching `emptyDir.sizeLimit` and `ephemeral-storage` requests and limits.
 
-The query disk cache limit is set automatically from the PVC storage request or, for `emptyDir`, the container's `ephemeral-storage` limit. Enabled `mutations`, `runRules`, and `statsQuery` use the query tier. Replica counts and autoscaling are configured per component.
+The query disk cache limit is set automatically from the PVC storage request or, for `emptyDir`, the container's `ephemeral-storage` limit. Enabled `mutations`, `runRules`, `statsQuery`, and `exportQuery` use the query tier. Replica counts and autoscaling are configured per component.
 
 | Component | Small | Medium | Large |
 |---|---|---|---|
@@ -77,7 +77,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 
 ### Unified topology
 
-`smithdb.topology: unified` replaces the components above with one `smithdb all` pod: no cluster manager, no compaction workers, and one cache volume. The process splits the volume between the query cache and ingestion staging, and mounts it at `/tmp` for compaction scratch. Memory and disk shares come from the pod's limits. `mutations`, `runRules`, and `statsQuery` are not supported in this topology. The pod runs one replica; use `cluster` when SmithDB needs to scale out.
+`smithdb.topology: unified` replaces the components above with one `smithdb all` pod: no cluster manager, no compaction workers, and one cache volume. The process splits the volume between the query cache and ingestion staging, and mounts it at `/tmp` for compaction scratch. Memory and disk shares come from the pod's limits. `mutations`, `runRules`, `statsQuery`, and `exportQuery` are not supported in this topology. The pod runs one replica; use `cluster` when SmithDB needs to scale out.
 
 | Tier | Small | Medium | Large |
 |---|---|---|---|
@@ -138,6 +138,7 @@ When the feature is on, the chart:
 - tells the platform backend which service accounts belong to Fleet. They map to one deployment ID, derived from the release name and namespace, so it stays the same across upgrades. Fleet names the same ID when its sandboxes ask for tokens.
 - creates a ClusterRole and a ClusterRoleBinding for the platform backend. With them, the platform backend checks each pod token's signature against the cluster's service account keys (`/openid/v1/jwks`), then asks the Kubernetes API server to confirm the token with a TokenReview.
 - creates a Role and a RoleBinding in the release namespace. With them, the platform backend reads the pod each token names, then its ReplicaSet and its Deployment, and accepts the token only when Fleet's own Deployment runs that pod. A pod that merely runs as a Fleet service account gets no token.
+- sets the Tool Gateway's audience to the platform backend's in-cluster URL plus `/v1/managed-tools`, the audience Fleet asks for, so the gateway checks the tokens Fleet sends it.
 
 If the cluster does not serve `/openid/v1/jwks`, the platform backend relies on the TokenReview alone and logs a warning.
 

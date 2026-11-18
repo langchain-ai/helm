@@ -122,7 +122,7 @@ spec:
           - name: LGP_EXTRA_MANIFESTS_ENABLED
             value: {{ .Values.config.deployment.extraManifestsEnabled | quote }}
           - name: WATCH_NAMESPACE
-            value: {{ .Values.operator.watchNamespaces | quote }}
+            value: {{ include "langsmith.operatorWatchNamespaces" . | quote }}
           - name: KEDA_ENABLED
             value: {{ .Values.operator.kedaEnabled | quote }}
         {{- if .Values.gateway.enabled }}
