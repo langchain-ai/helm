@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.19.0-rc.2](https://img.shields.io/badge/Version-0.19.0--rc.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
+![Version: 0.19.0-rc.3](https://img.shields.io/badge/Version-0.19.0--rc.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -142,6 +142,7 @@ When the feature is on, the chart:
 - creates a ClusterRole and a ClusterRoleBinding for the platform backend. With them, the platform backend checks each pod token's signature against the cluster's service account keys (`/openid/v1/jwks`), then asks the Kubernetes API server to confirm the token with a TokenReview.
 - creates a Role and a RoleBinding in the release namespace. With them, the platform backend reads the pod each token names, then its ReplicaSet and its Deployment, and accepts the token only when Fleet's own Deployment runs that pod. A pod that merely runs as a Fleet service account gets no token.
 - sets the Tool Gateway's audience to the platform backend's in-cluster URL plus `/v1/managed-tools`, the audience Fleet asks for, so the gateway checks the tokens Fleet sends it.
+- tells the Tool Gateway to block a Fleet tool call that carries no verified agent token when a policy restricts Fleet agents, so a call without a token can't get around an agent rule.
 
 If the cluster does not serve `/openid/v1/jwks`, the platform backend relies on the TokenReview alone and logs a warning.
 

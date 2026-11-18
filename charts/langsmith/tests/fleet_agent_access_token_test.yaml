@@ -138,6 +138,11 @@ tests:
           content:
             name: AGENT_ACCESS_TOKEN_ENABLED
             value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MANAGED_TOOLS_BLOCK_UNIDENTIFIED_FLEET_CALLS
+            value: "true"
 
   - it: passes the egress audience to platform-backend when set
     template: templates/platform-backend/deployment.yaml
@@ -179,6 +184,11 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: MANAGED_TOOLS_ENDPOINT
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MANAGED_TOOLS_BLOCK_UNIDENTIFIED_FLEET_CALLS
           any: true
 
   - it: points the Tool Gateway audience at the LANGSMITH_AUTH_ENDPOINT Fleet uses

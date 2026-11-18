@@ -139,6 +139,7 @@ When the feature is on, the chart:
 - creates a ClusterRole and a ClusterRoleBinding for the platform backend. With them, the platform backend checks each pod token's signature against the cluster's service account keys (`/openid/v1/jwks`), then asks the Kubernetes API server to confirm the token with a TokenReview.
 - creates a Role and a RoleBinding in the release namespace. With them, the platform backend reads the pod each token names, then its ReplicaSet and its Deployment, and accepts the token only when Fleet's own Deployment runs that pod. A pod that merely runs as a Fleet service account gets no token.
 - sets the Tool Gateway's audience to the platform backend's in-cluster URL plus `/v1/managed-tools`, the audience Fleet asks for, so the gateway checks the tokens Fleet sends it.
+- tells the Tool Gateway to block a Fleet tool call that carries no verified agent token when a policy restricts Fleet agents, so a call without a token can't get around an agent rule.
 
 If the cluster does not serve `/openid/v1/jwks`, the platform backend relies on the TokenReview alone and logs a warning.
 

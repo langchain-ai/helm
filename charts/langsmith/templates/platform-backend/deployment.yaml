@@ -83,6 +83,8 @@
   value: "true"
 - name: MANAGED_TOOLS_ENDPOINT
   value: {{ include "langsmith.managedToolsEndpoint" . | quote }}
+- name: MANAGED_TOOLS_BLOCK_UNIDENTIFIED_FLEET_CALLS
+  value: "true"
 {{- with .Values.fleet.agentAccessToken.egressAudience }}
 - name: AGENT_ACCESS_TOKEN_EGRESS_AUDIENCES
   value: {{ . | quote }}
