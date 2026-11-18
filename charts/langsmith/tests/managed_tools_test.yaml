@@ -6,6 +6,7 @@ templates:
   - postgres/secrets.yaml
   - clickhouse/secrets.yaml
   - frontend/config-map.yaml
+  - frontend/deployment.yaml
   - operator/config-map.yaml
   - platform-backend/deployment.yaml
 tests:
@@ -24,6 +25,15 @@ tests:
       - equal:
           path: data.DEFAULT_ORG_FEATURE_LMT_ENABLED
           value: "true"
+
+  - it: shows the Tools page
+    template: frontend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_LMT_ENABLED_UI
+            value: "true"
 
   - it: points at the tool server for built-in tools without the trigger server
     template: config-map.yaml
