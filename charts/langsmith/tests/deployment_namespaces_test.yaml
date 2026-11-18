@@ -1,0 +1,141 @@
+suite: Deployment namespaces
+templates:
+  - config-map.yaml
+  - host-backend/deployment-namespaces-rbac.yaml
+  - operator/config-map.yaml
+  - operator/deployment.yaml
+  - operator/rbac.yaml
+release:
+  namespace: langsmith
+set:
+  config.deployment.enabled: true
+tests:
+  - it: renders no bindings and no allow-list by default
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: host-backend/deployment-namespaces-rbac.yaml
+      - notExists:
+          path: data.HOST_DEPLOYMENT_NAMESPACES
+        template: config-map.yaml
+
+  - it: binds host-backend and the listener in each allowed namespace
+    template: host-backend/deployment-namespaces-rbac.yaml
+    set:
+      config.deployment.namespaces:
+        00000000-0000-0000-0000-000000000001: [agents-a, agents-b]
+    asserts:
+      - hasDocuments:
+          count: 3
+      - isKind:
+          of: ClusterRole
+        documentIndex: 0
+      - contains:
+          path: rules
+          content:
+            apiGroups: [""]
+            resources: [secrets]
+            verbs: [get, create, update, delete]
+        documentIndex: 0
+      - contains:
+          path: rules
+          content:
+            apiGroups: [apps.langchain.ai]
+            resources: [lgps]
+            verbs: [get, create, update, delete]
+        documentIndex: 0
+      - isKind:
+          of: RoleBinding
+        documentIndex: 1
+      - equal:
+          path: metadata.namespace
+          value: agents-a
+        documentIndex: 1
+      - equal:
+          path: metadata.namespace
+          value: agents-b
+        documentIndex: 2
+      - lengthEqual:
+          path: subjects
+          count: 2
+        documentIndex: 1
+      - equal:
+          path: subjects[0].namespace
+          value: langsmith
+        documentIndex: 1
+      - equal:
+          path: roleRef.kind
+          value: ClusterRole
+        documentIndex: 1
+
+  - it: names the ClusterRole after the release namespace so installs sharing a cluster do not collide
+    template: host-backend/deployment-namespaces-rbac.yaml
+    set:
+      config.deployment.namespaces:
+        00000000-0000-0000-0000-000000000001: [agents-a]
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-langsmith-deployment-namespaces
+        documentIndex: 0
+      - equal:
+          path: roleRef.name
+          value: RELEASE-NAME-langsmith-langsmith-deployment-namespaces
+        documentIndex: 1
+
+  - it: does not rebind the release namespace
+    template: host-backend/deployment-namespaces-rbac.yaml
+    set:
+      config.deployment.namespaces:
+        00000000-0000-0000-0000-000000000001: [langsmith, agents-a]
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: metadata.namespace
+          value: agents-a
+        documentIndex: 1
+
+  - it: allows the namespaces for each workspace in host-backend and the listener
+    template: config-map.yaml
+    set:
+      config.deployment.namespaces:
+        00000000-0000-0000-0000-000000000001: [agents-a, agents-b]
+        00000000-0000-0000-0000-000000000002: [agents-c]
+    asserts:
+      - equal:
+          path: data.HOST_DEPLOYMENT_NAMESPACES
+          value: '{"00000000-0000-0000-0000-000000000001":["agents-a","agents-b"],"00000000-0000-0000-0000-000000000002":["agents-c"]}'
+
+  - it: adds the namespaces to a namespace-scoped operator
+    set:
+      operator.watchNamespaces: langsmith
+      config.deployment.namespaces:
+        00000000-0000-0000-0000-000000000001: [agents-a]
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: WATCH_NAMESPACE
+            value: langsmith,agents-a
+        template: operator/deployment.yaml
+      - matchRegex:
+          path: kind
+          pattern: ^Role(Binding)?$
+        template: operator/rbac.yaml
+        documentSelector:
+          path: metadata.namespace
+          value: agents-a
+          matchMany: true
+
+  - it: leaves a cluster-wide operator cluster-wide
+    template: operator/deployment.yaml
+    set:
+      config.deployment.namespaces:
+        00000000-0000-0000-0000-000000000001: [agents-a]
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: WATCH_NAMESPACE
+            value: ""

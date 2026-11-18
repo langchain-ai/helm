@@ -171,6 +171,9 @@ data:
   FF_USE_PG_FOR_FEEDBACK_CONFIGS_FETCH_ENABLED_ALL: "true"
   FF_USE_PG_FOR_FEEDBACK_FETCH_ENABLED_ALL: "true"
   IS_SELF_HOSTED: "true"
+  {{- if and .Values.config.deployment.enabled .Values.config.deployment.namespaces }}
+  HOST_DEPLOYMENT_NAMESPACES: {{ toJson .Values.config.deployment.namespaces | quote }}
+  {{- end }}
   LGP_EXTRA_MANIFESTS_ENABLED: {{ and .Values.config.deployment.enabled .Values.operator.enabled .Values.config.deployment.extraManifestsEnabled | toString | quote }}
   {{- if .Values.polly.enabled }}
   SELF_HOSTED_POLLY_ENABLED: "true"
