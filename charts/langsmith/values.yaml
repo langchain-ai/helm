@@ -1114,7 +1114,7 @@ config:
     scalingOverridesEnabled: false
     # -- Let standalone self-hosted deployments declare extra ServiceAccount and SecretProviderClass manifests. Requires coordinated supporting images and the LGP CRD; see the Extra manifests section.
     extraManifestsEnabled: false
-    # -- Optional. Kubernetes namespaces each workspace may place its LangSmith Deployments in, keyed by workspace ID, for example `{"<workspace-id>": ["agents-production"]}`. For each namespace the chart binds the host-backend and listener service accounts to a role with the access deployments need and, when `operator.watchNamespaces` is set, adds it to the operator's watched namespaces. Requires `gateway.enabled` or `istioGateway.enabled`, and a Gateway API gateway must allow routes from these namespaces. The namespaces must already exist, and when `images.imagePullSecrets` is set they must each contain Secrets with the same names, because pods resolve pull secrets in their own namespace; the chart creates neither. A namespace may belong to one workspace, and system namespaces are rejected. Delete a namespace's deployments before removing it from this map.
+    # -- Optional. Kubernetes namespaces each workspace may place its LangSmith Deployments in, keyed by workspace ID, for example `{"<workspace-id>": ["agents-production"]}`. For each namespace the chart binds the host-backend and listener service accounts to a role with the access deployments need and adds it to the operator's watched namespaces. Requires `gateway.enabled` or `istioGateway.enabled`, and a Gateway API gateway must allow routes from these namespaces. The namespaces must already exist, and when `images.imagePullSecrets` is set they must each contain Secrets with the same names, because pods resolve pull secrets in their own namespace; the chart creates neither. A namespace may belong to one workspace, and system namespaces are rejected. Delete a namespace's deployments before removing it from this map.
     namespaces: {}
 
 
@@ -3362,7 +3362,7 @@ operator:
   name: "operator"
   enabled: true
   createCRDs: true
-  # -- Comma-separated namespaces where the operator manages deployments, such as `"langsmith"` or `"langsmith,agents"`. Leave out spaces. Empty means every namespace: the chart then grants the operator its permissions through a ClusterRole. See the Deployments operator scope section.
+  # -- Comma-separated namespaces where the operator manages deployments, such as `"langsmith"` or `"langsmith,agents"`. Leave out spaces. Empty means the chart's namespace. The operator also manages the namespaces in `config.deployment.namespaces`. The chart grants it a Role in each of these namespaces and no cluster-wide access. See the Deployments operator scope section.
   watchNamespaces: ""
   kedaEnabled: true
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/

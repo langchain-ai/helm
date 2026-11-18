@@ -94,21 +94,25 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 
 ## Deployments operator scope
 
-With `config.deployment.enabled=true`, the operator creates and updates the Deployments, StatefulSets, Services, and other resources that run each LangSmith Deployment. `operator.watchNamespaces` sets where it can do that:
+With `config.deployment.enabled=true`, the operator creates and updates the Deployments, StatefulSets, Services, and other resources that run each LangSmith Deployment. It manages:
 
-- **Empty, the default:** the operator manages deployments in every namespace. The chart grants its permissions through a ClusterRole and ClusterRoleBinding.
-- **A comma-separated list:** the operator manages deployments only in the listed namespaces. The chart grants the same permissions through a Role and RoleBinding in each listed namespace and creates no ClusterRole for them.
+- the namespaces in `operator.watchNamespaces`, or the chart's namespace when that is empty, and
+- every namespace in `config.deployment.namespaces`.
 
-Set a list unless the operator must manage deployments across the whole cluster. For example, to keep deployments in the release namespace:
+The chart grants the operator a Role and RoleBinding in each of these namespaces and no cluster-wide access. The chart's listener places deployments only in the chart's namespace and in `config.deployment.namespaces`, so the default covers every deployment it creates.
+
+Set `operator.watchNamespaces` only if deployments run in other namespaces, for example through listener permissions you added yourself:
 
 ```yaml
 operator:
-  watchNamespaces: "langsmith"
+  watchNamespaces: "langsmith,agents"
 ```
 
-Use your own namespace names, separated by commas without spaces. Each listed namespace must exist before you install or upgrade. Before you narrow an existing installation, list every namespace that already has deployments; the operator stops managing deployments in namespaces you leave out. Without Gateway API or Istio, the operator also updates the shared Ingress in the LangSmith namespace, so include that namespace in the list. Do not let two operators manage the same namespace.
+Use your own namespace names, separated by commas without spaces. Each listed namespace must exist before you install or upgrade. Without Gateway API or Istio, the operator also updates the shared Ingress in the LangSmith namespace, so include that namespace in the list. Do not let two operators manage the same namespace.
 
-An operator that can create Deployments in a namespace can run them as any ServiceAccount in that namespace. Keep privileged ServiceAccounts out of the namespaces it manages, and use admission policies to limit which ServiceAccounts and pod settings deployments can use. With `operator.rbac.create=false`, `operator.watchNamespaces` limits what the operator manages but not the permissions you grant it, so scope those permissions yourself.
+Earlier chart versions gave the operator access to every namespace when `operator.watchNamespaces` was empty. Before upgrading, list any namespace that has deployments and is neither the chart's namespace nor in `config.deployment.namespaces`; the operator stops reconciling deployments in namespaces it does not manage.
+
+An operator that can create Deployments in a namespace can run them as any ServiceAccount in that namespace. Keep privileged ServiceAccounts out of the namespaces it manages, and use admission policies to limit which ServiceAccounts and pod settings deployments can use. With `operator.rbac.create=false`, the chart still sets which namespaces the operator watches but grants no permissions, so grant them yourself in those namespaces.
 
 ## Extra manifests
 

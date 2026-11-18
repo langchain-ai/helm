@@ -2219,13 +2219,21 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- without ($all | uniq) $release | sortAlpha | join "," -}}
 {{- end -}}
 
-{{/* The operator's watch list plus the deployment namespaces; an empty list keeps the operator cluster-wide. */}}
+{{/*
+The namespaces the operator watches and gets a Role in: operator.watchNamespaces,
+or the chart's namespace when that is empty, plus the deployment namespaces. The
+chart's listener places deployments only in the chart's namespace and the
+deployment namespaces, so the operator gets no cluster-wide access.
+*/}}
 {{- define "langsmith.operatorWatchNamespaces" -}}
 {{- $watch := list -}}
 {{- range $ns := splitList "," (.Values.operator.watchNamespaces | default "") -}}
 {{- if trim $ns }}{{- $watch = append $watch (trim $ns) }}{{- end -}}
 {{- end -}}
-{{- if and $watch .Values.config.deployment.enabled -}}
+{{- if not $watch -}}
+{{- $watch = list (.Values.namespace | default .Release.Namespace) -}}
+{{- end -}}
+{{- if .Values.config.deployment.enabled -}}
 {{- $watch = concat $watch (include "langsmith.deploymentNamespaces" . | splitList "," | compact) -}}
 {{- end -}}
 {{- $watch | uniq | join "," -}}

@@ -6,13 +6,36 @@ templates:
 set:
   config.deployment.enabled: true
 tests:
-  - it: grants cluster-wide access when watchNamespaces is empty
+  - it: scopes the operator to the release namespace when watchNamespaces is empty
     asserts:
       - isKind:
-          of: ClusterRole
+          of: Role
+        documentIndex: 0
+      - equal:
+          path: metadata.namespace
+          value: chart-test
         documentIndex: 0
       - isKind:
-          of: ClusterRoleBinding
+          of: RoleBinding
+        documentIndex: 1
+      - equal:
+          path: metadata.namespace
+          value: chart-test
+        documentIndex: 1
+      - matchRegex:
+          path: kind
+          pattern: ^Role(Binding)?$
+  - it: scopes the operator to the chart's namespace override when watchNamespaces is empty
+    set:
+      namespace: langsmith-system
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: langsmith-system
+        documentIndex: 0
+      - equal:
+          path: subjects[0].namespace
+          value: langsmith-system
         documentIndex: 1
   - it: lets the operator read and delete pods but not create or change them
     asserts:
