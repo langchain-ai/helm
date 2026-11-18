@@ -15,7 +15,11 @@ It's safe to turn ClickHouse off once the script reports no reads for 7 days in 
    - the user LangSmith connects as (with the bundled ClickHouse: `default` / `password`), or
    - an admin user, plus the LangSmith user's name passed with `--app-user`.
 
-   The user in the URL needs `SELECT` on `system.query_log` and `system.clusters`.
+   The user in the URL needs `SELECT` on `system.query_log` and `system.clusters`, and `REMOTE` to read every replica:
+
+   ```sql
+   GRANT SELECT ON system.query_log, SELECT ON system.clusters, REMOTE ON *.* TO <user>
+   ```
 
 3. Query logging on for the LangSmith user (`log_queries = 1`, the ClickHouse default). The bundled ClickHouse keeps `query_log` for 3 days; with a shorter retention than `--days`, the script says so.
 
@@ -47,7 +51,7 @@ The script prints a summary, the reads by query (to `--output` as CSV if set), a
 |---|---|
 | 0 | No LangSmith reads over the window, on every replica. |
 | 2 | `query_log` cannot be read: grant access or use an admin user. |
-| 3 | LangSmith still reads ClickHouse. Keep it on; the table shows which queries. |
-| 4 | The result cannot be trusted: logging is off for the user, some replicas did not answer, or `query_log` does not cover the window. Keep ClickHouse on. |
+| 3 | LangSmith or the SmithDB migration still reads ClickHouse. Keep it on; the table shows which queries. |
+| 4 | The result cannot be trusted: logging is off for the user, some replicas did not answer, or a replica's `query_log` does not go back the whole window. Keep ClickHouse on. |
 
-Reads by the SmithDB migration are listed apart. They are expected until the migration completes.
+Reads by the SmithDB migration are listed apart. They are expected until the migration completes, and ClickHouse must stay on until then.
