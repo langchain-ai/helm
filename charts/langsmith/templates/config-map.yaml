@@ -187,6 +187,7 @@ data:
   {{- end }}
   # Every organization is entitled to Tool Gateway.
   DEFAULT_ORG_FEATURE_LMT_ENABLED: "true"
+  DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED: {{ .Values.fleet.enabled | quote }}
   # Instance admins: usage backfill export and installation-level operations
   {{- if .Values.config.superAdmins }}
   USAGE_EXPORT_ADMIN_EMAILS: {{ .Values.config.superAdmins | toJson | quote }}

@@ -4,34 +4,49 @@ set:
   config.oauth.enabled: true
   config.authType: oauth
   hostBackend.enabled: true
+  config.deployment.enabled: true
+  config.hostname: langsmith.example.com
+  ingress.enabled: true
 tests:
   - it: enables managed deep agents when Fleet is enabled
     set:
       fleet.enabled: true
     templates:
-      - templates/backend/deployment.yaml
-      - templates/host-backend/deployment.yaml
-      - templates/platform-backend/deployment.yaml
+      - templates/config-map.yaml
     asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
-            value: "true"
+      - equal:
+          path: data.DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+          value: "true"
 
   - it: disables managed deep agents when Fleet is disabled
     set:
       fleet.enabled: false
     templates:
+      - templates/config-map.yaml
+    asserts:
+      - equal:
+          path: data.DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+          value: "false"
+
+  - it: loads the default through envFrom without an explicit env entry
+    templates: &deployments
       - templates/backend/deployment.yaml
       - templates/host-backend/deployment.yaml
       - templates/platform-backend/deployment.yaml
+      - templates/queue/deployment.yaml
+      - templates/listener/deployment.yaml
+      - templates/ingest-queue/deployment.yaml
     asserts:
       - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            configMapRef:
+              name: RELEASE-NAME-langsmith-config
+      - notContains:
           path: spec.template.spec.containers[0].env
+          any: true
           content:
             name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
-            value: "false"
 
   - it: preserves an explicit commonEnv opt-out
     set:
@@ -39,30 +54,66 @@ tests:
       commonEnv:
         - name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
           value: "false"
-    templates:
-      - templates/backend/deployment.yaml
-      - templates/host-backend/deployment.yaml
-      - templates/platform-backend/deployment.yaml
+    templates: *deployments
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
+          count: 1
           content:
             name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
             value: "false"
 
-  - it: accepts an existing commonEnv opt-in without duplicate variables
+  - it: preserves an explicit commonEnv opt-in when Fleet is disabled
     set:
-      fleet.enabled: true
+      fleet.enabled: false
       commonEnv:
         - name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
           value: "true"
-    templates:
-      - templates/backend/deployment.yaml
-      - templates/host-backend/deployment.yaml
-      - templates/platform-backend/deployment.yaml
+    templates: *deployments
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
+          count: 1
+          content:
+            name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+            value: "true"
+
+  - it: preserves component extraEnv opt-outs without duplicate variables
+    set:
+      fleet.enabled: true
+      backend.deployment.extraEnv: &optOut
+        - name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+          value: "false"
+      hostBackend.deployment.extraEnv: *optOut
+      platformBackend.deployment.extraEnv: *optOut
+      queue.deployment.extraEnv: *optOut
+      listener.deployment.extraEnv: *optOut
+      ingestQueue.deployment.extraEnv: *optOut
+    templates: *deployments
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          count: 1
+          content:
+            name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+            value: "false"
+
+  - it: preserves component extraEnv opt-ins when Fleet is disabled
+    set:
+      fleet.enabled: false
+      backend.deployment.extraEnv: &optIn
+        - name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+          value: "true"
+      hostBackend.deployment.extraEnv: *optIn
+      platformBackend.deployment.extraEnv: *optIn
+      queue.deployment.extraEnv: *optIn
+      listener.deployment.extraEnv: *optIn
+      ingestQueue.deployment.extraEnv: *optIn
+    templates: *deployments
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          count: 1
           content:
             name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
             value: "true"
