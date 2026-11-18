@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.81](https://img.shields.io/badge/Version-0.18.0--rc.81-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.82](https://img.shields.io/badge/Version-0.18.0--rc.81-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -706,7 +706,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | images.backendImage.tag | string | `"0.18.29rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
-| images.clickhouseImage.tag | string | `"26.3.62.3"` |  |
+| images.clickhouseImage.tag | string | `"26.3.66.4"` |  |
 | images.deploymentDbImage.repository | string | `"docker.io/pgvector/pgvector"` |  |
 | images.deploymentDbImage.tag | string | `"pg15"` |  |
 | images.deploymentRedisImage.repository | string | `"docker.io/redis"` |  |
