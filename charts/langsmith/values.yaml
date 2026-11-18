@@ -1317,6 +1317,15 @@ config:
   # If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com).
   customErrorSupportMessage: ""
 
+  # -- Announcement banner shown at the top of every page. Set message to show it; title,
+  # linkUrl (http or https), and linkLabel (default "Learn more") are optional. Users can
+  # dismiss it, and it shows again when any of the text changes.
+  customAnnouncement:
+    message: ""
+    title: ""
+    linkUrl: ""
+    linkLabel: ""
+
   # -- Enables Google IAP (Identity-Aware Proxy) session handling in the frontend.
   # When true, the frontend adds required IAP headers, uses credentialed fetches,
   # and handles 401 re-auth via GCP's session refresh mechanism.
