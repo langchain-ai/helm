@@ -263,6 +263,9 @@ Allowed long-lived days as JSON. Fails at render time on values the backend refu
 {{- if lt (int .) 14 -}}
 {{- fail (printf "config.ttl.longlivedAllowedDays: %v is below the 14-day minimum" .) -}}
 {{- end -}}
+{{- if gt (int .) 36500 -}}
+{{- fail (printf "config.ttl.longlivedAllowedDays: %v is above the 36500-day maximum" .) -}}
+{{- end -}}
 {{- end -}}
 {{- toJson $days -}}
 {{- end -}}
@@ -466,6 +469,9 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.ttl.enabled | quote }}
 - name: FF_UPGRADE_TRACE_TIER_ENABLED
   value: "true"
+{{- if gt (int64 .Values.config.ttl.ttl_period_seconds.longlived) 3153600000 }}
+{{- fail (printf "config.ttl.ttl_period_seconds.longlived: %v is above the 36500-day maximum (3153600000 seconds)" .Values.config.ttl.ttl_period_seconds.longlived) }}
+{{- end }}
 - name: TRACE_TIER_TTL_DURATION_SEC_MAP
   value: "{ \"longlived\": {{ .Values.config.ttl.ttl_period_seconds.longlived }}, \"shortlived\": {{ .Values.config.ttl.ttl_period_seconds.shortlived }} }"
 {{- if .Values.config.ttl.longlivedAllowedDays }}
@@ -846,7 +852,7 @@ JSON list of the smithdb.* keys of the rendered SmithDB service workloads.
 {{- if include "langsmith.smithdb.unifiedTopology" . -}}
 {{- $components = list "unified" -}}
 {{- else if include "langsmith.smithdb.clusterTopology" . -}}
-{{- range $component := list "query" "mutations" "runRules" "statsQuery" "ingestion" "compaction" "compactionWorker" "clusterManager" -}}
+{{- range $component := list "query" "mutations" "runRules" "statsQuery" "exportQuery" "ingestion" "compaction" "compactionWorker" "clusterManager" -}}
 {{- if dig "enabled" true (index $.Values.smithdb $component) -}}
 {{- $components = append $components $component -}}
 {{- end -}}
@@ -1628,6 +1634,10 @@ Extra env vars for fleet api-server and queue pods.
 {{- end -}}
 {{- end -}}
 
+{{- define "langsmith.managedToolsEndpoint" -}}
+{{- printf "%s/v1/managed-tools" (include "langsmith.platformBackendEndpoint" .) -}}
+{{- end -}}
+
 {{- define "langsmith.fleet.serviceAccountNames" -}}
 {{- $names := dict "apiServer" (include "fleetApiServer.serviceAccountName" .) -}}
 {{- if .Values.fleet.queue.enabled -}}
@@ -2261,3 +2271,26 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- end }}
 {{- end }}
 {{- end -}}
+
+{{/* Namespaces outside the release namespace that LangSmith Deployments may be placed in, comma-separated. */}}
+{{- define "langsmith.deploymentNamespaces" -}}
+{{- $release := .Values.namespace | default .Release.Namespace -}}
+{{- $all := list -}}
+{{- range $_, $namespaces := (.Values.config.deployment.namespaces | default dict) -}}
+{{- $all = concat $all $namespaces -}}
+{{- end -}}
+{{- without ($all | uniq) $release | sortAlpha | join "," -}}
+{{- end -}}
+
+{{/* The operator's watch list plus the deployment namespaces; an empty list keeps the operator cluster-wide. */}}
+{{- define "langsmith.operatorWatchNamespaces" -}}
+{{- $watch := list -}}
+{{- range $ns := splitList "," (.Values.operator.watchNamespaces | default "") -}}
+{{- if trim $ns }}{{- $watch = append $watch (trim $ns) }}{{- end -}}
+{{- end -}}
+{{- if and $watch .Values.config.deployment.enabled -}}
+{{- $watch = concat $watch (include "langsmith.deploymentNamespaces" . | splitList "," | compact) -}}
+{{- end -}}
+{{- $watch | uniq | join "," -}}
+{{- end -}}
+

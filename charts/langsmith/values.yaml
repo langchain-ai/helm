@@ -1119,6 +1119,8 @@ config:
     scalingOverridesEnabled: false
     # -- Let standalone self-hosted deployments declare extra ServiceAccount and SecretProviderClass manifests. Requires coordinated supporting images and the LGP CRD; see the Extra manifests section.
     extraManifestsEnabled: false
+    # -- Optional. Kubernetes namespaces each workspace may place its LangSmith Deployments in, keyed by workspace ID, for example `{"<workspace-id>": ["agents-production"]}`. For each namespace the chart binds the host-backend and listener service accounts to a role with the access deployments need and, when `operator.watchNamespaces` is set, adds it to the operator's watched namespaces. Requires `gateway.enabled` or `istioGateway.enabled`, and a Gateway API gateway must allow routes from these namespaces. The namespaces must already exist, and when `images.imagePullSecrets` is set they must each contain Secrets with the same names, because pods resolve pull secrets in their own namespace; the chart creates neither. A namespace may belong to one workspace, and system namespaces are rejected. Delete a namespace's deployments before removing it from this map.
+    namespaces: {}
 
 
   # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
@@ -1249,11 +1251,11 @@ config:
   ttl:
     enabled: true
     ttl_period_seconds:
-      # -- 400 day longlived and 14 day shortlived
+      # -- 400 day longlived and 14 day shortlived. longlived is at most 36500 days (3153600000).
       longlived: "34560000"
       shortlived: "1209600"
     # -- Long-lived retention options in days, for SmithDB-only installs. Empty keeps the default
-    # options (30 to 400, up to ttl_period_seconds.longlived). At most 10 values, each at least 14.
+    # options (30 to 400, up to ttl_period_seconds.longlived). At most 10 values, each between 14 and 36500.
     # Every value is offered, also above ttl_period_seconds.longlived, which stays the default.
     # Create a bucket lifecycle rule for each ttl_<N>d/ prefix, or blobs under it never expire.
     longlivedAllowedDays: []
@@ -1855,6 +1857,78 @@ smithdb:
   statsQuery:
     enabled: false
     name: "stats-query"
+    containerPort: 8060
+    containerGrpcPort: 8080
+    deployment:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext:
+        fsGroup: 1001
+      securityContext: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command: ["./smithdb", "query"]
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumeMounts:
+        - name: cache
+          mountPath: /data
+      initContainers: []
+    service:
+      port: 8080
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+    autoscaling:
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 5
+        targetCPUUtilizationPercentage: 40
+        scaleUpStabilizationWindowSeconds: 300
+        scaleDownStabilizationWindowSeconds: 900
+        scalePodCount: 1
+
+  exportQuery:
+    enabled: false
+    name: "export"
     containerPort: 8060
     containerGrpcPort: 8080
     deployment:
@@ -2685,6 +2759,10 @@ clickhouse:
   #
   # WARNING: Disabling ClickHouse or switching to an external instance DELETES the chart-managed
   # workload on upgrade. Back up its data first; PVCs may be deleted or left orphaned.
+  #
+  # To move off ClickHouse, keep this enabled and first stop only its queries with
+  # CLICKHOUSE_QUERY_ENABLED=false in commonEnv. Disable it after Settings > Instance shows
+  # 7 days with no reads.
   enabled: true
   name: "clickhouse"
   disableSecretCreation: false
