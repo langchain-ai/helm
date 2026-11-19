@@ -2099,7 +2099,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
 | clickhouse.disableSecretCreation | bool | `false` |  |
-| clickhouse.enabled | bool | `true` | Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse.  WARNING: Disabling ClickHouse or switching to an external instance DELETES the chart-managed workload on upgrade. Back up its data first; PVCs may be deleted or left orphaned. |
+| clickhouse.enabled | bool | `true` | Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse.  WARNING: Disabling ClickHouse or switching to an external instance DELETES the chart-managed workload on upgrade. Back up its data first; PVCs may be deleted or left orphaned.  To move off ClickHouse, keep this enabled and first stop only its queries with CLICKHOUSE_QUERY_ENABLED=false in commonEnv. Disable it after Settings > Instance shows 7 days with no reads. |
 | clickhouse.external.clientCert.certSecretKey | string | `"tls.crt"` |  |
 | clickhouse.external.clientCert.keySecretKey | string | `"tls.key"` |  |
 | clickhouse.external.clientCert.secretName | string | `""` |  |
