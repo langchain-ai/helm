@@ -52,6 +52,10 @@ After deployment, test a real API operation without credentials from outside the
 
 Before upgrading, review the values you will apply. To keep an existing load balancer, explicitly set `apiServer.service.type: LoadBalancer` in your release values. Check authentication, TLS, and network restrictions before retaining that exposure. To move behind an Ingress or gateway, configure and verify the replacement route before removing the old endpoint. Review the rendered Service before applying the upgrade; do not rely on the previous default being retained.
 
+### Upgrading to 0.4.1
+
+Connections built from `postgres.external.host`, `user`, `password`, and the other separate fields now try TLS first, and use an unencrypted connection when the server does not support TLS. If your server accepts this client only without TLS, set a full `postgres.external.connectionUrl` with `sslmode=disable`, or allow the client over TLS.
+
 ### PostgreSQL for production
 
 The bundled PostgreSQL instance is for development and testing, including for standalone Agent Server deployments. Use external PostgreSQL in production.
