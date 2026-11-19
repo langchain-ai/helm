@@ -41,7 +41,7 @@ bash get_clickhouse_reads.sh <clickhouse_url> [--app-user <user>] [--days 7] [--
 For example, with the in-cluster ClickHouse and port forwarding (3 days, all it keeps):
 
 ```bash
-bash get_clickhouse_reads.sh "clickhouse://default:password@localhost:8123/default" --days 3
+bash get_clickhouse_reads.sh "clickhouse://default:<password>@localhost:8123/default" --days 3
 ```
 
 With an external ClickHouse, as an admin:
@@ -59,8 +59,9 @@ The script prints a summary, the reads by source and query (to `--output` as CSV
 | Exit code | Meaning |
 |---|---|
 | 0 | No LangSmith reads over the window, on every replica. |
+| 1 | Bad arguments, or the script couldn't connect to ClickHouse. |
 | 2 | `query_log` cannot be read: grant access or use an admin user. |
 | 3 | LangSmith or the SmithDB migration still reads ClickHouse. Keep it on; the table shows which queries. This is expected until ClickHouse queries are off (step 2 above). |
 | 4 | The result cannot be trusted: logging is off for the user, some replicas did not answer, or a replica's `query_log` does not go back the whole window. Keep ClickHouse on. |
 
-Reads by the SmithDB migration are listed apart. They are expected until the migration completes, and ClickHouse must stay on until then.
+Reads by the SmithDB migration show in the table under the source `job:smithdb-migration`, and their count has its own summary line. They are expected until the migration completes, and ClickHouse must stay on until then.
