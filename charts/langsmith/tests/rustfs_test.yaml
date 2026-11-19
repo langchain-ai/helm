@@ -39,6 +39,11 @@ tests:
       - equal:
           path: spec.template.spec.securityContext.fsGroup
           value: 10001
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RUSTFS_OBS_LOG_DIRECTORY
+            value: ""
 
   - it: creates the bucket with a Job
     template: rustfs/bucket-job.yaml
@@ -58,6 +63,84 @@ tests:
           content:
             name: RUSTFS_BUCKET
             value: langsmith
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: docker.io/rustfs/rustfs:1.0.0-beta.7
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+
+  - it: passes common and bucket Job settings to the bucket Job
+    template: rustfs/bucket-job.yaml
+    set:
+      commonEnv:
+        - name: COMMON_VAR
+          value: common
+      commonVolumes:
+        - name: common-vol
+          emptyDir: {}
+      commonVolumeMounts:
+        - name: common-vol
+          mountPath: /common
+      commonInitContainers:
+        - name: common-init
+          image: busybox
+      rustfs.bucketJob.priorityClassName: high
+      rustfs.bucketJob.extraEnv:
+        - name: EXTRA_VAR
+          value: extra
+      rustfs.bucketJob.volumes:
+        - name: job-vol
+          emptyDir: {}
+      rustfs.bucketJob.volumeMounts:
+        - name: job-vol
+          mountPath: /job
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: COMMON_VAR
+            value: common
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: EXTRA_VAR
+            value: extra
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: common-vol
+            emptyDir: {}
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: job-vol
+            emptyDir: {}
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: job-vol
+            mountPath: /job
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: common-init
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: high
+
+  - it: does not change the configured pod security context
+    template: rustfs/bucket-job.yaml
+    set:
+      commonPodSecurityContext:
+        seccompProfile:
+          type: RuntimeDefault
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.seccompProfile.type
+          value: RuntimeDefault
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 10001
 
   - it: points the application at RustFS
     template: queue/deployment.yaml
@@ -86,7 +169,17 @@ tests:
                 name: langsmith-rustfs
                 key: secret_key
 
-  - it: generates a random RustFS secret key
+  - it: derives the RustFS secret key from config.apiKeySalt
+    template: rustfs/secrets.yaml
+    set:
+      config.apiKeySalt: test-salt
+    asserts:
+      - equal:
+          path: data.secret_key
+          # base64 of the first 40 hex characters of sha256("langsmith-rustfs-secret-key:test-salt")
+          value: NWFlOTg4YzIxMzVlNjdlNjEyN2M3ZDk4ZmVhMzZiYWZmOGIzM2VhOQ==
+
+  - it: generates a random RustFS secret key without config.apiKeySalt
     template: rustfs/secrets.yaml
     asserts:
       - matchRegex:
@@ -99,6 +192,8 @@ tests:
 
   - it: keeps the RustFS secret key from an earlier install
     template: rustfs/secrets.yaml
+    set:
+      config.apiKeySalt: test-salt
     kubernetesProvider:
       scheme:
         "v1/Secret":

@@ -72,6 +72,9 @@ spec:
               value: {{ printf ":%v" .Values.rustfs.containerPort | quote }}
             - name: RUSTFS_VOLUMES
               value: /data
+            {{- /* The image logs to files under /logs; empty sends logs to stdout, which also keeps the root filesystem unwritten. */}}
+            - name: RUSTFS_OBS_LOG_DIRECTORY
+              value: ""
             - name: RUSTFS_ACCESS_KEY
               valueFrom:
                 secretKeyRef:

@@ -733,9 +733,6 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
-| images.rustfsClientImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.rustfsClientImage.repository | string | `"docker.io/rustfs/rc"` |  |
-| images.rustfsClientImage.tag | string | `"v0.1.18"` |  |
 | images.rustfsImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.rustfsImage.repository | string | `"docker.io/rustfs/rustfs"` |  |
 | images.rustfsImage.tag | string | `"1.0.0-beta.7"` |  |
@@ -1033,16 +1030,22 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | rustfs.bucketJob.affinity | object | `{}` |  |
 | rustfs.bucketJob.annotations | object | `{}` |  |
 | rustfs.bucketJob.backoffLimit | int | `10` |  |
+| rustfs.bucketJob.extraEnv | list | `[]` |  |
+| rustfs.bucketJob.initContainers | list | `[]` |  |
 | rustfs.bucketJob.labels | object | `{}` |  |
 | rustfs.bucketJob.nodeSelector | object | `{}` |  |
 | rustfs.bucketJob.podSecurityContext.runAsGroup | int | `10001` |  |
 | rustfs.bucketJob.podSecurityContext.runAsNonRoot | bool | `true` |  |
 | rustfs.bucketJob.podSecurityContext.runAsUser | int | `10001` |  |
+| rustfs.bucketJob.priorityClassName | string | `""` | Optional priority class for the bucket Job. |
 | rustfs.bucketJob.resources.requests.cpu | string | `"50m"` |  |
 | rustfs.bucketJob.resources.requests.memory | string | `"64Mi"` |  |
 | rustfs.bucketJob.securityContext.allowPrivilegeEscalation | bool | `false` |  |
 | rustfs.bucketJob.securityContext.capabilities.drop[0] | string | `"ALL"` |  |
+| rustfs.bucketJob.securityContext.readOnlyRootFilesystem | bool | `true` |  |
 | rustfs.bucketJob.tolerations | list | `[]` |  |
+| rustfs.bucketJob.volumeMounts | list | `[]` |  |
+| rustfs.bucketJob.volumes | list | `[]` |  |
 | rustfs.bucketName | string | `"langsmith"` | Bucket the chart creates in RustFS and LangSmith stores blobs in. |
 | rustfs.containerPort | int | `9000` |  |
 | rustfs.existingSecretName | string | `""` | Existing secret holding the RustFS credentials under accessKeySecretKey and secretKeySecretKey. |
@@ -1051,7 +1054,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | rustfs.pdb.enabled | bool | `false` |  |
 | rustfs.pdb.labels | object | `{}` |  |
 | rustfs.pdb.minAvailable | int | `1` |  |
-| rustfs.secretKey | string | `""` | RustFS secret key. Ignored when existingSecretName is set. When empty, the chart generates a random key on install and keeps it on upgrade. Set it, or use existingSecretName, if you render with `helm template` (for example Argo CD), which cannot read the existing key and would generate a new one on every render. |
+| rustfs.secretKey | string | `""` | RustFS secret key. Ignored when existingSecretName is set. When empty, the chart keeps the key from an earlier install, or derives one from config.apiKeySalt, so `helm template` renders (for example Argo CD) get the same key every time. With config.existingSecretName and no apiKeySalt in values, set this or existingSecretName: the chart would otherwise generate a new random key on every `helm template` render. |
 | rustfs.secretKeySecretKey | string | `"secret_key"` |  |
 | rustfs.service.annotations | object | `{}` |  |
 | rustfs.service.labels | object | `{}` |  |

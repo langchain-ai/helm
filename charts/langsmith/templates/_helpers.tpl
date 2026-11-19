@@ -1393,18 +1393,6 @@ Args: root, service, displayName, optional prefix (defaults to SMITHDB_<service>
 {{- end -}}
 {{- end -}}
 
-{{- define "langsmith.rustfs.bucketJobName" -}}
-{{- $inputs := dict
-  "chartVersion" .Chart.Version
-  "image" (include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "rustfsClientImage"))
-  "bucket" .Values.rustfs.bucketName
-  "endpoint" (include "langsmith.rustfsUrl" .)
-  "secret" (include "langsmith.rustfsSecretsName" .)
-  "job" .Values.rustfs.bucketJob
--}}
-{{- printf "%s-%s-bucket-%s" (include "langsmith.fullname" .) .Values.rustfs.name (toJson $inputs | sha256sum | trunc 8) | trunc 63 | trimSuffix "-" }}
-{{- end -}}
-
 {{- define "fleetToolServer.serviceAccountName" -}}
 {{- if .Values.fleetToolServer.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.fleetToolServer.name) .Values.fleetToolServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}

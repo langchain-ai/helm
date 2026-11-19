@@ -95,11 +95,6 @@ images:
     repository: "docker.io/rustfs/rustfs"
     pullPolicy: IfNotPresent
     tag: "1.0.0-beta.7"
-  # S3 client the chart uses to create the in-chart RustFS bucket.
-  rustfsClientImage:
-    repository: "docker.io/rustfs/rc"
-    pullPolicy: IfNotPresent
-    tag: "v0.1.18"
   # For production environments, we strongly recommend connecting to a managed Redis instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-redis
   redisImage:
@@ -4071,9 +4066,10 @@ rustfs:
   bucketName: "langsmith"
   # -- RustFS access key. Ignored when existingSecretName is set.
   accessKey: "langsmith"
-  # -- RustFS secret key. Ignored when existingSecretName is set. When empty, the chart generates a random key
-  # on install and keeps it on upgrade. Set it, or use existingSecretName, if you render with `helm template`
-  # (for example Argo CD), which cannot read the existing key and would generate a new one on every render.
+  # -- RustFS secret key. Ignored when existingSecretName is set. When empty, the chart keeps the key from an
+  # earlier install, or derives one from config.apiKeySalt, so `helm template` renders (for example Argo CD) get
+  # the same key every time. With config.existingSecretName and no apiKeySalt in values, set this or
+  # existingSecretName: the chart would otherwise generate a new random key on every `helm template` render.
   secretKey: ""
   # -- Existing secret holding the RustFS credentials under accessKeySecretKey and secretKeySecretKey.
   existingSecretName: ""
@@ -4087,7 +4083,9 @@ rustfs:
     updateStrategy: {}
     labels: {}
     annotations: {}
-    # The RustFS image runs as uid/gid 10001; fsGroup makes the data volume writable.
+    # The RustFS image runs as the named user rustfs (uid/gid 10001). runAsUser lets Kubernetes verify
+    # runAsNonRoot, and fsGroup makes the data volume writable. On platforms that assign UIDs (such as
+    # OpenShift's restricted SCC), set these keys to null so the platform's values apply.
     podSecurityContext:
       runAsUser: 10001
       runAsGroup: 10001
@@ -4145,16 +4143,21 @@ rustfs:
       enabled: true
       size: 50Gi
       storageClassName: ""
-  # Job that creates the bucket. It is renamed whenever its inputs change, so upgrades run it again.
+  # Job that creates the bucket, using the RustFS image. It is renamed whenever its pod template changes,
+  # so upgrades run it again.
   bucketJob:
     labels: {}
     annotations: {}
+    # -- Optional priority class for the bucket Job.
+    priorityClassName: ""
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 10001
       runAsGroup: 10001
+    # The Job writes nothing to disk, so its root filesystem is read-only.
     securityContext:
       allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
       capabilities:
         drop:
           - ALL
@@ -4163,6 +4166,10 @@ rustfs:
         cpu: 50m
         memory: 64Mi
     backoffLimit: 10
+    extraEnv: []
+    initContainers: []
+    volumes: []
+    volumeMounts: []
     nodeSelector: {}
     tolerations: []
     affinity: {}
