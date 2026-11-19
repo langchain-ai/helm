@@ -6,20 +6,12 @@ This script is for BYOC data planes, which have no Instance page. On self-hosted
 
 ### Turning ClickHouse off, in order
 
-1. Migrate every caller listed on **Deprecated API Usage** (organization or workspace settings) until it shows none.
+1. Migrate every caller listed on **Deprecated API Usage**, in each workspace's settings, until it shows none.
 2. Once it shows none, set `CLICKHOUSE_QUERY_ENABLED=false`. Before that, LangSmith's own jobs and UI read ClickHouse on purpose, so this script always reports reads.
 
-   On BYOC, LangChain manages the data plane's settings: ask LangChain support to set it.
+   LangChain manages the data plane's settings: ask LangChain support to set it.
 
-   On self-hosted, the chart sets this flag from `clickhouse.enabled`, which also stops ingestion and removes the bundled ClickHouse. Don't change `clickhouse.enabled` yet: override only the query flag with `commonEnv`, which wins over the chart's ConfigMap:
-
-   ```yaml
-   commonEnv:
-     - name: CLICKHOUSE_QUERY_ENABLED
-       value: "false"
-   ```
-
-3. Wait for 7 days with no reads, then turn ClickHouse off (self-hosted: `clickhouse.enabled: false`).
+3. Wait for 7 days with no reads, then ask LangChain support to turn ClickHouse off.
 
 ### Prerequisites
 
