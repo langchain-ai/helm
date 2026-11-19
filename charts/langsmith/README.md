@@ -115,7 +115,7 @@ Use your own namespace names, separated by commas without spaces. Each listed na
 
 Earlier chart versions gave the operator access to every namespace when `operator.watchNamespaces` was empty. Before upgrading, list any namespace that has deployments and is neither the chart's namespace nor in `config.deployment.namespaces`; the operator stops reconciling deployments in namespaces it does not manage.
 
-An operator that can create Deployments in a namespace can run them as any ServiceAccount in that namespace. Keep privileged ServiceAccounts out of the namespaces it manages, and use admission policies to limit which ServiceAccounts and pod settings deployments can use. With `operator.rbac.create=false`, the chart still sets which namespaces the operator watches but grants no permissions, so grant them yourself in those namespaces.
+An operator that can create Deployments in a namespace can run them as any ServiceAccount in that namespace. Keep privileged ServiceAccounts out of the namespaces it manages, and use admission policies to limit which ServiceAccounts and pod settings deployments can use. By default the operator manages the chart's namespace, which also holds the listener's ServiceAccount and the LangSmith Secrets: a Deployment created there can run as that ServiceAccount or mount those Secrets, so protect the operator's token as you would those Secrets. With `operator.rbac.create=false`, the chart still sets which namespaces the operator watches but grants no permissions, so grant them yourself in those namespaces.
 
 ## Extra manifests
 
