@@ -2,7 +2,7 @@
 
 Once LangSmith runs on SmithDB, ClickHouse can be turned off when LangSmith stops reading it. This script counts the reads LangSmith made on ClickHouse over the last days, from ClickHouse's own `system.query_log`.
 
-This script is for BYOC data planes, which have no Instance page. On self-hosted, use **Settings › Instance** instead: its ClickHouse section tracks the reads every minute and tells you the next step. The script also works on self-hosted versions without that page.
+This script is for BYOC data planes, which have no Instance page. On self-hosted, use **Settings › Instance** instead: its ClickHouse section tracks the reads every minute and tells you the next step.
 
 ### Turning ClickHouse off, in order
 
