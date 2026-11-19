@@ -2,14 +2,16 @@
 
 Once LangSmith runs on SmithDB, ClickHouse can be turned off when LangSmith stops reading it. This script counts the reads LangSmith made on ClickHouse over the last days, from ClickHouse's own `system.query_log`.
 
-On self-hosted versions with **Settings › Instance**, use that page first: its ClickHouse section tracks the reads every minute and tells you the next step. Use this script when that page isn't available (BYOC, older versions), or when it shows an unknown or partial status.
+This script is for BYOC data planes, which have no Instance page. On self-hosted, use **Settings › Instance** instead: its ClickHouse section tracks the reads every minute and tells you the next step. The script also works on self-hosted versions without that page.
 
 ### Turning ClickHouse off, in order
 
 1. Migrate every caller listed on **Deprecated API Usage** (organization or workspace settings) until it shows none.
 2. Once it shows none, set `CLICKHOUSE_QUERY_ENABLED=false`. Before that, LangSmith's own jobs and UI read ClickHouse on purpose, so this script always reports reads.
 
-   The chart sets this flag from `clickhouse.enabled`, which also stops ingestion and removes the bundled ClickHouse. Don't change `clickhouse.enabled` yet: override only the query flag with `commonEnv`, which wins over the chart's ConfigMap:
+   On BYOC, LangChain manages the data plane's settings: ask LangChain support to set it.
+
+   On self-hosted, the chart sets this flag from `clickhouse.enabled`, which also stops ingestion and removes the bundled ClickHouse. Don't change `clickhouse.enabled` yet: override only the query flag with `commonEnv`, which wins over the chart's ConfigMap:
 
    ```yaml
    commonEnv:
@@ -17,17 +19,17 @@ On self-hosted versions with **Settings › Instance**, use that page first: its
        value: "false"
    ```
 
-3. Wait for 7 days with no reads, then turn ClickHouse off with `clickhouse.enabled: false`.
+3. Wait for 7 days with no reads, then turn ClickHouse off (self-hosted: `clickhouse.enabled: false`).
 
 ### Prerequisites
 
 1. Connectivity to ClickHouse from the machine you run the script on.
 
-   - With the bundled ClickHouse, port forward it: `kubectl port-forward svc/langsmith-clickhouse 8123:8123`
+   - With the in-cluster ClickHouse, port forward it: `kubectl port-forward svc/langsmith-clickhouse 8123:8123`
 
 2. ClickHouse credentials, either:
 
-   - the user LangSmith connects as (with the bundled ClickHouse: `default` / `password`), or
+   - the user LangSmith connects as (in-cluster ClickHouse: `default`, with the password from the LangSmith secret), or
    - an admin user, plus the LangSmith user's name passed with `--app-user`.
 
    The user in the URL needs `SELECT` on `system.query_log` and `system.clusters`, and `REMOTE` to read every replica:
@@ -38,7 +40,7 @@ On self-hosted versions with **Settings › Instance**, use that page first: its
 
 3. Query logging on for the LangSmith user (`log_queries = 1`, the ClickHouse default).
 
-4. A `query_log` that goes back `--days`. The bundled ClickHouse keeps `query_log` for only 3 days, so one run there covers the last 3 days at most (`--days 7` exits with 4). To cover 7 days on it, run the script with `--days 3` at most 3 days apart (for example on days 3, 6 and 7 after setting `CLICKHOUSE_QUERY_ENABLED=false`), or use **Settings › Instance**, which keeps its own 7 days.
+4. ClickHouse must still hold the queries of the days you check. The in-cluster ClickHouse deletes them after 3 days, so one run there can't check a full week. Run the script with `--days 3` every 3 days during the week.
 
 ### Running the script
 
@@ -46,7 +48,7 @@ On self-hosted versions with **Settings › Instance**, use that page first: its
 bash get_clickhouse_reads.sh <clickhouse_url> [--app-user <user>] [--days 7] [--cluster <name>] [--ssl] [--output reads.csv]
 ```
 
-For example, with the bundled ClickHouse and port forwarding (3 days, its `query_log` retention):
+For example, with the in-cluster ClickHouse and port forwarding (3 days, all it keeps):
 
 ```bash
 bash get_clickhouse_reads.sh "clickhouse://default:password@localhost:8123/default" --days 3
