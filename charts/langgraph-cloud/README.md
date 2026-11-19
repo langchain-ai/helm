@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.3](https://img.shields.io/badge/AppVersion-0.2.3-informational?style=flat-square)
+![Version: 0.4.1](https://img.shields.io/badge/Version-0.4.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.3](https://img.shields.io/badge/AppVersion-0.2.3-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -52,6 +52,24 @@ After deployment, test a real API operation without credentials from outside the
 
 Before upgrading, review the values you will apply. To keep an existing load balancer, explicitly set `apiServer.service.type: LoadBalancer` in your release values. Check authentication, TLS, and network restrictions before retaining that exposure. To move behind an Ingress or gateway, configure and verify the replacement route before removing the old endpoint. Review the rendered Service before applying the upgrade; do not rely on the previous default being retained.
 
+### Upgrading to 0.4.1
+
+Connections built from `postgres.external.host`, `user`, `password`, and the other separate fields now try TLS first, and use an unencrypted connection when the server does not support TLS. If your server accepts this client only without TLS, set a full `postgres.external.connectionUrl` with `sslmode=disable`, or allow the client over TLS.
+
+### PostgreSQL for production
+
+The bundled PostgreSQL instance is for development and testing, including for standalone Agent Server deployments. Use external PostgreSQL in production.
+
+The bundled instance uses the `postgres` user and `postgres` password unless you set `postgres.external.user` and `postgres.external.password` before the first install. PostgreSQL applies them only when it creates its data directory, so changing them later breaks the connection to an existing bundled database.
+
+To use external PostgreSQL, set `postgres.external.enabled: true` and give the connection in one of these ways:
+
+- `postgres.external.connectionUrl`: a full URL, used as given.
+- `postgres.external.existingSecretName`: a Secret with the full URL under the `postgres_connection_url` key.
+- `postgres.external.host`, `port`, `user`, `password`, and `database`: the chart builds a URL without `sslmode`, so the client default `prefer` applies. The connection uses TLS when the server supports it, without verifying the server certificate.
+
+To verify the server certificate, use a full URL with `sslmode=verify-full` and `sslrootcert=<path to the CA certificate>`, and mount the CA certificate into the API server and queue with `commonVolumes` and `commonVolumeMounts`. See the [production storage guidance](https://docs.langchain.com/langsmith/self-hosted#storage-services) for the broader external storage recommendation.
+
 ### Prerequisites
 
 Ensure you have the following tools/items ready.
@@ -74,7 +92,7 @@ Ensure you have the following tools/items ready.
     1. You can use the [langgraph-cli](https://langchain-ai.github.io/langgraph/cloud/reference/cli/) to build your own image.
 1. TLS for external access
     1. Configure termination on your chosen load balancer, Ingress, or gateway
-1. External Postgres(optional).
+1. External PostgreSQL (required for production).
     1. You can configure external Postgres using the `values.yaml` file. You will need to provide a connection url for your postgres.
     2. We only official support Postgres versions >= 14.
 
@@ -167,7 +185,7 @@ config:
 postgres:
   external:
     enabled: true
-    connectionUrl: "postgres://postgres:postgres@postgres-host.com:5432/postgres?sslmode=disable"
+    connectionUrl: "postgres://<user>:<password>@<host>:5432/<database>?sslmode=verify-full&sslrootcert=<path to the CA certificate>"
 ```
 
 ### Bundled MongoDB checkpointer

@@ -261,6 +261,8 @@ queue:
     minAvailable: 1
 
 postgres:
+  # Bundled PostgreSQL is for development/testing only; use external PostgreSQL in production.
+  # Bundled credentials default to postgres/postgres. To verify the server certificate, use a full connectionUrl (see the README).
   name: "postgres"
   external:
     # If enabled, use the following values to connect to an external database. This will also disable the
