@@ -7,11 +7,9 @@ This script is for BYOC data planes, which have no Instance page. On self-hosted
 ### Turning ClickHouse off, in order
 
 1. Migrate every caller listed on **Deprecated API Usage**, in each workspace's settings, until it shows none.
-2. Once it shows none, set `CLICKHOUSE_QUERY_ENABLED=false`. Before that, LangSmith's own jobs and UI read ClickHouse on purpose, so this script always reports reads.
+2. Once it shows none, contact LangChain support to turn ClickHouse queries off: LangChain manages this setting on BYOC data planes. Before that, LangSmith's own jobs and UI read ClickHouse on purpose, so this script always reports reads.
 
-   LangChain manages the data plane's settings: ask LangChain support to set it.
-
-3. Wait for 7 days with no reads, then ask LangChain support to turn ClickHouse off.
+3. Wait for 7 days with no reads, then contact LangChain support to turn ClickHouse off.
 
 ### Prerequisites
 
@@ -62,7 +60,7 @@ The script prints a summary, the reads by source and query (to `--output` as CSV
 |---|---|
 | 0 | No LangSmith reads over the window, on every replica. |
 | 2 | `query_log` cannot be read: grant access or use an admin user. |
-| 3 | LangSmith or the SmithDB migration still reads ClickHouse. Keep it on; the table shows which queries. With `CLICKHOUSE_QUERY_ENABLED=true` this is expected (step 2 above). |
+| 3 | LangSmith or the SmithDB migration still reads ClickHouse. Keep it on; the table shows which queries. This is expected until ClickHouse queries are off (step 2 above). |
 | 4 | The result cannot be trusted: logging is off for the user, some replicas did not answer, or a replica's `query_log` does not go back the whole window. Keep ClickHouse on. |
 
 Reads by the SmithDB migration are listed apart. They are expected until the migration completes, and ClickHouse must stay on until then.
