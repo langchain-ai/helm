@@ -37,7 +37,7 @@ tests:
       config.blobStorage.enabled: false
     asserts:
       - failedTemplate:
-          errorMessage: "config.blobStorage.enabled has been removed: blob storage is required as of LangSmith v0.18. Remove the setting to use the RustFS the chart deploys, or configure your own storage under config.blobStorage. See https://docs.langchain.com/langsmith/self-host-blob-storage"
+          errorMessage: "config.blobStorage.enabled has been removed: blob storage is required as of LangSmith v0.19. Remove the setting to use the RustFS the chart deploys, or configure your own storage under config.blobStorage. See https://docs.langchain.com/langsmith/self-host-blob-storage"
 
   - it: rejects an unknown engine for external storage
     set:

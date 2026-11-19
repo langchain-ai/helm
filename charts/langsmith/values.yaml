@@ -1266,7 +1266,7 @@ config:
   # Blob storage configuration
   # Optional. Used to store inputs, outputs, and errors in Blob Storage.
   # We currently support S3, GCS, Minio, and Azure as Blob Storage providers.
-  # Blob storage is required and always on as of LangSmith v0.18. Configure the engine and bucket below.
+  # Blob storage is required and always on as of LangSmith v0.19. Configure the engine and bucket below.
   blobStorage:
     external:
       # -- Use your own S3, GCS, or Azure blob storage, configured below. When false and neither bucketName nor
