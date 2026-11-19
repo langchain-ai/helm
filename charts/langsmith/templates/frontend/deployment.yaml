@@ -59,6 +59,24 @@
 - name: VITE_CUSTOM_ERROR_SUPPORT_MESSAGE
   value: {{ .Values.config.customErrorSupportMessage | quote }}
 {{- end }}
+{{- with .Values.config.customAnnouncement }}
+{{- if .message }}
+- name: VITE_CUSTOM_ANNOUNCEMENT_MESSAGE
+  value: {{ .message | quote }}
+{{- if .title }}
+- name: VITE_CUSTOM_ANNOUNCEMENT_TITLE
+  value: {{ .title | quote }}
+{{- end }}
+{{- if .linkUrl }}
+- name: VITE_CUSTOM_ANNOUNCEMENT_LINK_URL
+  value: {{ .linkUrl | quote }}
+{{- end }}
+{{- if .linkLabel }}
+- name: VITE_CUSTOM_ANNOUNCEMENT_LINK_LABEL
+  value: {{ .linkLabel | quote }}
+{{- end }}
+{{- end }}
+{{- end }}
 {{- if .Values.config.deployment.enabled }}
 - name: VITE_HOST_ENABLED
   value: "1"

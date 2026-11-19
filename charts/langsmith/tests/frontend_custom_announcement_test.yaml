@@ -1,0 +1,74 @@
+suite: frontend custom announcement environment
+templates:
+  - frontend/deployment.yaml
+  - config-map.yaml
+  - frontend/config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+tests:
+  - it: emits no announcement variables by default
+    template: frontend/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_CUSTOM_ANNOUNCEMENT_MESSAGE
+          any: true
+
+  - it: emits every configured field
+    set:
+      config.customAnnouncement.message: "Upgrade on Friday"
+      config.customAnnouncement.title: "Scheduled maintenance"
+      config.customAnnouncement.linkUrl: "https://acme.test/maintenance"
+      config.customAnnouncement.linkLabel: "Details"
+    template: frontend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_CUSTOM_ANNOUNCEMENT_MESSAGE
+            value: "Upgrade on Friday"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_CUSTOM_ANNOUNCEMENT_TITLE
+            value: "Scheduled maintenance"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_CUSTOM_ANNOUNCEMENT_LINK_URL
+            value: "https://acme.test/maintenance"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_CUSTOM_ANNOUNCEMENT_LINK_LABEL
+            value: "Details"
+
+  - it: omits optional fields that are not set
+    set:
+      config.customAnnouncement.message: "Upgrade on Friday"
+    template: frontend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_CUSTOM_ANNOUNCEMENT_MESSAGE
+            value: "Upgrade on Friday"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_CUSTOM_ANNOUNCEMENT_LINK_LABEL
+          any: true
+
+  - it: emits nothing without a message
+    set:
+      config.customAnnouncement.title: "Scheduled maintenance"
+    template: frontend/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_CUSTOM_ANNOUNCEMENT_TITLE
+          any: true
