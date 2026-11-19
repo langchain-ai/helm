@@ -6,9 +6,18 @@ On self-hosted versions with **Settings › Instance**, use that page first: its
 
 ### Turning ClickHouse off, in order
 
-1. Migrate every caller listed on **Deprecated API Usage** until it shows none. Self-hosted: the organization's settings. BYOC: each workspace's settings.
-2. Once Deprecated API Usage shows none, set `CLICKHOUSE_QUERY_ENABLED=false`. Before that, LangSmith's own jobs and UI read ClickHouse on purpose, so this script always reports reads.
-3. Wait for 7 days with no reads, then turn ClickHouse off.
+1. Migrate every caller listed on **Deprecated API Usage** (organization or workspace settings) until it shows none.
+2. Once it shows none, set `CLICKHOUSE_QUERY_ENABLED=false`. Before that, LangSmith's own jobs and UI read ClickHouse on purpose, so this script always reports reads.
+
+   The chart sets this flag from `clickhouse.enabled`, which also stops ingestion and removes the bundled ClickHouse. Don't change `clickhouse.enabled` yet: override only the query flag with `commonEnv`, which wins over the chart's ConfigMap:
+
+   ```yaml
+   commonEnv:
+     - name: CLICKHOUSE_QUERY_ENABLED
+       value: "false"
+   ```
+
+3. Wait for 7 days with no reads, then turn ClickHouse off with `clickhouse.enabled: false`.
 
 ### Prerequisites
 
