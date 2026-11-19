@@ -1822,6 +1822,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | config.deployment.basePath | string | `""` | Base path for LangSmith Deployments routes managed by the operator. |
 | config.deployment.enabled | bool | `false` | Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information. |
 | config.deployment.extraManifestsEnabled | bool | `false` | Let standalone self-hosted deployments declare extra ServiceAccount and SecretProviderClass manifests. Requires coordinated supporting images and the LGP CRD; see the Extra manifests section. |
+| config.deployment.namespaces | object | `{}` | Optional. Kubernetes namespaces each workspace may place its LangSmith Deployments in, keyed by workspace ID, for example `{"<workspace-id>": ["agents-production"]}`. For each namespace the chart binds the host-backend and listener service accounts to a role with the access deployments need and, when `operator.watchNamespaces` is set, adds it to the operator's watched namespaces. Requires `gateway.enabled` or `istioGateway.enabled`, and a Gateway API gateway must allow routes from these namespaces. The namespaces must already exist, and when `images.imagePullSecrets` is set they must each contain Secrets with the same names, because pods resolve pull secrets in their own namespace; the chart creates neither. A namespace may belong to one workspace, and system namespaces are rejected. Delete a namespace's deployments before removing it from this map. |
 | config.deployment.scalingOverridesEnabled | bool | `false` | Let users override LangSmith Deployment autoscaling CPU targets and scale-up/scale-down behavior. Opt-in for self-hosted. |
 | config.deployment.uncappedResourcesEnabled | bool | `false` | Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted. |
 | config.disableSecretCreation | bool | `false` |  |
@@ -2154,7 +2155,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
 | clickhouse.disableSecretCreation | bool | `false` |  |
-| clickhouse.enabled | bool | `true` | Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse.  WARNING: Disabling ClickHouse or switching to an external instance DELETES the chart-managed workload on upgrade. Back up its data first; PVCs may be deleted or left orphaned. |
+| clickhouse.enabled | bool | `true` | Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse.  WARNING: Disabling ClickHouse or switching to an external instance DELETES the chart-managed workload on upgrade. Back up its data first; PVCs may be deleted or left orphaned.  To move off ClickHouse, keep this enabled and first stop only its queries with CLICKHOUSE_QUERY_ENABLED=false in commonEnv. Disable it after Settings > Instance shows 7 days with no reads. |
 | clickhouse.external.clientCert.certSecretKey | string | `"tls.crt"` |  |
 | clickhouse.external.clientCert.keySecretKey | string | `"tls.key"` |  |
 | clickhouse.external.clientCert.secretName | string | `""` |  |
