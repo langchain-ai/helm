@@ -2,7 +2,13 @@
 
 Once LangSmith runs on SmithDB, ClickHouse can be turned off when LangSmith stops reading it. This script counts the reads LangSmith made on ClickHouse over the last days, from ClickHouse's own `system.query_log`.
 
-It's safe to turn ClickHouse off once the script reports no reads for 7 days in a row.
+On self-hosted versions with **Settings › Instance**, use that page first: its ClickHouse section tracks the reads every minute and tells you the next step. Use this script when that page isn't available (BYOC, older versions), or when it shows an unknown or partial status.
+
+### Turning ClickHouse off, in order
+
+1. Migrate the callers listed on **Settings › Deprecated API Usage** until it shows none.
+2. Set `CLICKHOUSE_QUERY_ENABLED=false`. Until then, LangSmith's own jobs and UI read ClickHouse on purpose, and this script always reports reads.
+3. Wait for 7 days with no reads, then turn ClickHouse off.
 
 ### Prerequisites
 
@@ -21,7 +27,9 @@ It's safe to turn ClickHouse off once the script reports no reads for 7 days in 
    GRANT SELECT ON system.query_log, SELECT ON system.clusters, REMOTE ON *.* TO <user>
    ```
 
-3. Query logging on for the LangSmith user (`log_queries = 1`, the ClickHouse default). The bundled ClickHouse keeps `query_log` for 3 days; with a shorter retention than `--days`, the script says so.
+3. Query logging on for the LangSmith user (`log_queries = 1`, the ClickHouse default).
+
+4. A `query_log` retention that covers `--days`. The bundled ClickHouse keeps it for 3 days, so the script can't prove 7 days there: `--days 7` exits with 4. Run it with `--days 3` to check recent reads, and rely on **Settings › Instance** for the 7 days.
 
 ### Running the script
 
@@ -51,7 +59,7 @@ The script prints a summary, the reads by source and query (to `--output` as CSV
 |---|---|
 | 0 | No LangSmith reads over the window, on every replica. |
 | 2 | `query_log` cannot be read: grant access or use an admin user. |
-| 3 | LangSmith or the SmithDB migration still reads ClickHouse. Keep it on; the table shows which queries. |
+| 3 | LangSmith or the SmithDB migration still reads ClickHouse. Keep it on; the table shows which queries. With `CLICKHOUSE_QUERY_ENABLED=true` this is expected (step 2 above). |
 | 4 | The result cannot be trusted: logging is off for the user, some replicas did not answer, or a replica's `query_log` does not go back the whole window. Keep ClickHouse on. |
 
 Reads by the SmithDB migration are listed apart. They are expected until the migration completes, and ClickHouse must stay on until then.

@@ -242,6 +242,7 @@ if [ "$replicas_covered" -lt "$replicas_reachable" ]; then
 fi
 if [ "$reads" != "0" ]; then
     echo "LangSmith still reads ClickHouse. Keep ClickHouse on."
+    echo "While CLICKHOUSE_QUERY_ENABLED=true this is expected: once Deprecated API Usage shows none, set it to false and rerun after $days day$([ "$days" = 1 ] || echo s)."
     exit 3
 fi
 if [ "$migration_reads" != "0" ]; then
