@@ -1,4 +1,4 @@
-{{- if eq (include "langsmith.toolServerEnabled" .) "true" }}
+{{- if .Values.fleetToolServer.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "fleetToolServerEnvVars" . | fromYamlArray) .Values.fleetToolServer.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.fleetToolServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}

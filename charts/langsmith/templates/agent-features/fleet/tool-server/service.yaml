@@ -1,4 +1,4 @@
-{{- if eq (include "langsmith.toolServerEnabled" .) "true" }}
+{{- if .Values.fleetToolServer.enabled }}
 apiVersion: v1
 kind: Service
 metadata:

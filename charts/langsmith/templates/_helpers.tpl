@@ -1336,10 +1336,6 @@ Args: root, service, displayName, optional prefix (defaults to SMITHDB_<service>
 {{- end -}}
 {{- end -}}
 
-{{- define "langsmith.toolServerEnabled" -}}
-{{- .Values.fleetToolServer.enabled -}}
-{{- end -}}
-
 {{- define "fleetToolServer.serviceAccountName" -}}
 {{- if .Values.fleetToolServer.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.fleetToolServer.name) .Values.fleetToolServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}

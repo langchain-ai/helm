@@ -16,6 +16,8 @@ The built-in tool server deploys by default, with or without Fleet, so Tool Gate
 
 Set `fleetToolServer.enabled=false` to skip it, for example on air-gapped installs. Custom MCP servers do not require it.
 
+**Upgrading:** installs that previously ran without Fleet or Agent Builder gain a `fleet-tool-server` Deployment, Service, and ServiceAccount (plus an HPA and PodDisruptionBudget if `fleetToolServer.autoscaling` or `fleetToolServer.pdb` is enabled). Set `fleetToolServer.enabled=false` before upgrading if you do not want it.
+
 ## Sandboxes
 
 Sandboxes support two deployment topologies:

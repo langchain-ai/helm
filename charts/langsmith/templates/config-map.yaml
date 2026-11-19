@@ -127,7 +127,7 @@ data:
   {{- if .Values.config.llmAuthProxyIssuer }}
   LLM_AUTH_PROXY_ISSUER: {{ .Values.config.llmAuthProxyIssuer | quote }}
   {{- end }}
-  {{- if eq (include "langsmith.toolServerEnabled" .) "true" }}
+  {{- if .Values.fleetToolServer.enabled }}
   MCP_SERVER_URL: "http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetToolServer.service.port }}"
   {{- end }}
   {{- if and .Values.fleet.enabled .Values.fleetTriggerServer.enabled }}
