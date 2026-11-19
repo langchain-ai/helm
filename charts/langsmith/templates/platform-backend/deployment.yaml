@@ -82,6 +82,8 @@
   value: {{ include "langsmith.fleet.agentAccessTokenWorkloads" . | quote }}
 - name: AGENT_ACCESS_TOKEN_POD_TOKEN_REVIEW_ENABLED
   value: "true"
+- name: MANAGED_TOOLS_ENDPOINT
+  value: {{ include "langsmith.managedToolsEndpoint" . | quote }}
 {{- with .Values.fleet.agentAccessToken.egressAudience }}
 - name: AGENT_ACCESS_TOKEN_EGRESS_AUDIENCES
   value: {{ . | quote }}

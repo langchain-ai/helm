@@ -48,7 +48,7 @@ AWS Marketplace Helm template verification).
 {{- fail "smithdb.topology must be one of: cluster, unified." -}}
 {{- end -}}
 {{- if include "langsmith.smithdb.unifiedTopology" . -}}
-{{- range $component := list "mutations" "runRules" "statsQuery" -}}
+{{- range $component := list "mutations" "runRules" "statsQuery" "exportQuery" -}}
 {{- if (index $.Values.smithdb $component).enabled -}}
 {{- fail (printf "smithdb.%s.enabled is not supported with smithdb.topology unified; the unified pod serves every query path." $component) -}}
 {{- end -}}
@@ -58,6 +58,27 @@ AWS Marketplace Helm template verification).
 {{- if contains "@" ((.Values.fleet.egressProxy | default dict).url | default "") -}}
 {{- fail "fleet.egressProxy.url must not contain credentials: it is stored in a ConfigMap. For a proxy that needs a password, leave it empty and set HTTPS_PROXY and NO_PROXY from a Secret in each Fleet deployment's extraEnv." -}}
 {{- end -}}
+{{- /* Deployment namespaces get Secret access, so reject system namespaces and ambiguous ownership even when other checks are skipped. */ -}}
+{{- $namespaceOwners := dict -}}
+{{- range $workspaceId, $namespaces := (.Values.config.deployment.namespaces | default dict) -}}
+{{- if not (regexMatch "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" $workspaceId) -}}
+{{- fail (printf "config.deployment.namespaces keys must be workspace IDs, got %s" $workspaceId) -}}
+{{- end -}}
+{{- range $ns := $namespaces -}}
+{{- if or (regexMatch "^(kube|gke|gmp)-" $ns) (has $ns (list "default" "crossplane-system" "istio-system" "istio-ingress" "buildkit-system" "cert-manager" "external-secrets" "gatekeeper-system" "keda" "karpenter" "observability" "sandbox" "sandbox-workloads")) -}}
+{{- fail (printf "config.deployment.namespaces must not list the system namespace %s" $ns) -}}
+{{- end -}}
+{{- if and (hasKey $namespaceOwners $ns) (ne (get $namespaceOwners $ns) $workspaceId) -}}
+{{- fail (printf "config.deployment.namespaces lists namespace %s under more than one workspace" $ns) -}}
+{{- end -}}
+{{- $_ := set $namespaceOwners $ns $workspaceId -}}
+{{- end -}}
+{{- end -}}
+{{- /* TODO: allow the shared ingress once the operator routes deployments outside the release namespace. */ -}}
+{{- if and .Values.config.deployment.namespaces (not (or .Values.gateway.enabled .Values.istioGateway.enabled)) -}}
+{{- fail "config.deployment.namespaces needs gateway.enabled or istioGateway.enabled: the shared ingress only routes deployments in the release namespace" -}}
+{{- end -}}
+
 {{- if not .Values.config.skipValidation -}}
 
 {{- /* Validate deprecated fleet server value keys */ -}}
@@ -532,6 +553,7 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
   "mutations" .Values.smithdb.mutations
   "runRules" .Values.smithdb.runRules
   "statsQuery" .Values.smithdb.statsQuery
+  "exportQuery" .Values.smithdb.exportQuery
   "ingestion" .Values.smithdb.ingestion
   "compaction" .Values.smithdb.compaction
   "compactionWorker" .Values.smithdb.compactionWorker
@@ -638,6 +660,7 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
   "mutations" .Values.smithdb.mutations
   "runRules" .Values.smithdb.runRules
   "statsQuery" .Values.smithdb.statsQuery
+  "exportQuery" .Values.smithdb.exportQuery
   "ingestion" .Values.smithdb.ingestion
   "compaction" .Values.smithdb.compaction
   "clusterManager" .Values.smithdb.clusterManager
@@ -666,6 +689,7 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
   "mutations" .Values.smithdb.mutations
   "runRules" .Values.smithdb.runRules
   "statsQuery" .Values.smithdb.statsQuery
+  "exportQuery" .Values.smithdb.exportQuery
   "ingestion" .Values.smithdb.ingestion
 -}}
 {{- range $workloadName, $workload := $smithdbHpaAutoscalingWorkloads -}}
