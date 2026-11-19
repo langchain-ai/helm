@@ -1,0 +1,118 @@
+suite: recovery admin config
+# insights/polly need encryption keys to pass validate.yaml otherwise; license,
+# salt, and one of basic auth / OAuth enabled are also required globally.
+# Recovery admin additionally requires authType mixed and oauth.enabled, which
+# this baseline already provides.
+set:
+  insights.enabled: false
+  polly.enabled: false
+  config.langsmithLicenseKey: "lic"
+  config.apiKeySalt: "salt"
+  config.oauth.enabled: true
+  config.authType: "mixed"
+tests:
+  - it: is disabled by default
+    template: templates/platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RECOVERY_ADMIN_ENABLED
+            value: "false"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RECOVERY_ADMIN_EMAIL
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RECOVERY_ADMIN_PASSWORD_HASH
+
+  - it: sets email and sources the password hash from the chart secret when enabled
+    template: templates/platform-backend/deployment.yaml
+    set:
+      config.recoveryAdmin.enabled: true
+      config.recoveryAdmin.email: "admin@example.com"
+      config.recoveryAdmin.passwordHash: "pbkdf2_sha256$600000$salt$hash"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RECOVERY_ADMIN_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RECOVERY_ADMIN_EMAIL
+            value: "admin@example.com"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RECOVERY_ADMIN_PASSWORD_HASH
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: recovery_admin_password_hash
+                optional: false
+
+  - it: does not require inline email or passwordHash when existingSecretName is set
+    template: templates/platform-backend/deployment.yaml
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.recoveryAdmin.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RECOVERY_ADMIN_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RECOVERY_ADMIN_PASSWORD_HASH
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: recovery_admin_password_hash
+                optional: false
+
+  - it: fails when enabled without authType mixed
+    template: validate.yaml
+    set:
+      config.recoveryAdmin.enabled: true
+      config.recoveryAdmin.email: "admin@example.com"
+      config.recoveryAdmin.passwordHash: "hash"
+      config.authType: "oauth"
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.recoveryAdmin.enabled requires config.authType to be 'mixed'."
+
+  - it: fails when enabled without oauth.enabled
+    template: validate.yaml
+    set:
+      config.recoveryAdmin.enabled: true
+      config.recoveryAdmin.email: "admin@example.com"
+      config.recoveryAdmin.passwordHash: "hash"
+      config.oauth.enabled: false
+      config.basicAuth.enabled: true
+      config.initialOrgAdminEmail: "admin@example.com"
+      config.basicAuth.initialOrgAdminPassword: "TestLangSmith123!"
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.recoveryAdmin.enabled requires config.oauth.enabled to be true. Recovery admin is a self-hosted SSO fallback and has no effect without OAuth configured."
+
+  - it: fails when enabled without email or passwordHash and no existingSecretName
+    template: validate.yaml
+    set:
+      config.recoveryAdmin.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.recoveryAdmin.email is required when config.recoveryAdmin.enabled is true. This can alternatively be set within .Values.config.existingSecretName."
+
+  - it: does not fail on missing email/passwordHash when existingSecretName is set
+    template: validate.yaml
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.recoveryAdmin.enabled: true
+    asserts:
+      - notFailedTemplate: {}
