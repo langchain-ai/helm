@@ -1,0 +1,21 @@
+charts/langsmith/README.md
+  s_c5051f0dafb45a::t_93542eec2dfd7c 1736
+charts/langsmith/values.yaml
+  s_c5051f0dafb45a::t_346bb268a400d3 1173-1174
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "024136c9584d4f9e266d2a39e4690a3e1f1b8229",
+  "prompts": {},
+  "sessions": {
+    "s_c5051f0dafb45a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "93fb88a2-d943-4efb-8ffc-011f5a7cf418",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Florence Morris <1629446+fjmorris@users.noreply.github.com>"
+    }
+  }
+}

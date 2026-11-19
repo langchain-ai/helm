@@ -1,0 +1,21 @@
+charts/langsmith/Chart.yaml
+  s_febab705cf0ebd::t_9bcde173d1e461 8
+charts/langsmith/README.md
+  s_febab705cf0ebd::t_40fec975880637 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5d0e95a1b179c496ca32fa447799b04d90873ba4",
+  "prompts": {},
+  "sessions": {
+    "s_febab705cf0ebd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "57040c24-7150-4131-9a61-a57c23e4b5ee",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

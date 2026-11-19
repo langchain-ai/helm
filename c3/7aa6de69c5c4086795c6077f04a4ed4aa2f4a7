@@ -1,0 +1,24 @@
+charts/langsmith/templates/config-map.yaml
+  s_654b51cdb04438::t_f35eb003afb6f7 125
+charts/langsmith/templates/_helpers.tpl
+  s_654b51cdb04438::t_f35eb003afb6f7 1771-1778
+  s_654b51cdb04438::t_8d7ef9cf4565aa 1770
+charts/langsmith/tests/platform_endpoint_test.yaml
+  s_654b51cdb04438::t_f35eb003afb6f7 32-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c37aa6de69c5c4086795c6077f04a4ed4aa2f4a7",
+  "prompts": {},
+  "sessions": {
+    "s_654b51cdb04438": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a14279-8028-7ed1-b850-d83650510a39",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Colin Francis <colin.francis@langchain.dev>"
+    }
+  }
+}

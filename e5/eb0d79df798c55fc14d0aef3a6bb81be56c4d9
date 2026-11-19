@@ -1,0 +1,21 @@
+charts/langsmith/README.md
+  s_b5bccfa4ae3adf::t_d0c38a61133c3d 308,420
+charts/langsmith/values.yaml
+  s_b5bccfa4ae3adf::t_c8c16ff620016e 329,397
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e5eb0d79df798c55fc14d0aef3a6bb81be56c4d9",
+  "prompts": {},
+  "sessions": {
+    "s_b5bccfa4ae3adf": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "215f6e31-f715-4e3f-94d0-0314b65312c0",
+        "model": "auto-smart"
+      },
+      "human_author": "Joaquin Borggio <joaquin@langchain.dev>"
+    }
+  }
+}

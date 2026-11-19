@@ -1,0 +1,24 @@
+charts/langsmith/README.md
+  s_590b8613171008::t_e37c893e33b485 295
+  s_590b8613171008::t_7fba83c4526e12 407
+charts/langsmith/Chart.yaml
+  s_590b8613171008::t_8617bfb121f4b5 8
+charts/langsmith/values.yaml
+  s_590b8613171008::t_1e2f31b669d5cf 330,398
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3d7f17a4eab9d75c4197f22e7663b231652d1692",
+  "prompts": {},
+  "sessions": {
+    "s_590b8613171008": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "dfe834a1-3ed6-4e84-a5c4-cc5d8cabcfe4",
+        "model": "grok-4.7"
+      },
+      "human_author": "Joaquin Borggio <joaquin@langchain.dev>"
+    }
+  }
+}

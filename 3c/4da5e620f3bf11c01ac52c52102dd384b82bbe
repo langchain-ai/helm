@@ -1,0 +1,21 @@
+charts/langsmith/tests/pod_service_account_test.yaml
+  s_e312217bf679f9::t_309d13d8ce8b6d 314-316
+charts/langsmith/templates/smithdb/taskdb-postgres-statefulset.yaml
+  s_e312217bf679f9::t_2d834a520b97eb 48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3c4da5e620f3bf11c01ac52c52102dd384b82bbe",
+  "prompts": {},
+  "sessions": {
+    "s_e312217bf679f9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "826064d3-9dd2-4952-b4a3-36101dbdad0e",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Dzmitry Dubarau <dzmitry.dubarau@langchain.dev>"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+charts/langsmith/examples/smithdb-observability/README.md
+  h_712f30a2a56c04 22
+charts/langsmith/examples/smithdb-observability/datadog-values.yaml
+  h_712f30a2a56c04 1,107,114-129
+charts/langsmith/examples/smithdb-observability/prometheus-values.yaml
+  h_712f30a2a56c04 1,42-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0dacc5539fa85110ae0ce1d32b6a0b8f28f814ef",
+  "prompts": {},
+  "humans": {
+    "h_712f30a2a56c04": {
+      "author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

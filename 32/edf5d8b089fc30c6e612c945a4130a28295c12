@@ -1,0 +1,33 @@
+charts/langsmith/values.yaml
+  s_8a637900ea8c20::t_e96fe11c7ef920 2116,2119
+charts/langsmith/templates/smithdb/taskdb-postgres-service-account.yaml
+  s_8a637900ea8c20::t_e96fe11c7ef920 6
+charts/langsmith/templates/_helpers.tpl
+  s_8a637900ea8c20::t_e96fe11c7ef920 688-698
+  s_8a637900ea8c20::t_7ab85ab08aa16e 687
+charts/langsmith/templates/smithdb/taskdb-postgres-statefulset.yaml
+  s_8a637900ea8c20::t_e96fe11c7ef920 48
+charts/langsmith/tests/langsmith_smithdb_taskdb_service_account_test.yaml
+  s_8a637900ea8c20::t_e96fe11c7ef920 71,78
+charts/langsmith/README.md
+  s_8a637900ea8c20::t_bf69954b5d3af9 3
+  s_8a637900ea8c20::t_e96fe11c7ef920 1246-1247
+charts/langsmith/Chart.yaml
+  s_8a637900ea8c20::t_bf69954b5d3af9 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "32edf5d8b089fc30c6e612c945a4130a28295c12",
+  "prompts": {},
+  "sessions": {
+    "s_8a637900ea8c20": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6aafec5e-831e-452a-b3b4-f22a9e6612e0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

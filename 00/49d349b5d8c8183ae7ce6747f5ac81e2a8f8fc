@@ -1,0 +1,61 @@
+charts/langsmith/Chart.yaml
+  s_fa870302dfb72e::t_70b1427289e0a9 8-9
+charts/langsmith/templates/ingest-queue/deployment.yaml
+  s_fa870302dfb72e::t_70b1427289e0a9 7
+charts/langsmith/values.yaml
+  s_fa870302dfb72e::t_70b1427289e0a9 68,72,78,82,86,106,110,114,1383,1385-1387,1440-1443,1468-1469,1505,1541-1542,1576,1612-1613,1647,1683-1684,1718,1753-1754,1795,1883-1884,1922,2030-2057,2178-2184
+charts/langgraph-dataplane/Chart.yaml
+  s_fa870302dfb72e::t_069dab851fcfd5 8
+charts/langgraph-dataplane/README.md
+  s_fa870302dfb72e::t_ce9a87a0fbeccc 3,36
+charts/langgraph-dataplane/templates/operator/rbac.yaml
+  s_fa870302dfb72e::t_1496244e5c4a9c 104-123,297-316
+charts/langgraph-dataplane/values.yaml
+  s_fa870302dfb72e::t_e88f6fcc7146e1 45
+charts/langsmith/README.md
+  s_fa870302dfb72e::t_5d0f3d435209b2 3,31,33-35,39-40,42,45-46,584,587,590,596,599,603,606,620,940,1058,1082,1105-1106,1132,1159,1183-1186,1195-1196,1198-1203,1205-1211,1213-1217,1219-1220,1297,1323,1352,1378,1387,1406,1432,1462,1488
+charts/langsmith/README.md.gotmpl
+  s_fa870302dfb72e::t_71dcc0c928b5db 33,35-37,41-42,44,47-48
+charts/langsmith/ci/readonly-config-values.yaml
+  s_fa870302dfb72e::t_bba6d8309294e8 519-521
+charts/langsmith/templates/_helpers.tpl
+  s_fa870302dfb72e::t_600443fdbf49cf 515,518,522-523,525,528-529,531,534-535,537,540,544-557,563-594,597-602,604-608,611-621,741-742,746,768-769,772-777,779-781,783-785,787-788,792,794,799,846,853,895-902,975
+charts/langsmith/templates/operator/rbac.yaml
+  s_fa870302dfb72e::t_ad05c211a0da6b 104-123,297-316
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  s_fa870302dfb72e::t_9ee7f90833b321 67
+charts/langsmith/templates/smithdb/compaction-worker-deployment.yaml
+  s_fa870302dfb72e::t_c0bc2033ba793e 118
+charts/langsmith/templates/smithdb/ingestion-deployment.yaml
+  s_fa870302dfb72e::t_2232e736755775 117
+charts/langsmith/templates/smithdb/migration-job.yaml
+  s_fa870302dfb72e::t_253f862037234d 2,15,20,34,40,45,51,54,61,80,250-257,294,296-297,301,304,307,311,315,319,323
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_fa870302dfb72e::t_c2933c117eebbd 3,6-9,76-77,79-80,133
+charts/langsmith/templates/smithdb/query-services-deployments.yaml
+  s_fa870302dfb72e::t_982fbb2eb4df89 9,12-15,85-86,88-89,142
+charts/langsmith/templates/validate.yaml
+  s_fa870302dfb72e::t_3067c5aea77abf 89-92
+charts/langsmith/tests/langsmith_smithdb_cache_test.yaml
+  s_fa870302dfb72e::t_5f67504d21cacc 1-209
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_fa870302dfb72e::t_e489f89fae68cc 63,77,79-92,94-149,207-208,223,226-227,245,249,254-256,263,265,273,277-352,466,470,477-480,505-512,516,1051-1052,1121-1138,1359
+charts/langsmith/tests/langsmith_smithdb_validation_test.yaml
+  s_fa870302dfb72e::t_9d8046fbecf1b4 52-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0049d349b5d8c8183ae7ce6747f5ac81e2a8f8fc",
+  "prompts": {},
+  "sessions": {
+    "s_fa870302dfb72e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0a5a9-c31f-7130-8c31-b32589be9958",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Bagatur Askaryan <baskaryan@gmail.com>"
+    }
+  }
+}

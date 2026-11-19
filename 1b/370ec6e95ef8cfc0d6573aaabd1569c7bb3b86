@@ -1,0 +1,29 @@
+charts/langsmith/Chart.yaml
+  s_cb69c97da132b3::t_45a06247c5fbc9 8
+charts/langsmith/tests/langsmith_smithdb_metrics_mode_test.yaml
+  s_cb69c97da132b3::t_45a06247c5fbc9 1-130
+charts/langsmith/templates/_helpers.tpl
+  s_cb69c97da132b3::t_45a06247c5fbc9 823-834
+charts/langsmith/values.yaml
+  s_cb69c97da132b3::t_45a06247c5fbc9 1416,1418
+  s_cb69c97da132b3::t_1a5d10883af895 1417
+charts/langsmith/README.md
+  s_cb69c97da132b3::t_c4387323715038 3,1566
+  s_cb69c97da132b3::t_1a5d10883af895 1202
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1b370ec6e95ef8cfc0d6573aaabd1569c7bb3b86",
+  "prompts": {},
+  "sessions": {
+    "s_cb69c97da132b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "982cf9eb-e3c9-4251-af86-c38f5b81d538",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

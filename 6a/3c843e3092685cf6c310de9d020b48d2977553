@@ -1,0 +1,64 @@
+charts/langsmith/README.md
+  s_0164cf51713acb::t_4052b379d19e02 2190,2236
+  s_0164cf51713acb::t_bc965d8a2765f8 57-64,1500-1549,1605
+charts/langsmith/README.md.gotmpl
+  s_0164cf51713acb::t_5d48a5f52dd32a 59-66
+charts/langsmith/templates/_helpers.tpl
+  s_0164cf51713acb::t_3593deee9165f3 545,552,559,721-734,853,857,910,916,1032
+charts/langsmith/templates/config-map.yaml
+  s_0164cf51713acb::t_8863f22459061b 72-73,75,79,82-84,86,91-93,96
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  s_0164cf51713acb::t_a2451876d7b3b5 1
+charts/langsmith/templates/smithdb/compaction-deployment.yaml
+  s_0164cf51713acb::t_be3ac4d5bcda0c 1
+charts/langsmith/templates/smithdb/compaction-worker-deployment.yaml
+  s_0164cf51713acb::t_5be16d45ac4118 1
+charts/langsmith/templates/smithdb/compaction-worker-hpa.yaml
+  s_0164cf51713acb::t_3d41f282ea5e7d 1
+charts/langsmith/templates/smithdb/compaction-worker-scaled-object.yaml
+  s_0164cf51713acb::t_8a2c86ac38375b 1
+charts/langsmith/templates/smithdb/ingestion-deployment.yaml
+  s_0164cf51713acb::t_a2ea34d3606260 1
+charts/langsmith/templates/smithdb/ingestion-hpa.yaml
+  s_0164cf51713acb::t_32e4c139a2ca00 1
+charts/langsmith/templates/smithdb/pdbs.yaml
+  s_0164cf51713acb::t_84b9512c377932 1
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_0164cf51713acb::t_e97b418fed9ae3 1
+charts/langsmith/templates/smithdb/query-hpa.yaml
+  s_0164cf51713acb::t_bb5c2ba7fa2a99 1
+charts/langsmith/templates/smithdb/query-services-deployments.yaml
+  s_0164cf51713acb::t_c4e16b8a531ea5 1
+charts/langsmith/templates/smithdb/query-services-hpas.yaml
+  s_0164cf51713acb::t_03fe9b5406d06e 1
+charts/langsmith/templates/smithdb/services.yaml
+  s_0164cf51713acb::t_2012f82e650988 1
+charts/langsmith/templates/smithdb/single-deployment.yaml
+  s_0164cf51713acb::t_d0af252fb8412a 1-183
+charts/langsmith/templates/smithdb/single-service.yaml
+  s_0164cf51713acb::t_1de55f43fa1fce 1-32
+charts/langsmith/templates/validate.yaml
+  s_0164cf51713acb::t_f2e67d9534b557 41-50
+charts/langsmith/tests/langsmith_smithdb_single_test.yaml
+  s_0164cf51713acb::t_609e9fd5c5cea8 1-101
+charts/langsmith/tests/langsmith_smithdb_validation_test.yaml
+  s_0164cf51713acb::t_7760c2aaf63eb9 21-36
+charts/langsmith/values.yaml
+  s_0164cf51713acb::t_7e2e0c2a6dbbd5 1419-1420,1497-1571
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6a3c843e3092685cf6c310de9d020b48d2977553",
+  "prompts": {},
+  "sessions": {
+    "s_0164cf51713acb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "17a718ae-7866-4ec7-8aeb-cadc84f4938e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

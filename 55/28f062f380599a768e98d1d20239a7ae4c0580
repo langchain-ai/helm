@@ -1,0 +1,22 @@
+charts/langsmith/Chart.yaml
+  h_712f30a2a56c04 8
+charts/langsmith/README.md
+  h_712f30a2a56c04 3
+charts/langsmith/examples/smithdb-observability/README.md
+  h_712f30a2a56c04 3,5-8,12,18-22,26,31,33
+charts/langsmith/examples/smithdb-observability/grafana-dashboard.json
+  h_712f30a2a56c04 1-2003
+charts/langsmith/examples/smithdb-observability/prometheus-values.yaml
+  h_712f30a2a56c04 1-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5528f062f380599a768e98d1d20239a7ae4c0580",
+  "prompts": {},
+  "humans": {
+    "h_712f30a2a56c04": {
+      "author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

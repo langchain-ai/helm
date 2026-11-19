@@ -1,0 +1,27 @@
+charts/langsmith/templates/queue/deployment.yaml
+  s_72745d929f0b95::t_aa5635ebc52c9d 18-21,23-24
+charts/langsmith/templates/listener/deployment.yaml
+  s_72745d929f0b95::t_aa5635ebc52c9d 12-15,17-18
+charts/langsmith/tests/channel_public_urls_test.yaml
+  s_72745d929f0b95::t_7be9977c9b560c 6,45-51,201-209,212-213,219,276-281,293-299
+  s_72745d929f0b95::t_e2a05ee621eb29 43-44,52-60,199-200,210-211
+  s_72745d929f0b95::t_a293d67aaed1a9 214-218,282-292,300-310
+  s_72745d929f0b95::t_c0a95f85b822aa 220
+  s_72745d929f0b95::t_4f4261c01dfa0e 311
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "811c8d39682fba86b33aff73255826eee4aa8a0e",
+  "prompts": {},
+  "sessions": {
+    "s_72745d929f0b95": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a154e1-7eba-7993-8a18-dd01e5ccf637",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Colin Francis <colin.francis@langchain.dev>"
+    }
+  }
+}
