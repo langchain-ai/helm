@@ -4,8 +4,9 @@
 # system.query_log, so you can tell when ClickHouse can be turned off.
 #
 # Only queries of the ClickHouse user LangSmith connects as count. Reads of
-# system tables and schema checks are housekeeping and left out. Reads by the
-# SmithDB migration are reported apart: they stop once the migration completes.
+# system tables, schema checks, this script and the Instance health job are
+# housekeeping and left out. Reads by the SmithDB migration are reported
+# apart: they stop once the migration completes.
 #
 # Exit codes: 0 no reads, 1 usage or connection error, 2 query_log cannot be
 # read, 3 reads found (LangSmith or the migration), 4 the result cannot be
@@ -102,11 +103,12 @@ fi
 base_url="$ch_protocol://$ch_host:$ch_port/?database=$ch_database&param_app_user=$app_user&param_days=$days"
 
 # run_query <sql> [format]: prints the result, or the ClickHouse error and
-# returns nonzero.
+# returns nonzero. The leading comment lets later runs skip these queries.
 run_query() {
     curl -s --show-error --fail-with-body --user "$ch_user:$ch_passwd" \
         -H "X-ClickHouse-Format: ${2:-TSV}" \
-        --data-binary "$1" "$base_url&param_cluster=$cluster"
+        --data-binary "-- get_clickhouse_reads
+$1" "$base_url&param_cluster=$cluster"
 }
 
 # 1. query_log must be readable.
@@ -154,11 +156,23 @@ SELECT
         AND NOT (notEmpty(tables) AND arrayAll(
             t -> startsWith(t, 'system.') OR startsWith(t, '_table_function.'),
             tables))
-        AND query NOT LIKE '%schema_migrations%' AS is_read,
+        AND query NOT LIKE '%schema_migrations%'
+        AND NOT startsWith(query, '-- get_clickhouse_reads')
+        AND NOT startsWith(query, '-- instance_health_clickhouse') AS is_read,
     http_user_agent LIKE 'clickhouse-rs/%' AS is_migration,
     type != 'QueryFinish' AS failed,
-    if(is_migration, 'smithdb_migration',
-        replaceOne(splitByChar('\n', replaceRegexpOne(query, '^\\\\s+', ''))[1], '-- ', '')) AS caller
+    extract(query, '\n-- job_func_name:([^\n]+)') AS job_name,
+    concat(client_name, ' ', http_user_agent) AS client,
+    multiIf(
+        is_migration, 'job:smithdb-migration',
+        job_name != '', concat('job:smith-backend:', job_name),
+        position(client, 'asynq') > 0, 'job:smith-go',
+        position(client, 'platform-backend/') > 0, 'api:smith-go',
+        position(client, 'python-httpx/') > 0, 'api:smith-backend',
+        concat('other:', trimBoth(client))) AS caller_source,
+    replaceRegexpAll(replaceRegexpOne(
+        splitByChar('\n', replaceRegexpOne(query, '^\\\\s+', ''))[1], '^--', ''),
+        '^\\\\s+|\\\\s+$', '') AS caller_query
 FROM $source
 WHERE event_date >= today() - {days:UInt32}
     AND event_time >= now() - INTERVAL {days:UInt32} DAY
@@ -174,17 +188,19 @@ FROM ($read_rows)
 $settings") || exit 1
 IFS=$'\t' read -r app_user_queries reads last_read migration_reads <<< "$summary"
 
-# 4. Reads by caller, for whoever still uses ClickHouse.
+# 4. Reads by caller, for whoever still uses ClickHouse. Source and query
+# match the labels on LangSmith's Instance health page.
 callers_query="
 SELECT
-    caller,
+    caller_source AS source,
+    if(caller_query = '', 'unlabeled', caller_query) AS query,
     countIf(NOT failed) AS reads,
     countIf(failed) AS failed_reads,
     min(event_time) AS first_read,
     max(event_time) AS last_read
 FROM ($read_rows)
 WHERE is_read
-GROUP BY caller
+GROUP BY source, query
 ORDER BY reads + failed_reads DESC
 $settings"
 

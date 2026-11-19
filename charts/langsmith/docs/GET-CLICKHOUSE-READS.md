@@ -45,7 +45,7 @@ The script reads `query_log` on every replica of the cluster. It picks `all_grou
 
 ### Reading the result
 
-The script prints a summary, the reads by query (to `--output` as CSV if set), and a verdict:
+The script prints a summary, the reads by source and query (to `--output` as CSV if set), and a verdict. The source says what ran the read: `api:smith-backend`, `api:smith-go`, `job:smith-backend:<job>`, `job:smith-go`, `job:smithdb-migration`, or `other:<client>` for any other tool.
 
 | Exit code | Meaning |
 |---|---|
