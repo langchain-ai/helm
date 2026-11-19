@@ -102,18 +102,24 @@ else
 fi
 base_url="$ch_protocol://$ch_host:$ch_port/?database=$ch_database&param_app_user=$app_user&param_days=$days"
 
-# run_query <sql> [format]: prints the result, or the ClickHouse error and
-# returns nonzero. The leading comment lets later runs skip these queries.
+# run_query <sql> [format]: prints the result, or prints the ClickHouse error
+# on stderr and returns nonzero. The leading comment lets later runs skip
+# these queries.
 run_query() {
-    curl -s --show-error --fail-with-body --user "$ch_user:$ch_passwd" \
+    local out
+    if ! out=$(curl -s --show-error --fail-with-body --user "$ch_user:$ch_passwd" \
         -H "X-ClickHouse-Format: ${2:-TSV}" \
         --data-binary "-- get_clickhouse_reads
-$1" "$base_url&param_cluster=$cluster"
+$1" "$base_url&param_cluster=$cluster" 2>&1); then
+        echo "ClickHouse query failed: $out" >&2
+        return 1
+    fi
+    printf '%s\n' "$out"
 }
 
 # 1. query_log must be readable.
-if ! error=$(run_query "SELECT count() FROM merge('system', '^query_log') WHERE event_date >= today()"); then
-    echo "Cannot read system.query_log: $error"
+if ! run_query "SELECT count() FROM merge('system', '^query_log') WHERE event_date >= today()" > /dev/null; then
+    echo "Cannot read system.query_log."
     echo "Grant SELECT ON system.query_log, SELECT ON system.clusters and REMOTE ON *.* to the user in the URL, or run this script with an admin user and --app-user."
     exit 2
 fi

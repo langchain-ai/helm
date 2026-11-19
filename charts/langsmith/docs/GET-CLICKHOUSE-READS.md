@@ -30,7 +30,7 @@ This script is for BYOC data planes. On self-hosted, use **Settings › Instance
 
 3. Query logging on for the LangSmith user (`log_queries = 1`, the ClickHouse default).
 
-4. ClickHouse must still hold the queries of the days you check. The in-cluster ClickHouse deletes them after 3 days, so one run there can't check a full week. Run the script with `--days 3` every 3 days during the week.
+4. ClickHouse must still hold the queries of the days you check. The in-cluster ClickHouse deletes each day's queries 3 days after that day starts, so it always holds the last 2 full days. One run there can't check a full week: run the script with `--days 2` every 2 days during the week, and once more on the 7th day.
 
 ### Running the script
 
@@ -38,10 +38,10 @@ This script is for BYOC data planes. On self-hosted, use **Settings › Instance
 bash get_clickhouse_reads.sh <clickhouse_url> [--app-user <user>] [--days 7] [--cluster <name>] [--ssl] [--output reads.csv]
 ```
 
-For example, with the in-cluster ClickHouse and port forwarding (3 days, all it keeps):
+For example, with the in-cluster ClickHouse and port forwarding (2 days, what it always holds):
 
 ```bash
-bash get_clickhouse_reads.sh "clickhouse://default:<password>@localhost:8123/default" --days 3
+bash get_clickhouse_reads.sh "clickhouse://default:<password>@localhost:8123/default" --days 2
 ```
 
 With an external ClickHouse, as an admin:
