@@ -6,7 +6,7 @@ On self-hosted versions with **Settings › Instance**, use that page first: its
 
 ### Turning ClickHouse off, in order
 
-1. Migrate the callers listed on **Settings › Deprecated API Usage** until it shows none.
+1. Migrate the callers listed on **Deprecated API Usage** until it shows none: in the organization settings, or on BYOC in each workspace's settings, since there the report is per workspace.
 2. Set `CLICKHOUSE_QUERY_ENABLED=false`. Until then, LangSmith's own jobs and UI read ClickHouse on purpose, and this script always reports reads.
 3. Wait for 7 days with no reads, then turn ClickHouse off.
 
