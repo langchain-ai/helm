@@ -92,6 +92,28 @@ Online evaluations on trajectories use an internal gRPC listener in `platformBac
 
 The trajectory Service is cluster-internal; no public route is added. Trajectory processing can be memory intensive, consider setting [GOMEMLIMIT](https://pkg.go.dev/runtime#hdr-Environment_Variables) relative to your memory limit to mitigate OOMKilled errors for this service. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
 
+## Deployments operator scope
+
+With `config.deployment.enabled=true`, the operator creates and updates the Deployments, StatefulSets, Services, and other resources that run each LangSmith Deployment. It manages:
+
+- the namespaces in `operator.watchNamespaces`, or the chart's namespace when that is empty, and
+- every namespace in `config.deployment.namespaces`.
+
+The chart grants the operator a Role and RoleBinding in each of these namespaces and no cluster-wide access. The chart's listener places deployments only in the chart's namespace and in `config.deployment.namespaces`, so the default covers every deployment it creates.
+
+Set `operator.watchNamespaces` only if deployments run in other namespaces, for example through listener permissions you added yourself:
+
+```yaml
+operator:
+  watchNamespaces: "langsmith,agents"
+```
+
+Use your own namespace names, separated by commas without spaces. Each listed namespace must exist before you install or upgrade. Without Gateway API or Istio, the operator also updates the shared Ingress in the LangSmith namespace, so include that namespace in the list. Do not let two operators manage the same namespace.
+
+Earlier chart versions gave the operator access to every namespace when `operator.watchNamespaces` was empty. Before upgrading, list any namespace that has deployments and is neither the chart's namespace nor in `config.deployment.namespaces`; the operator stops reconciling deployments in namespaces it does not manage.
+
+An operator that can create Deployments in a namespace can run them as any ServiceAccount in that namespace. Keep privileged ServiceAccounts out of the namespaces it manages, and use admission policies to limit which ServiceAccounts and pod settings deployments can use. By default the operator manages the chart's namespace, which also holds the listener's ServiceAccount and the LangSmith Secrets: a Deployment created there can run as that ServiceAccount or mount those Secrets, so protect the operator's token as you would those Secrets. With `operator.rbac.create=false`, the chart still sets which namespaces the operator watches but grants no permissions, so grant them yourself in those namespaces.
+
 ## Extra manifests
 
 `config.deployment.extraManifestsEnabled` defaults to `false`. Set it to `true` to let standalone self-hosted deployments declare extra ServiceAccounts and SecretProviderClasses. It needs `config.deployment.enabled=true` and the operator. The chart passes `LGP_EXTRA_MANIFESTS_ENABLED` to the operator and, through the shared ConfigMap, to the host backend, listener, and platform backend. Deployments on a remote listener are unsupported. Do not override the flag through environment values.
@@ -102,7 +124,7 @@ The API and the operator validate every manifest and return the reason for a rej
 
 Manifests are stored in plaintext in the LangSmith database and in the deployment's custom resource. Do not put credentials in them.
 
-Enabling the feature grants the operator SecretProviderClass `get`, `create`, `patch`, and `delete`. ServiceAccount permissions already exist. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
+Enabling the feature grants the operator ServiceAccount and SecretProviderClass `get`, `create`, `patch`, and `delete`. Without the feature, the operator gets no ServiceAccount permissions. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
 
 Scope each workload identity's federation to the namespace and the full prefixed ServiceAccount name. For Azure Key Vault, install the Secrets Store CSI driver and Azure provider, and configure Azure Workload Identity and the federated identity credential. This chart does not install those prerequisites.
 

@@ -1,6 +1,5 @@
 {{- if and .Values.config.deployment.enabled .Values.operator.enabled .Values.operator.rbac.create -}}
 {{- $watchNamespaces := include "langsmith.operatorWatchNamespaces" . }}
-{{- if $watchNamespaces }}
 {{- $watchNamespacesList := splitList "," $watchNamespaces }}
 {{- range $ns := $watchNamespacesList }}
 ---
@@ -25,6 +24,15 @@ rules:
   - secrets-store.csi.x-k8s.io
   resources:
   - secretproviderclasses
+  verbs:
+  - get
+  - create
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
   verbs:
   - get
   - create
@@ -93,9 +101,7 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - pods
   - services
-  - serviceaccounts
   - persistentvolumeclaims
   verbs:
   - create
@@ -108,8 +114,9 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - pods/log
+  - pods
   verbs:
+  - delete
   - get
   - list
   - watch
@@ -208,223 +215,13 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: {{ include "operator.serviceAccountName" $ }}
-    namespace: {{ $.Release.Namespace }}
+    namespace: {{ $.Values.namespace | default $.Release.Namespace }}
 roleRef:
   kind: Role
   name: {{ include "langsmith.fullname" $ }}-operator
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 
-{{- else }}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: {{ include "langsmith.fullname" . }}-operator
-  labels:
-    {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with.Values.operator.rbac.labels }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
-  annotations:
-    {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with.Values.operator.rbac.annotations }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
-rules:
-{{- if .Values.config.deployment.extraManifestsEnabled }}
-- apiGroups:
-  - secrets-store.csi.x-k8s.io
-  resources:
-  - secretproviderclasses
-  verbs:
-  - get
-  - create
-  - patch
-  - delete
-{{- end }}
-- apiGroups:
-  - apps
-  resources:
-  - deployments
-  - statefulsets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - apps
-  resources:
-  - replicasets
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - apps.langchain.ai
-  resources:
-  - lgps
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - apps.langchain.ai
-  resources:
-  - lgps/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - apps.langchain.ai
-  resources:
-  - lgps/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - autoscaling
-  resources:
-  - horizontalpodautoscalers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  - services
-  - serviceaccounts
-  - persistentvolumeclaims
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - pods/log
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - networking.k8s.io
-  resources:
-  - networkpolicies
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - policy
-  resources:
-  - poddisruptionbudgets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - keda.sh
-  resources:
-  - scaledobjects
-  - triggerauthentications
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - http.keda.sh
-  resources:
-  - interceptorroutes
-  verbs:
-  - delete
-  - get
-- apiGroups:
-  - networking.k8s.io
-  resources:
-  - ingresses
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - gateway.networking.k8s.io
-  resources:
-  - httproutes
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - networking.istio.io
-  resources:
-  - virtualservices
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: {{ include "langsmith.fullname" . }}-operator
-  labels:
-    {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with.Values.operator.rbac.labels }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
-  annotations:
-    {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with.Values.operator.rbac.annotations }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
-subjects:
-  - kind: ServiceAccount
-    name: {{ include "operator.serviceAccountName" . }}
-    namespace: {{ .Values.namespace | default .Release.Namespace }}
-roleRef:
-  kind: ClusterRole
-  name: {{ include "langsmith.fullname" . }}-operator
-  apiGroup: rbac.authorization.k8s.io
-{{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role

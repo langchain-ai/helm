@@ -1,0 +1,118 @@
+suite: Operator RBAC scope
+release:
+  namespace: chart-test
+templates:
+  - operator/rbac.yaml
+set:
+  config.deployment.enabled: true
+tests:
+  - it: scopes the operator to the release namespace when watchNamespaces is empty
+    asserts:
+      - isKind:
+          of: Role
+        documentIndex: 0
+      - equal:
+          path: metadata.namespace
+          value: chart-test
+        documentIndex: 0
+      - isKind:
+          of: RoleBinding
+        documentIndex: 1
+      - equal:
+          path: metadata.namespace
+          value: chart-test
+        documentIndex: 1
+      - matchRegex:
+          path: kind
+          pattern: ^Role(Binding)?$
+  - it: scopes the operator to the chart's namespace override when watchNamespaces is empty
+    set:
+      namespace: langsmith-system
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: langsmith-system
+        documentIndex: 0
+      - equal:
+          path: subjects[0].namespace
+          value: langsmith-system
+        documentIndex: 1
+  - it: lets the operator read and delete pods but not create or change them
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups: [""]
+            resources: ["pods"]
+            verbs: ["delete", "get", "list", "watch"]
+        documentIndex: 0
+      - contains:
+          path: rules
+          content:
+            apiGroups: [""]
+            resources: ["services", "persistentvolumeclaims"]
+            verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+        documentIndex: 0
+      - notContains:
+          path: rules
+          content:
+            resources: ["pods/log"]
+          any: true
+        documentIndex: 0
+  - it: grants no ServiceAccount access unless extra manifests are enabled
+    asserts:
+      - notContains:
+          path: rules
+          content:
+            resources: ["serviceaccounts"]
+          any: true
+        documentIndex: 0
+  - it: grants only the required ServiceAccount verbs for extra manifests
+    set:
+      config.deployment.extraManifestsEnabled: true
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups: [""]
+            resources: ["serviceaccounts"]
+            verbs: ["get", "create", "patch", "delete"]
+        documentIndex: 0
+  - it: grants the same narrowed access in each watched namespace
+    set:
+      operator.watchNamespaces: "team-a,team-b"
+      config.deployment.extraManifestsEnabled: true
+    asserts:
+      - isKind:
+          of: Role
+        documentIndex: 2
+      - equal:
+          path: metadata.namespace
+          value: team-b
+        documentIndex: 2
+      - contains:
+          path: rules
+          content:
+            apiGroups: [""]
+            resources: ["pods"]
+            verbs: ["delete", "get", "list", "watch"]
+        documentIndex: 2
+      - contains:
+          path: rules
+          content:
+            apiGroups: [""]
+            resources: ["serviceaccounts"]
+            verbs: ["get", "create", "patch", "delete"]
+        documentIndex: 2
+  - it: binds watched-namespace Roles to the operator ServiceAccount's namespace
+    set:
+      namespace: langsmith-system
+      operator.watchNamespaces: "team-a"
+    asserts:
+      - isKind:
+          of: RoleBinding
+        documentIndex: 1
+      - equal:
+          path: subjects[0].namespace
+          value: langsmith-system
+        documentIndex: 1

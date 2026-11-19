@@ -128,8 +128,16 @@ tests:
           value: agents-a
           matchMany: true
 
-  - it: leaves a cluster-wide operator cluster-wide
+  - it: tells a default operator to watch only the release namespace
     template: operator/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: WATCH_NAMESPACE
+            value: langsmith
+
+  - it: scopes a default operator to the release namespace and the deployment namespaces
     set:
       config.deployment.namespaces:
         00000000-0000-0000-0000-000000000001: [agents-a]
@@ -138,4 +146,13 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: WATCH_NAMESPACE
-            value: ""
+            value: langsmith,agents-a
+        template: operator/deployment.yaml
+      - matchRegex:
+          path: kind
+          pattern: ^Role(Binding)?$
+        template: operator/rbac.yaml
+        documentSelector:
+          path: metadata.namespace
+          value: agents-a
+          matchMany: true
