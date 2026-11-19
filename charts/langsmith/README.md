@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.19.0-rc.3](https://img.shields.io/badge/Version-0.19.0--rc.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
+![Version: 0.19.0-rc.4](https://img.shields.io/badge/Version-0.19.0--rc.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -13,6 +13,12 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Repository | Name | Version |
 |------------|------|---------|
 | file://../langsmith-sandbox | langsmith-sandbox | >=0.18.0-0 <0.19.0-0 |
+
+## Managed Tools built-ins
+
+Set `managedTools.builtins.enabled=true` to deploy the shared built-in tool server without enabling Fleet or legacy Agent Builder. This only adds the tool server and its supporting resources; Fleet agents, triggers, and Fleet-specific databases stay disabled. Built-in calls go through the Managed Tools API. Provider credentials and outbound access to the providers are still required.
+
+The setting defaults to `false` to preserve existing installations. Fleet and legacy Agent Builder continue to deploy the shared server as before. `fleetToolServer.enabled=false` disables it in all modes, and the other `fleetToolServer` settings still control its resources. Custom MCP servers do not require it.
 
 ## Sandboxes
 
@@ -827,6 +833,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | istioGateway.labels | object | `{}` |  |
 | istioGateway.name | string | `"istio-gateway"` |  |
 | istioGateway.namespace | string | `"istio-system"` |  |
+| managedTools.builtins.enabled | bool | `false` |  |
 | nameOverride | string | `""` | Provide a name in place of `langsmith` |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | polly.apiServer.autoscaling.enabled | bool | `false` |  |

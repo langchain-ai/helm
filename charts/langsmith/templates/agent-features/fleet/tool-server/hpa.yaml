@@ -1,4 +1,4 @@
-{{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetToolServer.enabled .Values.fleetToolServer.autoscaling.enabled .Values.fleetToolServer.autoscaling.createHpa }}
+{{- if and (eq (include "langsmith.toolServerEnabled" .) "true") .Values.fleetToolServer.autoscaling.enabled .Values.fleetToolServer.autoscaling.createHpa }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:

@@ -1,4 +1,4 @@
-{{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetToolServer.enabled .Values.fleetToolServer.pdb.enabled }}
+{{- if and (eq (include "langsmith.toolServerEnabled" .) "true") .Values.fleetToolServer.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

@@ -10,6 +10,12 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 {{ template "chart.requirementsSection" . }}
 
+## Managed Tools built-ins
+
+Set `managedTools.builtins.enabled=true` to deploy the shared built-in tool server without enabling Fleet or legacy Agent Builder. This only adds the tool server and its supporting resources; Fleet agents, triggers, and Fleet-specific databases stay disabled. Built-in calls go through the Managed Tools API. Provider credentials and outbound access to the providers are still required.
+
+The setting defaults to `false` to preserve existing installations. Fleet and legacy Agent Builder continue to deploy the shared server as before. `fleetToolServer.enabled=false` disables it in all modes, and the other `fleetToolServer` settings still control its resources. Custom MCP servers do not require it.
+
 ## Sandboxes
 
 Sandboxes support two deployment topologies:

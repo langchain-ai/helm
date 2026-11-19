@@ -8,6 +8,10 @@ templates:
   - frontend/config-map.yaml
   - operator/config-map.yaml
   - platform-backend/deployment.yaml
+  - agent-features/fleet/tool-server/*.yaml
+  - agent-features/fleet/api-server/deployment.yaml
+  - agent-features/fleet/queue/deployment.yaml
+  - agent-features/fleet/trigger-server/deployment.yaml
 tests:
   - it: embeds managed tools in the platform backend
     template: platform-backend/deployment.yaml
@@ -46,6 +50,76 @@ tests:
     asserts:
       - notExists:
           path: data.MCP_SERVER_URL
+
+  - it: deploys built-ins independently without starting Fleet
+    set:
+      managedTools.builtins.enabled: true
+      fleet.enabled: false
+      config.agentBuilder.enabled: false
+      fleetToolServer.autoscaling.enabled: true
+      fleetToolServer.pdb.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+        template: agent-features/fleet/tool-server/deployment.yaml
+      - hasDocuments:
+          count: 1
+        template: agent-features/fleet/tool-server/service.yaml
+      - hasDocuments:
+          count: 1
+        template: agent-features/fleet/tool-server/service-account.yaml
+      - hasDocuments:
+          count: 1
+        template: agent-features/fleet/tool-server/hpa.yaml
+      - hasDocuments:
+          count: 1
+        template: agent-features/fleet/tool-server/pdb.yaml
+      - matchRegex:
+          path: data.MCP_SERVER_URL
+          pattern: '^http://.*-fleet-tool-server\..*:1989$'
+        template: config-map.yaml
+      - hasDocuments:
+          count: 0
+        template: agent-features/fleet/api-server/deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: agent-features/fleet/queue/deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: agent-features/fleet/trigger-server/deployment.yaml
+
+  - it: keeps built-in deployment opt-in without Fleet
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: agent-features/fleet/tool-server/deployment.yaml
+      - notExists:
+          path: data.MCP_SERVER_URL
+        template: config-map.yaml
+
+  - it: preserves legacy Agent Builder built-ins
+    set:
+      config.agentBuilder.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+        template: agent-features/fleet/tool-server/deployment.yaml
+      - exists:
+          path: data.MCP_SERVER_URL
+        template: config-map.yaml
+
+  - it: honors the tool server off switch even with built-ins and Fleet enabled
+    set:
+      managedTools.builtins.enabled: true
+      fleet.enabled: true
+      fleetToolServer.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: agent-features/fleet/tool-server/deployment.yaml
+      - notExists:
+          path: data.MCP_SERVER_URL
+        template: config-map.yaml
 
   - it: routes managed tools requests to the platform backend
     template: frontend/config-map.yaml
