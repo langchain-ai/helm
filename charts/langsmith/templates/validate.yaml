@@ -210,13 +210,11 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.config.oauth.enabled -}}
 {{- fail "config.recoveryAdmin.enabled requires config.oauth.enabled to be true. Recovery admin is a self-hosted SSO fallback and has no effect without OAuth configured." -}}
 {{- end -}}
-{{- if not .Values.config.existingSecretName -}}
 {{- if not .Values.config.recoveryAdmin.email -}}
-{{- fail "config.recoveryAdmin.email is required when config.recoveryAdmin.enabled is true. This can alternatively be set within .Values.config.existingSecretName." -}}
+{{- fail "config.recoveryAdmin.email is required when config.recoveryAdmin.enabled is true." -}}
 {{- end -}}
-{{- if not .Values.config.recoveryAdmin.passwordHash -}}
+{{- if and (not .Values.config.existingSecretName) (not .Values.config.recoveryAdmin.passwordHash) -}}
 {{- fail "config.recoveryAdmin.passwordHash is required when config.recoveryAdmin.enabled is true. This can alternatively be set within .Values.config.existingSecretName." -}}
-{{- end -}}
 {{- end -}}
 {{- end -}}
 

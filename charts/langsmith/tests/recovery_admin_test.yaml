@@ -55,11 +55,12 @@ tests:
                 key: recovery_admin_password_hash
                 optional: false
 
-  - it: does not require inline email or passwordHash when existingSecretName is set
+  - it: does not require inline passwordHash when existingSecretName is set
     template: templates/platform-backend/deployment.yaml
     set:
       config.existingSecretName: "langsmith-secrets"
       config.recoveryAdmin.enabled: true
+      config.recoveryAdmin.email: "admin@example.com"
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
@@ -107,12 +108,22 @@ tests:
       config.recoveryAdmin.enabled: true
     asserts:
       - failedTemplate:
-          errorMessage: "config.recoveryAdmin.email is required when config.recoveryAdmin.enabled is true. This can alternatively be set within .Values.config.existingSecretName."
+          errorMessage: "config.recoveryAdmin.email is required when config.recoveryAdmin.enabled is true."
 
-  - it: does not fail on missing email/passwordHash when existingSecretName is set
+  - it: fails when email is missing even if existingSecretName is set
     template: validate.yaml
     set:
       config.existingSecretName: "langsmith-secrets"
       config.recoveryAdmin.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.recoveryAdmin.email is required when config.recoveryAdmin.enabled is true."
+
+  - it: does not require passwordHash when email is set and existingSecretName is set
+    template: validate.yaml
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.recoveryAdmin.enabled: true
+      config.recoveryAdmin.email: "admin@example.com"
     asserts:
       - notFailedTemplate: {}
