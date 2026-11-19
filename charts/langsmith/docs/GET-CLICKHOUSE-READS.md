@@ -6,8 +6,8 @@ On self-hosted versions with **Settings › Instance**, use that page first: its
 
 ### Turning ClickHouse off, in order
 
-1. Migrate the callers listed on **Deprecated API Usage** until it shows none: in the organization settings, or on BYOC in each workspace's settings, since there the report is per workspace.
-2. Set `CLICKHOUSE_QUERY_ENABLED=false`. Until then, LangSmith's own jobs and UI read ClickHouse on purpose, and this script always reports reads.
+1. Migrate every caller listed on **Deprecated API Usage** until it shows none. Self-hosted: the organization's settings. BYOC: each workspace's settings.
+2. Once Deprecated API Usage shows none, set `CLICKHOUSE_QUERY_ENABLED=false`. Before that, LangSmith's own jobs and UI read ClickHouse on purpose, so this script always reports reads.
 3. Wait for 7 days with no reads, then turn ClickHouse off.
 
 ### Prerequisites
@@ -29,7 +29,7 @@ On self-hosted versions with **Settings › Instance**, use that page first: its
 
 3. Query logging on for the LangSmith user (`log_queries = 1`, the ClickHouse default).
 
-4. A `query_log` retention that covers `--days`. The bundled ClickHouse keeps it for 3 days, so the script can't prove 7 days there: `--days 7` exits with 4. Run it with `--days 3` to check recent reads, and rely on **Settings › Instance** for the 7 days.
+4. A `query_log` that goes back `--days`. The bundled ClickHouse keeps `query_log` for only 3 days, so one run there covers the last 3 days at most (`--days 7` exits with 4). To cover 7 days on it, run the script with `--days 3` at most 3 days apart (for example on days 3, 6 and 7 after setting `CLICKHOUSE_QUERY_ENABLED=false`), or use **Settings › Instance**, which keeps its own 7 days.
 
 ### Running the script
 
@@ -37,7 +37,7 @@ On self-hosted versions with **Settings › Instance**, use that page first: its
 bash get_clickhouse_reads.sh <clickhouse_url> [--app-user <user>] [--days 7] [--cluster <name>] [--ssl] [--output reads.csv]
 ```
 
-For example, with the bundled ClickHouse and port forwarding:
+For example, with the bundled ClickHouse and port forwarding (3 days, its `query_log` retention):
 
 ```bash
 bash get_clickhouse_reads.sh "clickhouse://default:password@localhost:8123/default" --days 3
@@ -49,7 +49,7 @@ With an external ClickHouse, as an admin:
 bash get_clickhouse_reads.sh "clickhouse://admin:<password>@<host>:8443/default" --ssl --app-user langsmith --days 7
 ```
 
-The script reads `query_log` on every replica of the cluster. It picks `all_groups.default` (ClickHouse Cloud) or `default` when they exist; pass `--cluster` for another cluster name.
+The script reads `query_log` on every replica of the cluster. It picks `all_groups.default` (ClickHouse Cloud) or `default` when they exist. Pass `--cluster` only if LangSmith's `CLICKHOUSE_CLUSTER` setting names another cluster.
 
 ### Reading the result
 
