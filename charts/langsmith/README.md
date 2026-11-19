@@ -53,6 +53,8 @@ Things worth planning for before you enable it:
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
 
+**Monitoring.** The [LangSmith observability bundle](examples/langsmith-observability/README.md) has a Datadog Engine tab and the collection values it needs.
+
 ## Observability dashboards
 
 For tabbed Datadog and Grafana dashboards and component collection examples, see the [LangSmith observability bundle](examples/langsmith-observability/README.md). Import these definitions into your own monitoring instance. The standalone Classic-format SmithDB Grafana dashboard is available in the same bundle. All dashboard downloads now live in this bundle.
