@@ -321,10 +321,6 @@ sandboxes:
       labels: {}
       annotations: {}
 
-managedTools:
-  builtins:
-    enabled: false
-
 fleet:
   enabled: false
   namePrefix: "standalone-fleet"

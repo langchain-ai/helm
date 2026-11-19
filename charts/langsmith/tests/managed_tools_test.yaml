@@ -51,9 +51,8 @@ tests:
       - notExists:
           path: data.MCP_SERVER_URL
 
-  - it: deploys built-ins independently without starting Fleet
+  - it: deploys built-ins by default without starting Fleet
     set:
-      managedTools.builtins.enabled: true
       fleet.enabled: false
       config.agentBuilder.enabled: false
       fleetToolServer.autoscaling.enabled: true
@@ -88,7 +87,9 @@ tests:
           count: 0
         template: agent-features/fleet/trigger-server/deployment.yaml
 
-  - it: keeps built-in deployment opt-in without Fleet
+  - it: skips built-ins when the tool server is turned off
+    set:
+      fleetToolServer.enabled: false
     asserts:
       - hasDocuments:
           count: 0
@@ -108,9 +109,8 @@ tests:
           path: data.MCP_SERVER_URL
         template: config-map.yaml
 
-  - it: honors the tool server off switch even with built-ins and Fleet enabled
+  - it: honors the tool server off switch even with Fleet enabled
     set:
-      managedTools.builtins.enabled: true
       fleet.enabled: true
       fleetToolServer.enabled: false
     asserts:

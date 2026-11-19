@@ -1337,7 +1337,7 @@ Args: root, service, displayName, optional prefix (defaults to SMITHDB_<service>
 {{- end -}}
 
 {{- define "langsmith.toolServerEnabled" -}}
-{{- and .Values.fleetToolServer.enabled (or .Values.managedTools.builtins.enabled .Values.fleet.enabled .Values.config.agentBuilder.enabled) -}}
+{{- .Values.fleetToolServer.enabled -}}
 {{- end -}}
 
 {{- define "fleetToolServer.serviceAccountName" -}}
