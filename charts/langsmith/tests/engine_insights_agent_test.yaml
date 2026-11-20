@@ -1,6 +1,9 @@
 suite: engine/insights shared deployment values
 templates:
   - templates/validate.yaml
+set:
+  # validate.yaml requires a blob storage bucket as of v0.18.
+  config.blobStorage.bucketName: "langsmith-test"
 tests:
   - it: should fail when a moved insights key is still set
     set:
