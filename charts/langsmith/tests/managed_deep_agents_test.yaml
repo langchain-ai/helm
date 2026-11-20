@@ -1,0 +1,50 @@
+suite: no managed deep agents organization gate
+set:
+  config.existingSecretName: langsmith-secrets
+  config.oauth.enabled: true
+  config.authType: oauth
+  hostBackend.enabled: true
+  config.deployment.enabled: true
+  config.hostname: langsmith.example.com
+  ingress.enabled: true
+tests:
+  - it: omits the organization gate from the ConfigMap when Fleet is enabled
+    set:
+      fleet.enabled: true
+    templates:
+      - templates/config-map.yaml
+    asserts:
+      - notExists:
+          path: data.DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+
+  - it: omits the organization gate from the ConfigMap when Fleet is disabled
+    set:
+      fleet.enabled: false
+    templates:
+      - templates/config-map.yaml
+    asserts:
+      - notExists:
+          path: data.DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+
+  - it: omits the organization gate from service environments when Fleet is enabled
+    set:
+      fleet.enabled: true
+    templates: &deployments
+      - templates/backend/deployment.yaml
+      - templates/host-backend/deployment.yaml
+      - templates/platform-backend/deployment.yaml
+      - templates/queue/deployment.yaml
+      - templates/listener/deployment.yaml
+      - templates/ingest-queue/deployment.yaml
+    asserts: &noGate
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          any: true
+          content:
+            name: DEFAULT_ORG_FEATURE_MANAGED_DEEP_AGENTS_ENABLED
+
+  - it: omits the organization gate from service environments when Fleet is disabled
+    set:
+      fleet.enabled: false
+    templates: *deployments
+    asserts: *noGate
