@@ -297,6 +297,8 @@ sandboxes:
         periodSeconds: 10
         timeoutSeconds: 3
         failureThreshold: 3
+    # -- Let sandboxes use CPU above their request while the node has spare capacity, up to twice the request while burst credits last. Off by default: each sandbox gets exactly the CPU it requested. Rendered as SANDBOX_HOST_CPU_BURST_DISABLED.
+    cpuBurst: false
     # -- Sandbox host pool autoscaling. There is no HPA or KEDA object: the elected sandbox-host resizes the Deployment itself. Unmanaged `sandbox-host.smith.langchain.com/autoscale-*` annotations override these live.
     autoscaling:
       enabled: false

@@ -189,6 +189,10 @@ spec:
             - name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
               value: {{ . | quote }}
             {{- end }}
+            {{- /* Self-hosted sandboxes get exactly the CPU they request unless
+            sandboxHost.cpuBurst is set. */}}
+            - name: SANDBOX_HOST_CPU_BURST_DISABLED
+              value: {{ not $in.sandboxHost.cpuBurst | quote }}
             {{- /* Baseline; autoscale-* annotations override it live. */}}
             - name: SANDBOX_HOST_AUTOSCALE_ENABLED
               value: {{ $autoscaling.enabled | quote }}

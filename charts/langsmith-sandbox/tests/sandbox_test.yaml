@@ -41,6 +41,30 @@ tests:
       - notExists:
           path: spec.template.spec.containers[0].readinessProbe.tcpSocket
 
+  - it: should hold sandboxes to their CPU request by default
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_CPU_BURST_DISABLED
+            value: "true"
+
+  - it: should let sandboxes burst when cpuBurst is set
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.cpuBurst: true
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_CPU_BURST_DISABLED
+            value: "false"
+
   - it: should configure a host to report to the external LangSmith API
     values:
       - ./values/enabled.yaml

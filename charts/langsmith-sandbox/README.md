@@ -1,6 +1,6 @@
 # langsmith-sandbox
 
-![Version: 0.18.0-rc.8](https://img.shields.io/badge/Version-0.18.0--rc.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.9](https://img.shields.io/badge/Version-0.18.0--rc.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
 
 Helm chart to deploy the LangSmith sandbox runtime in a dedicated Kubernetes cluster.
 
@@ -142,6 +142,7 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 | sandboxHost.autoscaling.minReplicas | int | `1` |  |
 | sandboxHost.autoscaling.scaleDownStabilizationSeconds | int | `300` |  |
 | sandboxHost.autoscaling.targetUtilizationPercent | int | `70` |  |
+| sandboxHost.cpuBurst | bool | `false` | Let sandboxes use CPU above their request while the node has spare capacity, up to twice the request while burst credits last. Off by default: each sandbox gets exactly the CPU it requested. Rendered as SANDBOX_HOST_CPU_BURST_DISABLED. |
 | sandboxHost.deployment.annotations | object | `{}` |  |
 | sandboxHost.deployment.extraEnv | list | `[]` |  |
 | sandboxHost.deployment.initContainers | list | `[]` |  |
