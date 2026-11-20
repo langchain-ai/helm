@@ -1,4 +1,4 @@
-{{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetToolServer.enabled }}
+{{- if .Values.fleetToolServer.enabled }}
 apiVersion: v1
 kind: Service
 metadata:

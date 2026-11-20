@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.19.0-rc.3](https://img.shields.io/badge/Version-0.19.0--rc.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
+![Version: 0.19.0-rc.5](https://img.shields.io/badge/Version-0.19.0--rc.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -13,6 +13,14 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Repository | Name | Version |
 |------------|------|---------|
 | file://../langsmith-sandbox | langsmith-sandbox | >=0.18.0-0 <0.19.0-0 |
+
+## Managed Tools built-ins
+
+The built-in tool server deploys by default, with or without Fleet, so Tool Gateway can offer built-in integrations. It adds only the tool server and its supporting resources; Fleet agents, triggers, and Fleet-specific databases stay disabled unless Fleet is enabled. Built-in calls go through the Managed Tools API. Provider credentials and outbound access to the providers are still required.
+
+Set `fleetToolServer.enabled=false` to skip it, for example on air-gapped installs. Custom MCP servers do not require it.
+
+**Upgrading:** installs that previously ran without Fleet or Agent Builder gain a `fleet-tool-server` Deployment, Service, and ServiceAccount (plus an HPA and PodDisruptionBudget if `fleetToolServer.autoscaling` or `fleetToolServer.pdb` is enabled). Set `fleetToolServer.enabled=false` before upgrading if you do not want it.
 
 ## Sandboxes
 
@@ -1903,6 +1911,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | config.blobStorage.kmsKeyArn | string | `""` |  |
 | config.blobStorage.minBlobStorageSizeKb | string | `"20"` |  |
 | config.blobStorage.s3UsePathStyle | bool | `false` |  |
+| config.customAnnouncement | object | `{"linkLabel":"","linkUrl":"","message":"","title":""}` | Announcement banner shown at the top of every page. Set message to show it; title, linkUrl (http or https), and linkLabel (default "Learn more") are optional. Users can dismiss it, and it shows again when any of the text changes. |
 | config.customCa.secretKey | string | `""` |  |
 | config.customCa.secretName | string | `""` | Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground. |
 | config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com). |
