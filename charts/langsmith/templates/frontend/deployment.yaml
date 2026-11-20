@@ -99,7 +99,7 @@
   value: {{ $baseURL | quote }}
 {{- end }}
 {{- if and .Values.polly.enabled .Values.config.hostname }}
-{{- $baseURL := include "langsmith.hostnameWithProtocol" . | trimSuffix "/" }}
+{{- $baseURL := include "langsmith.frontendHostnameWithProtocol" . | trimSuffix "/" }}
 {{- $agentPath := include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "polly") }}
 - name: VITE_POLLY_DEPLOYMENT_URL
   value: {{ printf "%s%s" $baseURL $agentPath | quote }}

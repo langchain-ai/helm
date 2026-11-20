@@ -2047,6 +2047,11 @@ which default to http:// for local development.
 {{- include "langsmith.urlWithProtocol" .Values.config.hostname -}}
 {{- end -}}
 
+{{/* Base URL the browser uses: config.frontendHostname, falling back to config.hostname. */}}
+{{- define "langsmith.frontendHostnameWithProtocol" -}}
+{{- include "langsmith.urlWithProtocol" (.Values.config.frontendHostname | default .Values.config.hostname) -}}
+{{- end -}}
+
 {{/* Absolute public UI URL for Trigger Server's browser redirects. */}}
 {{- define "langsmith.frontendUrl" -}}
 {{- include "langsmith.urlWithProtocol" (.Values.config.frontendHostname | default .Values.config.hostname) }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}

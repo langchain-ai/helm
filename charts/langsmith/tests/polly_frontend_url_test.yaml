@@ -1,0 +1,26 @@
+suite: Polly frontend URL
+templates:
+  - frontend/deployment.yaml
+set:
+  config.skipValidation: true
+  config.existingSecretName: langsmith-secrets
+  config.hostname: langsmith.internal.example.com
+  polly.enabled: true
+tests:
+  - it: uses config.hostname when frontendHostname is unset
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_POLLY_DEPLOYMENT_URL
+            value: https://langsmith.internal.example.com/agents/polly
+
+  - it: uses config.frontendHostname so the browser stays on the UI origin
+    set:
+      config.frontendHostname: https://langsmith.example.com
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_POLLY_DEPLOYMENT_URL
+            value: https://langsmith.example.com/agents/polly
