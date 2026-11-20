@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.19.0-rc.5](https://img.shields.io/badge/Version-0.19.0--rc.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
+![Version: 0.19.0-rc.6](https://img.shields.io/badge/Version-0.19.0--rc.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1154,6 +1154,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | sandboxes.sandboxHost.autoscaling.headroomHosts | int | `1` | Spare empty hosts kept above current demand so a sandbox create rarely waits for a cold node. |
 | sandboxes.sandboxHost.autoscaling.scaleDownStabilizationSeconds | int | `300` | Hold the replica target at its recent peak this long before shrinking, so load dips do not thrash the pool. |
 | sandboxes.sandboxHost.autoscaling.targetUtilizationPercent | int | `70` | Target share of pool CPU capacity committed to sandboxes before scaling up. |
+| sandboxes.sandboxHost.cpuBurst | bool | `false` | Let sandboxes use CPU above their request while the node has spare capacity, up to twice the request while burst credits last. Off by default: each sandbox gets exactly the CPU it requested. Rendered as SANDBOX_HOST_CPU_BURST_DISABLED. |
 | sandboxes.sandboxHost.deployment.labels | object | `{}` | Additional labels applied to the sandbox-host Deployment and pod. For Azure Workload Identity, set `azure.workload.identity/use` to `true`. |
 | sandboxes.sandboxHost.deployment.nodeSelector | object | `{}` | Node selector for sandbox-host pods. Required: host pods must land on KVM-capable nodes, and a toleration alone does not attract them there. |
 | sandboxes.sandboxHost.deployment.readinessProbe | object | `{"failureThreshold":3,"initialDelaySeconds":5,"periodSeconds":10,"tcpSocket":{"port":"http"},"timeoutSeconds":3}` | Readiness probe. The host binds its listener last, so accepting connections gates the rollout. No liveness probe: a restart mid-suspend destroys running microVMs. |

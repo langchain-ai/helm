@@ -716,6 +716,30 @@ tests:
             name: SANDBOX_HOST_JUICEFS_CLONE_CONCURRENCY
             value: "40"
 
+  - it: should hold sandboxes to their CPU request by default
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_CPU_BURST_DISABLED
+            value: "true"
+
+  - it: should let sandboxes burst when cpuBurst is set
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.sandboxHost.cpuBurst: true
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_CPU_BURST_DISABLED
+            value: "false"
+
   - it: should hardcode replicas and disable pool autoscaling by default
     values:
       - ./values/sandboxes-enabled.yaml

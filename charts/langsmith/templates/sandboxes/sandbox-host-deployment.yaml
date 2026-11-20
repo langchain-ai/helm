@@ -5,6 +5,7 @@
   (dict "name" "SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS")
   (dict "name" "SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER")
   (dict "name" "LANGSMITH_APP_VERSION")
+  (dict "name" "SANDBOX_HOST_CPU_BURST_DISABLED")
 -}}
 {{- if include "langsmith.sandboxes.serviceAuthPreviousSecretKey" . }}
 {{- $managedHostMountEnv = append $managedHostMountEnv (dict "name" "SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS") }}
