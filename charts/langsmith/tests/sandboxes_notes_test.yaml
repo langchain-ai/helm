@@ -21,3 +21,18 @@ tests:
     asserts:
       - notMatchRegexRaw:
           pattern: Sandboxes use an external runtime
+  - it: should tell an install without its own sandbox cluster to register one
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.ownCluster.enabled: false
+    asserts:
+      - matchRegexRaw:
+          pattern: "sandboxes.ownCluster.enabled is false, so this install runs no sandbox cluster of its own\\."
+
+  - it: should not mention an own cluster note by default
+    values:
+      - ./values/sandboxes-enabled.yaml
+    asserts:
+      - notMatchRegexRaw:
+          pattern: runs no sandbox cluster of its own

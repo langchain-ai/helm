@@ -181,6 +181,9 @@ sandboxes:
   serviceUrlBaseUrl: ""
   # -- Name of the sandbox runtime cluster this install uses, set as SANDBOX_K8S_CLUSTER_NAME on platform-backend and ingest-queue. Empty keeps the default, `incluster`. Choose it at install time: renaming hides every existing sandbox, private registry and host record. Do not also set SANDBOX_K8S_CLUSTER_NAME through extraEnv.
   clusterName: ""
+  ownCluster:
+    # -- Whether this install runs its own sandbox cluster: the in-cluster sandbox runtime this release renders, or the external runtime when `sandboxes.external.enabled` is true. Set it to false to remove the in-cluster runtime, which stops its sandboxes, and serve sandboxes only from clusters registered through the instance admin API. It cannot be false with `sandboxes.external.enabled`. An added cluster is not configured here: register it through the instance admin API. The `serviceAuth.secretKey` of the `langsmith-sandbox` release installed in that cluster holds the registered secret, which must differ from every other cluster's, this install's own included.
+    enabled: true
   quotas:
     maxCpuCores: 200
     maxMemoryGb: 400
