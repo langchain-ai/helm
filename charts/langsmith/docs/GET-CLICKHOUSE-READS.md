@@ -2,14 +2,15 @@
 
 Once LangSmith runs on SmithDB, ClickHouse can be turned off when LangSmith stops reading it. This script counts the reads LangSmith made on ClickHouse over the last days, from ClickHouse's own `system.query_log`.
 
-This script is for BYOC data planes. On self-hosted, use **Settings › Instance** instead: its ClickHouse section tracks the reads every minute and tells you the next step.
+On self-hosted, **Settings › Instance** tracks these reads every minute and tells you the next step. Use this script to cross-check it, or to see the queries behind a count.
+
+On BYOC, ClickHouse queries stay on while ClickHouse runs, so the script always reports reads there. It still lists which callers read ClickHouse.
 
 ### Turning ClickHouse off, in order
 
 1. Migrate every caller listed on **Deprecated API Usage**, in each workspace's settings, until it shows none.
-2. Once it shows none, contact LangChain support to turn ClickHouse queries off: LangChain manages this setting on BYOC data planes. Before that, LangSmith's own jobs and UI read ClickHouse on purpose, so this script always reports reads.
-
-3. Wait for 7 days with no reads, then contact LangChain support to turn ClickHouse off.
+2. Set `CLICKHOUSE_QUERY_ENABLED=false` in `commonEnv`. Before that, LangSmith's own jobs and UI read ClickHouse on purpose, so this script always reports reads.
+3. Wait for 7 days with no reads, then set `clickhouse.enabled: false`.
 
 ### Prerequisites
 
