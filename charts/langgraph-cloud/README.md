@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.3.5](https://img.shields.io/badge/Version-0.3.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.3](https://img.shields.io/badge/AppVersion-0.2.3-informational?style=flat-square)
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.3](https://img.shields.io/badge/AppVersion-0.2.3-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -9,6 +9,48 @@ Helm chart to deploy the LangGraph Cloud application and all services it depends
 For a safe disposable `kind` workflow, see [LOCAL_DEVELOPMENT.md](./LOCAL_DEVELOPMENT.md).
 
 ## Deploying LangGraph Cloud with Helm
+
+### Configure access before production
+
+The API Server Service defaults to `ClusterIP`. The chart does not enable incoming API authentication by default. A license key or `LANGSMITH_API_KEY` supplied to the server does not authenticate API clients. `ClusterIP` avoids creating an external load balancer, but does not block access from other cluster workloads.
+
+Before exposing the API outside a trusted network:
+
+- Configure authentication and authorization in your [application](https://docs.langchain.com/langsmith/auth) or in a trusted identity proxy that clients cannot bypass
+- Configure TLS termination on your load balancer, Ingress, or gateway; the Service port named `https` does not enable TLS by itself
+- Restrict network access with provider-specific internal load balancers, source ranges, firewall rules, or network policies as appropriate
+
+To use the chart's LangSmith authentication option, configure a reachable LangSmith authentication endpoint and the tenant ID for the workspace whose clients may connect:
+
+```yaml
+config:
+  auth:
+    enabled: true
+    langSmithAuthEndpoint: "https://api.smith.langchain.com"
+    langSmithTenantId: "<workspace ID>"
+```
+
+Use the endpoint for your LangSmith region or self-hosted instance. Clients must supply valid credentials for that workspace. This option does not replace application-specific authorization rules. Custom authentication built into your application image remains a separate option; `config.auth.enabled: false` does not disable it.
+
+To request a load balancer explicitly, set:
+
+```yaml
+apiServer:
+  service:
+    type: LoadBalancer
+```
+
+Whether this creates a public endpoint depends on your cluster and provider. Configure authentication and TLS before enabling public access. An empty `apiServer.service.loadBalancerSourceRanges` adds no source-IP restriction. A private load balancer or source allowlist is an additional network control, not client authentication.
+
+When using an authenticated Ingress, keep `apiServer.service.type: ClusterIP` so a direct load balancer cannot bypass the Ingress. Enabling an Ingress does not configure authentication automatically.
+
+After deployment, test a real API operation without credentials from outside the trusted network and confirm it is rejected. Also test your authorization rules with different users. Access to `/ok` or `/docs` alone does not prove that application data is protected.
+
+### Upgrading to 0.4.0
+
+**Breaking change:** the default API Server Service type changed from `LoadBalancer` to `ClusterIP`. An upgrade that uses the new default can remove the existing load balancer and its address, breaking external clients.
+
+Before upgrading, review the values you will apply. To keep an existing load balancer, explicitly set `apiServer.service.type: LoadBalancer` in your release values. Check authentication, TLS, and network restrictions before retaining that exposure. To move behind an Ingress or gateway, configure and verify the replacement route before removing the old endpoint. Review the rendered Service before applying the upgrade; do not rely on the previous default being retained.
 
 ### Prerequisites
 
@@ -30,8 +72,8 @@ Ensure you have the following tools/items ready.
     1. Use this if your deployment needs LangSmith access. It is mounted as `LANGSMITH_API_KEY`.
 1. A LangGraph Cloud API image
     1. You can use the [langgraph-cli](https://langchain-ai.github.io/langgraph/cloud/reference/cli/) to build your own image.
-1. SSL(optional)
-    1. This should be attachable to a load balancer that the chart will provision
+1. TLS for external access
+    1. Configure termination on your chosen load balancer, Ingress, or gateway
 1. External Postgres(optional).
     1. You can configure external Postgres using the `values.yaml` file. You will need to provide a connection url for your postgres.
     2. We only official support Postgres versions >= 14.
@@ -85,9 +127,9 @@ apiServer:
         value: "bar"
 ```
 
-Example `EKS` config file with certificates setup using ACM:
+Example `EKS` config file with certificates setup using ACM. This configures TLS only; configure authentication and network restrictions separately before exposing the API:
 
-```jsx
+```yaml
 images:
   # Make sure to replace this with your own LangGraph Cloud API image built with the cli.
   apiServerImage:
@@ -101,6 +143,7 @@ config:
 
 apiServer:
   service:
+    type: LoadBalancer
     annotations:
       service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
       service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
@@ -295,13 +338,17 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 
     ```bash
     NAME                         TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                     AGE
-    langgraph-cloud-api-server   LoadBalancer   172.20.59.8      <ip>         80:30176/TCP,443:31693/TCP   67s
+    langgraph-cloud-api-server   ClusterIP      172.20.59.8      <none>       80/TCP,443/TCP               67s
     langgraph-cloud-postgres     ClusterIP      172.20.91.2      <none>       6379/TCP                     7m22s
     ```
 
-3. Visit the `ip/docs` for the `langgraph-cloud-api-server` service on your browser
+2. Forward the API Service to your local machine:
 
-    The LangGraph Cloud docs UI should be visible/operational
+    ```bash
+    kubectl port-forward svc/langgraph-cloud-api-server 8080:80
+    ```
+
+3. Visit `http://localhost:8080/docs` in your browser. This checks the documentation UI, not authentication or authorization on application routes
 
     ![./langgraph_cloud_ui.png](langgraph_cloud_ui.png)
 
@@ -312,10 +359,10 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 2. How can we backup our application?
     - Currently, we rely on PVCs/PV to power storage for our application. We strongly encourage setting up `Persistent Volume` backups or moving to a managed service for `Postgres` to support disaster recovery
 3. How does load balancing work/ingress work?
-    - Currently, our application spins up one load balancer using a k8s service of type `LoadBalancer` for our frontend. If you do not want to setup a load balancer you can simply port-forward the frontend and use that as your external ip for the application.
-    - We also have an option for the chart to provision an ingress resource for the application.
+    - The API Server uses a `ClusterIP` Service by default. Use port-forwarding for local access, or explicitly configure a load balancer, Ingress, or gateway for external access.
+    - These routes forward to the API Server, not a separate protected frontend. See [Configure access before production](#configure-access-before-production) before exposing them.
 4. How can we authenticate to the application?
-    - You can use LangSmith authentication to authenticate to the application. You can find more information on how to setup LangSmith in the LangSmith documentation.
+    - Configure custom application authentication or the chart's LangSmith authentication option. See [Configure access before production](#configure-access-before-production).
 5. How can I use External `Postgres`?
     - You can configure external postgres using the external sections in the `values.yaml` file. You will need to provide the connection url/params for the postgres instance. Look at the configuration above example for more information.
 6. What networking configuration is needed  for the application?
@@ -567,7 +614,7 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | apiServer.service.labels | object | `{}` |  |
 | apiServer.service.loadBalancerIP | string | `""` |  |
 | apiServer.service.loadBalancerSourceRanges | list | `[]` |  |
-| apiServer.service.type | string | `"LoadBalancer"` |  |
+| apiServer.service.type | string | `"ClusterIP"` |  |
 | apiServer.serviceAccount.annotations | object | `{}` |  |
 | apiServer.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | apiServer.serviceAccount.create | bool | `true` |  |

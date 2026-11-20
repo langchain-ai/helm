@@ -173,7 +173,7 @@ apiServer:
       cooldownPeriod: 300
       scaleDownStabilizationWindowSeconds: 300
   service:
-    type: LoadBalancer
+    type: ClusterIP
     httpPort: 80
     httpsPort: 443
     labels: {}
