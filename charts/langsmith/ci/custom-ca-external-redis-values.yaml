@@ -90,3 +90,13 @@ insights:
   enabled: false
 polly:
   enabled: false
+
+# Blob storage: no config.blobStorage, so the chart deploys RustFS.
+rustfs:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+    persistence:
+      size: 1Gi

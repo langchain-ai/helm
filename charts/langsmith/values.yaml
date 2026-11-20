@@ -90,6 +90,11 @@ images:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
     tag: "14.7"
+  # For production environments, we strongly recommend S3, GCS, or Azure blob storage (config.blobStorage) instead of the RustFS provided by the chart.
+  rustfsImage:
+    repository: "docker.io/rustfs/rustfs"
+    pullPolicy: IfNotPresent
+    tag: "1.0.0-beta.7"
   # For production environments, we strongly recommend connecting to a managed Redis instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-redis
   redisImage:
@@ -1261,8 +1266,13 @@ config:
   # Blob storage configuration
   # Optional. Used to store inputs, outputs, and errors in Blob Storage.
   # We currently support S3, GCS, Minio, and Azure as Blob Storage providers.
+  # Blob storage is required and always on as of LangSmith v0.19. Configure the engine and bucket below.
   blobStorage:
-    enabled: false
+    external:
+      # -- Use your own S3, GCS, or Azure blob storage, configured below. When false and neither bucketName nor
+      # azureStorageContainerName is set, the chart deploys RustFS (see `rustfs`) and uses it instead.
+      # For production, we strongly recommend external blob storage.
+      enabled: false
     engine: "S3"
     # If you are using langsmith-managed-clickhouse, you may not want inputs to be stored in clickhouse for search.
     # Set this as false to ensure that inputs/outputs/errors are not stored in clickhouse.
@@ -4133,6 +4143,141 @@ redis:
     labels: {}
     annotations: {}
     automountServiceAccountToken: true
+
+# In-chart S3-compatible blob storage. Deployed unless config.blobStorage is external
+# (config.blobStorage.external.enabled, or a bucketName / azureStorageContainerName is set).
+# For production, we strongly recommend S3, GCS, or Azure blob storage instead.
+rustfs:
+  name: "rustfs"
+  # -- Bucket the chart creates in RustFS and LangSmith stores blobs in.
+  bucketName: "langsmith"
+  # -- RustFS access key. Ignored when existingSecretName is set.
+  accessKey: "langsmith"
+  # -- RustFS secret key. Ignored when existingSecretName is set. When empty, the chart keeps the key from an
+  # earlier install, or derives one from config.apiKeySalt, so `helm template` renders (for example Argo CD) get
+  # the same key every time. With config.existingSecretName and no apiKeySalt in values, set this or
+  # existingSecretName: the chart would otherwise generate a new random key on every `helm template` render.
+  secretKey: ""
+  # -- Existing secret holding the RustFS credentials under accessKeySecretKey and secretKeySecretKey.
+  existingSecretName: ""
+  accessKeySecretKey: "access_key"
+  secretKeySecretKey: "secret_key"
+  containerPort: 9000
+  statefulSet:
+    # -- Optional priority class for the in-chart RustFS pod.
+    priorityClassName: ""
+    # -- Optional StatefulSet update strategy for the in-chart RustFS instance.
+    updateStrategy: {}
+    labels: {}
+    annotations: {}
+    # The RustFS image runs as the named user rustfs (uid/gid 10001). runAsUser lets Kubernetes verify
+    # runAsNonRoot, and fsGroup makes the data volume writable. On platforms that assign UIDs (such as
+    # OpenShift's restricted SCC), set these keys to null so the platform's values apply.
+    podSecurityContext:
+      runAsUser: 10001
+      runAsGroup: 10001
+      runAsNonRoot: true
+      fsGroup: 10001
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    command: []
+    startupProbe:
+      httpGet:
+        path: /health
+        port: rustfs
+      failureThreshold: 30
+      periodSeconds: 2
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: rustfs
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: rustfs
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    persistentVolumeClaimRetentionPolicy: {}
+    persistence:
+      # -- Without persistence, stored traces are lost when the RustFS pod restarts.
+      enabled: true
+      size: 50Gi
+      storageClassName: ""
+  # Job that creates the bucket, using the RustFS image. It is renamed whenever its pod template changes,
+  # so upgrades run it again.
+  bucketJob:
+    labels: {}
+    annotations: {}
+    # -- Optional priority class for the bucket Job.
+    priorityClassName: ""
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 10001
+      runAsGroup: 10001
+    # The Job writes nothing to disk, so its root filesystem is read-only.
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+          - ALL
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+    backoffLimit: 10
+    extraEnv: []
+    initContainers: []
+    volumes: []
+    volumeMounts: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 9000
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: false
 
 # Fleet Tool Server - provides MCP tool execution capabilities
 fleetToolServer:
