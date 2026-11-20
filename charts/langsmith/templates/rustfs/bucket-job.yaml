@@ -1,0 +1,154 @@
+{{- if eq (include "langsmith.blobStorage.bundled" .) "true" }}
+{{- $podTemplate := include "langsmith.rustfs.bucketJob.podTemplate" . -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  {{- /*
+  A Job's pod template is immutable, so the name carries a hash of it: a spec
+  change makes Helm replace the Job instead of failing the upgrade on a patch.
+  Creating the bucket again is a no-op.
+  */}}
+  name: {{ printf "%s-%s-bucket" (include "langsmith.fullname" .) .Values.rustfs.name | trunc 54 | trimSuffix "-" }}-{{ $podTemplate | sha256sum | trunc 8 }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.rustfs.name }}-bucket
+    {{- with .Values.rustfs.bucketJob.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    "argocd.argoproj.io/sync-wave": "-1"
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.rustfs.bucketJob.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  backoffLimit: {{ .Values.rustfs.bucketJob.backoffLimit }}
+  template:{{ $podTemplate }}
+{{- end }}
+
+{{- /*
+Renders spec.template at its place in the Job: the output starts with a newline
+and keeps the indentation, so the Job can hash it and inline it as-is.
+*/}}
+{{- define "langsmith.rustfs.bucketJob.podTemplate" }}
+{{- $bucketJob := .Values.rustfs.bucketJob -}}
+{{- $envVars := concat .Values.commonEnv $bucketJob.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes $bucketJob.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts $bucketJob.volumeMounts }}
+    metadata:
+      annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with $bucketJob.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.rustfs.name }}-bucket
+        {{- with $bucketJob.labels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      restartPolicy: OnFailure
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if $bucketJob.priorityClassName }}
+      priorityClassName: {{ $bucketJob.priorityClassName }}
+      {{- end }}
+      securityContext:
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" (deepCopy $bucketJob.podSecurityContext)) | nindent 8 }}
+      serviceAccountName: {{ include "rustfs.serviceAccountName" . }}
+      automountServiceAccountToken: false
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      {{- with concat .Values.commonInitContainers $bucketJob.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: create-bucket
+          {{- /* The RustFS image ships curl, which signs S3 requests itself: no separate client image to mirror. */}}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "rustfsImage") | quote }}
+          imagePullPolicy: {{ .Values.images.rustfsImage.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              url="$RUSTFS_ENDPOINT/$RUSTFS_BUCKET"
+              # Prints the HTTP status of a signed request, or 000 when RustFS is unreachable.
+              # The credentials go to curl on stdin, so they never appear in the process list.
+              s3() {
+                printf 'user = "%s:%s"\n' \
+                  "$(printf '%s' "$RUSTFS_ACCESS_KEY" | sed 's/[\\"]/\\&/g')" \
+                  "$(printf '%s' "$RUSTFS_SECRET_KEY" | sed 's/[\\"]/\\&/g')" |
+                  curl --config - --silent --output /dev/null --write-out '%{http_code}' \
+                    --connect-timeout 5 --max-time 30 \
+                    --aws-sigv4 "aws:amz:us-east-1:s3" "$@" "$url" || true
+              }
+              attempt=0
+              while :; do
+                code=$(s3 --request PUT)
+                # RustFS answers 200 for a bucket that already exists; S3 answers 409.
+                case "$code" in
+                  200) echo "Bucket $RUSTFS_BUCKET is ready"; exit 0 ;;
+                  409)
+                    if [ "$(s3 --head)" = 200 ]; then
+                      echo "Bucket $RUSTFS_BUCKET already exists"
+                      exit 0
+                    fi
+                    ;;
+                esac
+                attempt=$((attempt + 1))
+                if [ "$attempt" -ge 90 ]; then
+                  echo "RustFS did not create bucket $RUSTFS_BUCKET after $attempt attempts (last status $code)" >&2
+                  exit 1
+                fi
+                echo "RustFS returned status $code; retrying" >&2
+                sleep 2
+              done
+          env:
+            - name: RUSTFS_ENDPOINT
+              value: {{ include "langsmith.rustfsUrl" . | quote }}
+            - name: RUSTFS_BUCKET
+              value: {{ .Values.rustfs.bucketName | quote }}
+            - name: RUSTFS_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.rustfsSecretsName" . }}
+                  key: {{ .Values.rustfs.accessKeySecretKey }}
+            - name: RUSTFS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.rustfsSecretsName" . }}
+                  key: {{ .Values.rustfs.secretKeySecretKey }}
+            {{- with $envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          securityContext:
+            {{- toYaml $bucketJob.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml $bucketJob.resources | nindent 12 }}
+          {{- with $volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with $bucketJob.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $bucketJob.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $bucketJob.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
