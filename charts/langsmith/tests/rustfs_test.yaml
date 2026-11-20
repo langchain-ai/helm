@@ -1,0 +1,308 @@
+suite: in-chart RustFS blob storage
+templates:
+  - rustfs/stateful-set.yaml
+  - rustfs/service.yaml
+  - rustfs/secrets.yaml
+  - rustfs/service-account.yaml
+  - rustfs/bucket-job.yaml
+  - queue/deployment.yaml
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - operator/config-map.yaml
+release:
+  name: langsmith
+  namespace: langsmith
+tests:
+  - it: deploys RustFS when no blob storage is configured
+    template: rustfs/stateful-set.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: docker.io/rustfs/rustfs:1.0.0-beta.7
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RUSTFS_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-rustfs
+                key: access_key
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 50Gi
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 10001
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RUSTFS_OBS_LOG_DIRECTORY
+            value: ""
+
+  - it: creates the bucket with a Job
+    template: rustfs/bucket-job.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - matchRegex:
+          path: metadata.name
+          pattern: ^langsmith-rustfs-bucket-[0-9a-f]{8}$
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RUSTFS_ENDPOINT
+            value: http://langsmith-rustfs.langsmith.svc.cluster.local:9000
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RUSTFS_BUCKET
+            value: langsmith
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: docker.io/rustfs/rustfs:1.0.0-beta.7
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+
+  - it: passes common and bucket Job settings to the bucket Job
+    template: rustfs/bucket-job.yaml
+    set:
+      commonEnv:
+        - name: COMMON_VAR
+          value: common
+      commonVolumes:
+        - name: common-vol
+          emptyDir: {}
+      commonVolumeMounts:
+        - name: common-vol
+          mountPath: /common
+      commonInitContainers:
+        - name: common-init
+          image: busybox
+      rustfs.bucketJob.priorityClassName: high
+      rustfs.bucketJob.extraEnv:
+        - name: EXTRA_VAR
+          value: extra
+      rustfs.bucketJob.volumes:
+        - name: job-vol
+          emptyDir: {}
+      rustfs.bucketJob.volumeMounts:
+        - name: job-vol
+          mountPath: /job
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: COMMON_VAR
+            value: common
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: EXTRA_VAR
+            value: extra
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: common-vol
+            emptyDir: {}
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: job-vol
+            emptyDir: {}
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: job-vol
+            mountPath: /job
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: common-init
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: high
+
+  - it: does not change the configured pod security context
+    template: rustfs/bucket-job.yaml
+    set:
+      commonPodSecurityContext:
+        seccompProfile:
+          type: RuntimeDefault
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.seccompProfile.type
+          value: RuntimeDefault
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 10001
+
+  - it: points the application at RustFS
+    template: queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_API_URL
+            value: http://langsmith-rustfs.langsmith.svc.cluster.local:9000
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_BUCKET_NAME
+            value: langsmith
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_USE_PATH_STYLE
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_ACCESS_KEY_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-rustfs
+                key: secret_key
+
+  - it: derives the RustFS secret key from config.apiKeySalt
+    template: rustfs/secrets.yaml
+    set:
+      config.apiKeySalt: test-salt
+    asserts:
+      - equal:
+          path: data.secret_key
+          # base64 of the first 40 hex characters of sha256("langsmith-rustfs-secret-key:test-salt")
+          value: NWFlOTg4YzIxMzVlNjdlNjEyN2M3ZDk4ZmVhMzZiYWZmOGIzM2VhOQ==
+
+  - it: generates a random RustFS secret key without config.apiKeySalt
+    template: rustfs/secrets.yaml
+    asserts:
+      - matchRegex:
+          path: data.secret_key
+          # base64 of 40 alphanumeric characters
+          pattern: ^[A-Za-z0-9+/]{54}==$
+      - notEqual:
+          path: data.secret_key
+          value: bGFuZ3NtaXRoLXJ1c3Rmcw==
+
+  - it: keeps the RustFS secret key from an earlier install
+    template: rustfs/secrets.yaml
+    set:
+      config.apiKeySalt: test-salt
+    kubernetesProvider:
+      scheme:
+        "v1/Secret":
+          gvr:
+            version: "v1"
+            resource: "secrets"
+          namespaced: true
+      objects:
+        - kind: Secret
+          apiVersion: v1
+          metadata:
+            name: langsmith-rustfs
+            namespace: langsmith
+          data:
+            access_key: bGFuZ3NtaXRo
+            secret_key: a2VwdC1rZXk=
+    asserts:
+      - equal:
+          path: data.secret_key
+          value: a2VwdC1rZXk=
+
+  - it: uses rustfs.secretKey when set
+    template: rustfs/secrets.yaml
+    set:
+      rustfs.secretKey: my-secret-key
+    asserts:
+      - equal:
+          path: data.secret_key
+          value: bXktc2VjcmV0LWtleQ==
+
+  - it: uses an existing secret for the RustFS credentials
+    set:
+      rustfs.existingSecretName: my-rustfs
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: rustfs/secrets.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: my-rustfs
+                key: access_key
+        template: queue/deployment.yaml
+
+  - it: uses a custom bucket name
+    template: rustfs/bucket-job.yaml
+    set:
+      rustfs.bucketName: other
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RUSTFS_BUCKET
+            value: other
+
+  - it: skips RustFS with external.enabled
+    set:
+      config.blobStorage.external.enabled: true
+      config.blobStorage.bucketName: my-bucket
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: rustfs/stateful-set.yaml
+      - hasDocuments:
+          count: 0
+        template: rustfs/bucket-job.yaml
+      - hasDocuments:
+          count: 0
+        template: rustfs/service.yaml
+
+  - it: treats a configured bucket as external storage
+    set:
+      config.blobStorage.bucketName: my-bucket
+      config.blobStorage.apiURL: https://s3.us-east-1.amazonaws.com
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: rustfs/stateful-set.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_API_URL
+            value: https://s3.us-east-1.amazonaws.com
+        template: queue/deployment.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: blob_storage_access_key
+                optional: true
+        template: queue/deployment.yaml
+
+  - it: treats a configured Azure container as external storage
+    set:
+      config.blobStorage.engine: Azure
+      config.blobStorage.azureStorageContainerName: my-container
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: rustfs/stateful-set.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AZURE_STORAGE_CONTAINER_NAME
+            value: my-container
+        template: queue/deployment.yaml

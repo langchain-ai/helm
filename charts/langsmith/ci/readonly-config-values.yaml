@@ -796,3 +796,30 @@ clickhouse:
         mountPath: /var
       - name: etc
         mountPath: /etc/clickhouse-server/users.d
+
+# Blob storage: no config.blobStorage, so the chart deploys RustFS.
+rustfs:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+    persistence:
+      size: 1Gi
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+  bucketJob:
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
