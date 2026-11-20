@@ -1,0 +1,25 @@
+suite: fleet SSRF private IP allowances
+templates:
+  - agent-features/fleet/api-server/deployment.yaml
+  - agent-features/fleet/queue/deployment.yaml
+set:
+  config.existingSecretName: "langsmith-secrets"
+  config.skipValidation: true
+  fleet.enabled: true
+tests:
+  - it: lets the fleet api-server reach custom model URLs on private networks
+    template: agent-features/fleet/api-server/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSRF_ALLOW_PRIVATE_IPS_PLAYGROUND
+            value: "true"
+  - it: lets the fleet queue reach custom model URLs on private networks
+    template: agent-features/fleet/queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSRF_ALLOW_PRIVATE_IPS_PLAYGROUND
+            value: "true"
