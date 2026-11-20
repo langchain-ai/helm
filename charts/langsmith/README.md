@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.86](https://img.shields.io/badge/Version-0.18.0--rc.86-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.31rc1](https://img.shields.io/badge/AppVersion-0.18.31rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.87](https://img.shields.io/badge/Version-0.18.0--rc.87-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.31rc1](https://img.shields.io/badge/AppVersion-0.18.31rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -13,6 +13,14 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Repository | Name | Version |
 |------------|------|---------|
 | file://../langsmith-sandbox | langsmith-sandbox | >=0.18.0-0 <0.19.0-0 |
+
+## Managed Tools built-ins
+
+The built-in tool server deploys by default, with or without Fleet, so Tool Gateway can offer built-in integrations. It adds only the tool server and its supporting resources; Fleet agents, triggers, and Fleet-specific databases stay disabled unless Fleet is enabled. Built-in calls go through the Managed Tools API. Provider credentials and outbound access to the providers are still required.
+
+Set `fleetToolServer.enabled=false` to skip it, for example on air-gapped installs. Custom MCP servers do not require it.
+
+**Upgrading:** installs that previously ran without Fleet or Agent Builder gain a `fleet-tool-server` Deployment, Service, and ServiceAccount (plus an HPA and PodDisruptionBudget if `fleetToolServer.autoscaling` or `fleetToolServer.pdb` is enabled). Set `fleetToolServer.enabled=false` before upgrading if you do not want it.
 
 ## Sandboxes
 

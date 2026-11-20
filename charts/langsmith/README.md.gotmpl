@@ -10,6 +10,14 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 {{ template "chart.requirementsSection" . }}
 
+## Managed Tools built-ins
+
+The built-in tool server deploys by default, with or without Fleet, so Tool Gateway can offer built-in integrations. It adds only the tool server and its supporting resources; Fleet agents, triggers, and Fleet-specific databases stay disabled unless Fleet is enabled. Built-in calls go through the Managed Tools API. Provider credentials and outbound access to the providers are still required.
+
+Set `fleetToolServer.enabled=false` to skip it, for example on air-gapped installs. Custom MCP servers do not require it.
+
+**Upgrading:** installs that previously ran without Fleet or Agent Builder gain a `fleet-tool-server` Deployment, Service, and ServiceAccount (plus an HPA and PodDisruptionBudget if `fleetToolServer.autoscaling` or `fleetToolServer.pdb` is enabled). Set `fleetToolServer.enabled=false` before upgrading if you do not want it.
+
 ## Sandboxes
 
 Sandboxes support two deployment topologies:
