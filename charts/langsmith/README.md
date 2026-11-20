@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.19.0-rc.5](https://img.shields.io/badge/Version-0.19.0--rc.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
+![Version: 0.19.0-rc.6](https://img.shields.io/badge/Version-0.19.0--rc.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.29rc1](https://img.shields.io/badge/AppVersion-0.18.29rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1949,9 +1949,9 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | config.observability.tracing.useTls | bool | `true` | Use TLS for OTLP export. |
 | config.orgAdminsInstallationUsageExportEnabled | bool | `false` | When true, any org admin can use the usage backfill export. |
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
-| config.recoveryAdmin.enabled | bool | `false` |  |
 | config.recoveryAdmin.email | string | `""` | Email of the existing, enabled organization admin this credential authenticates as. Must match a user already provisioned via SSO. |
-| config.recoveryAdmin.passwordHash | string | `""` |  |
+| config.recoveryAdmin.enabled | bool | `false` |  |
+| config.recoveryAdmin.passwordHash | string | `""` | PBKDF2 hash of the recovery password. Use `langsmith auth hash-password` to generate it. Either set in plaintext, or set in the secret specified by existingSecretName above. |
 | config.security | object | `{"cors":{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}}` | Security configuration for CORS, headers, and other security-related settings. These settings control cross-origin access and help protect against common web vulnerabilities. |
 | config.security.cors | object | `{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}` | CORS (Cross-Origin Resource Sharing) configuration. Controls which origins can make requests to the LangSmith API. By default, CORS is permissive. For production deployments, you should restrict this. |
 | config.security.cors.allowedOrigins | string | `"*"` | Comma-separated list of allowed origins. Use "*" to allow all origins (not recommended for production). Example: "https://app.example.com,https://admin.example.com" If allowedOriginsRegex is set, this value is ignored. |
