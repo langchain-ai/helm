@@ -41,7 +41,7 @@ rules:
     verbs: [delete]
   - apiGroups: [apps.langchain.ai]
     resources: [lgps]
-    verbs: [get, create, update, delete]
+    verbs: [get, create, update, patch, delete]
 {{- range $ns := $namespaces }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1

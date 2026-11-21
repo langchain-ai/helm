@@ -42,7 +42,7 @@ tests:
           content:
             apiGroups: [apps.langchain.ai]
             resources: [lgps]
-            verbs: [get, create, update, delete]
+            verbs: [get, create, update, patch, delete]
         documentIndex: 0
       - isKind:
           of: RoleBinding
