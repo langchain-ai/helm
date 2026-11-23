@@ -505,7 +505,7 @@ Template containing common environment variables that are used by several servic
 - name: FF_INFO_ENDPOINT_AUTH_REQUIRED
   value: {{ .Values.config.infoEndpointAuthRequired | quote }}
 {{- end }}
-{{- /* Blob storage is required and always on as of v0.19. */}}
+{{- /* Blob storage is required and always on as of v0.18. */}}
 - name: FF_S3_STORAGE_ENABLED
   value: "true"
 - name: FF_BLOB_STORAGE_ENABLED
