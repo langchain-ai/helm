@@ -1416,6 +1416,24 @@ entries:
     version: 0.1.0
   langsmith:
   - apiVersion: v2
+    appVersion: 0.19.3rc1
+    created: "2026-11-23T13:38:27.31396929Z"
+    dependencies:
+    - name: langsmith-sandbox
+      repository: file://../langsmith-sandbox
+      version: '>=0.18.0-0 <0.19.0-0'
+    description: Helm chart to deploy the langsmith application and all services it
+      depends on.
+    digest: b0b2b1adc64d4c67bc51afdaaaaeb8dad0050cd63448bdba539eff50f6df983e
+    maintainers:
+    - email: ankush@langchain.dev
+      name: Ankush
+    name: langsmith
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langsmith-0.19.0-rc.7/langsmith-0.19.0-rc.7.tgz
+    version: 0.19.0-rc.7
+  - apiVersion: v2
     appVersion: 0.18.29rc1
     created: "2026-11-20T17:58:43.270079938Z"
     dependencies:
@@ -13124,6 +13142,20 @@ entries:
     - https://github.com/langchain-ai/helm/releases/download/langsmith-sandbox-0.18.0-rc.9/langsmith-sandbox-0.18.0-rc.9.tgz
     version: 0.18.0-rc.9
   - apiVersion: v2
+    appVersion: 0.19.3rc1
+    created: "2026-11-23T13:38:27.516295756Z"
+    description: Helm chart to deploy the LangSmith sandbox runtime in a dedicated
+      Kubernetes cluster.
+    digest: 9ea08dcf1bc08fe2322834f8ce8f03022cabacabf4c7cdea20d15111b672ea03
+    maintainers:
+    - email: ankush@langchain.dev
+      name: Ankush
+    name: langsmith-sandbox
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langsmith-sandbox-0.18.0-rc.9/langsmith-sandbox-0.18.0-rc.9.tgz
+    version: 0.18.0-rc.9
+  - apiVersion: v2
     appVersion: 0.18.29rc1
     created: "2026-11-14T09:30:59.828639756Z"
     description: Helm chart to deploy the LangSmith sandbox runtime in a dedicated
@@ -13385,4 +13417,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.0/open-gpts-0.1.0.tgz
     version: 0.1.0
-generated: "2026-11-22T21:07:10.123191167Z"
+generated: "2026-11-23T13:38:27.518554337Z"
