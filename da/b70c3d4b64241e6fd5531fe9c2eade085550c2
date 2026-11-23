@@ -1,0 +1,50 @@
+charts/langsmith/README.md
+  s_860d40f561fd12::t_bc1d30df54a892 3
+charts/langsmith/Chart.yaml
+  s_860d40f561fd12::t_33ea31829546bf 8
+  s_860d40f561fd12::t_cb2bb1746cc02f 9
+charts/langsmith-sandbox/Chart.yaml
+  s_860d40f561fd12::t_1da817179e14ac 8-9
+charts/langsmith-sandbox/README.md
+  s_860d40f561fd12::t_2394a976fd7fd4 3
+charts/langsmith/templates/_helpers.tpl
+  s_860d40f561fd12::t_4c3c7bef8da801 508
+charts/langsmith/templates/validate.yaml
+  s_860d40f561fd12::t_ee9b7a4c2dbb07 498,502
+charts/langsmith/tests/auth_endpoint_test.yaml
+  s_860d40f561fd12::t_1509f50ae63c2f 10
+charts/langsmith/tests/blob_storage_required_test.yaml
+  s_860d40f561fd12::t_94e29c24b2bd2a 40
+charts/langsmith/tests/engine_insights_agent_test.yaml
+  s_860d40f561fd12::t_70351c01cedd39 5
+charts/langsmith/tests/engine_workload_identity_validation_test.yaml
+  s_860d40f561fd12::t_6f14fd4e4bae3a 5
+charts/langsmith/tests/langsmith_smithdb_validation_test.yaml
+  s_860d40f561fd12::t_e84c85fef619e0 5
+charts/langsmith/tests/postgres_volume_snapshot_test.yaml
+  s_860d40f561fd12::t_09faa485b83446 10
+charts/langsmith/tests/remote_mcp_test.yaml
+  s_860d40f561fd12::t_51fbf3d586e8ef 5
+charts/langsmith/tests/sandbox_juicefs_test.yaml
+  s_860d40f561fd12::t_20dc62d9325f13 9
+charts/langsmith/tests/sandboxes_test.yaml
+  s_860d40f561fd12::t_8213dee284a5a9 22
+charts/langsmith/values.yaml
+  s_860d40f561fd12::t_eecc905de8fa36 68,72,78,82,111,115,119,130,1276-1278
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dab70c3d4b64241e6fd5531fe9c2eade085550c2",
+  "prompts": {},
+  "sessions": {
+    "s_860d40f561fd12": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4501cb93-908e-4cfe-81bf-65ab2153d6ab",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Brian Vander Schaaf <brian@langchain.dev>"
+    }
+  }
+}
