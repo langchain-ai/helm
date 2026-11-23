@@ -1187,6 +1187,15 @@ config:
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
     initialOrgAdminPassword: ""
     jwtSecret: ""
+
+  recoveryAdmin:
+    enabled: false
+    # -- Email of the existing, enabled organization admin this credential authenticates as.
+    # Must match a user already provisioned via SSO.
+    email: ""
+    # Either set in plaintext, or set in the secret specified by existingSecretName above.
+    # Generate with: langsmith auth hash-password
+    passwordHash: ""
   # -- Email addresses of the installation's super admins. With the
   # organization's installation operations permission, they can view instance
   # health, restart backfills, and create organizations when organization
