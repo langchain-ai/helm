@@ -460,6 +460,18 @@ Template containing common environment variables that are used by several servic
       key: jwt_secret
       optional: {{ .Values.config.disableSecretCreation }}
 {{- end }}
+- name: RECOVERY_ADMIN_ENABLED
+  value: {{ .Values.config.recoveryAdmin.enabled | quote }}
+{{- if .Values.config.recoveryAdmin.enabled }}
+- name: RECOVERY_ADMIN_EMAIL
+  value: {{ .Values.config.recoveryAdmin.email | quote }}
+- name: RECOVERY_ADMIN_PASSWORD_HASH
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: recovery_admin_password_hash
+      optional: {{ .Values.config.disableSecretCreation }}
+{{- end }}
 - name: FF_ORG_CREATION_DISABLED
   value: {{ .Values.config.userOrgCreationDisabled | quote }}
 - name: FF_PERSONAL_ORGS_DISABLED
