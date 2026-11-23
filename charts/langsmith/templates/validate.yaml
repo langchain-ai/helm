@@ -202,6 +202,22 @@ AWS Marketplace Helm template verification).
 {{- fail "Basic auth is enabled but config.authType is not set to 'mixed'." -}}
 {{- end -}}
 
+{{- /* Validate recovery admin configuration */ -}}
+{{- if .Values.config.recoveryAdmin.enabled -}}
+{{- if ne .Values.config.authType "mixed" -}}
+{{- fail "config.recoveryAdmin.enabled requires config.authType to be 'mixed'." -}}
+{{- end -}}
+{{- if not .Values.config.oauth.enabled -}}
+{{- fail "config.recoveryAdmin.enabled requires config.oauth.enabled to be true. Recovery admin is a self-hosted SSO fallback and has no effect without OAuth configured." -}}
+{{- end -}}
+{{- if not .Values.config.recoveryAdmin.email -}}
+{{- fail "config.recoveryAdmin.email is required when config.recoveryAdmin.enabled is true." -}}
+{{- end -}}
+{{- if and (not .Values.config.existingSecretName) (not .Values.config.recoveryAdmin.passwordHash) -}}
+{{- fail "config.recoveryAdmin.passwordHash is required when config.recoveryAdmin.enabled is true. This can alternatively be set within .Values.config.existingSecretName." -}}
+{{- end -}}
+{{- end -}}
+
 {{- /* Validate initial org admin email */ -}}
 {{- if or .Values.config.basicAuth.enabled -}}
 {{- if not (or .Values.config.initialOrgAdminEmail .Values.config.basicAuth.initialOrgAdminEmail) -}}
