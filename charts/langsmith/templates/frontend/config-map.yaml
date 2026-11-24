@@ -487,6 +487,24 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
+        location = /{{ .Values.config.basePath }}/api/.well-known/openid-configuration {
+            rewrite ^ /.well-known/openid-configuration  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /{{ .Values.config.basePath }}/api/userinfo {
+            rewrite ^ /userinfo  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
         # OAuth Authorization Server endpoints (authorize, token, register, revoke, device).
         location /{{ .Values.config.basePath }}/api/oauth/ {
             rewrite /{{ .Values.config.basePath }}/api/oauth/(.*) /oauth/$1  break;
@@ -1246,6 +1264,24 @@ data:
         # JWKS advertised under the /api issuer (jwks_uri).
         location = /api/.well-known/jwks.json {
             rewrite ^ /.well-known/jwks.json  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /api/.well-known/openid-configuration {
+            rewrite ^ /.well-known/openid-configuration  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /api/userinfo {
+            rewrite ^ /userinfo  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
