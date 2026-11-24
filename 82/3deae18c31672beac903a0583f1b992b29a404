@@ -1,0 +1,25 @@
+charts/langsmith/values.yaml
+  s_4856707eb46e86::t_bbca9d2385023b 4095-4097
+charts/langsmith/templates/redis/stateful-set.yaml
+  s_4856707eb46e86::t_4b2ab25620ff99 70-74
+charts/langsmith/tests/redis_maxmemory_policy_test.yaml
+  s_4856707eb46e86::t_b1943449bdc9e2 1-31
+charts/langsmith/README.md
+  s_4856707eb46e86::t_9178b3127f04f8 3177
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "823deae18c31672beac903a0583f1b992b29a404",
+  "prompts": {},
+  "sessions": {
+    "s_4856707eb46e86": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de708ad8-8c85-48be-94d0-cbcee585e0d9",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Kiewan Villatel <kiewan@langchain.dev>"
+    }
+  }
+}
