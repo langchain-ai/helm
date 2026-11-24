@@ -728,7 +728,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.66"` |  |
+| images.operatorImage.tag | string | `"0.1.67"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
 | images.pollyAgentImage.tag | string | `"0.18.2026112200"` |  |
@@ -1894,8 +1894,8 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | config.observability.tracing.useTls | bool | `true` | Use TLS for OTLP export. |
 | config.orgAdminsInstallationUsageExportEnabled | bool | `false` | When true, any org admin can use the usage backfill export. |
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
-| config.recoveryAdmin.enabled | bool | `false` |  |
 | config.recoveryAdmin.email | string | `""` | Email of the existing, enabled organization admin this credential authenticates as. Must match a user already provisioned via SSO. |
+| config.recoveryAdmin.enabled | bool | `false` |  |
 | config.recoveryAdmin.passwordHash | string | `""` |  |
 | config.security | object | `{"cors":{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}}` | Security configuration for CORS, headers, and other security-related settings. These settings control cross-origin access and help protect against common web vulnerabilities. |
 | config.security.cors | object | `{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}` | CORS (Cross-Origin Resource Sharing) configuration. Controls which origins can make requests to the LangSmith API. By default, CORS is permissive. For production deployments, you should restrict this. |
