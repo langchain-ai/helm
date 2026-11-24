@@ -175,6 +175,12 @@ tests:
       - matchRegex:
           path: data["nginx.conf"]
           pattern: "location = /api/.well-known/oauth-protected-resource/mcp"
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /api/\.well-known/openid-configuration \{\s*rewrite \^ /\.well-known/openid-configuration  break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /api/userinfo \{\s*rewrite \^ /userinfo  break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
 
   - it: omits the /api MCP routes when no hostname is set
     template: templates/frontend/config-map.yaml
@@ -190,6 +196,9 @@ tests:
       - notMatchRegex:
           path: data["nginx.conf"]
           pattern: "oauth-authorization-server/api"
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: "openid-configuration"
 
   - it: prefixes the /api MCP routes with basePath
     template: templates/frontend/config-map.yaml
@@ -208,3 +217,9 @@ tests:
       - matchRegex:
           path: data["nginx.conf"]
           pattern: "location = /.well-known/oauth-authorization-server/langsmith/api"
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /langsmith/api/\.well-known/openid-configuration \{\s*rewrite \^ /\.well-known/openid-configuration  break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /langsmith/api/userinfo \{\s*rewrite \^ /userinfo  break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
