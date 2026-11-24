@@ -67,6 +67,11 @@ spec:
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- if and (not .Values.redis.statefulSet.command) .Values.redis.statefulSet.maxmemoryPolicy }}
+          args:
+            - --maxmemory-policy
+            - {{ .Values.redis.statefulSet.maxmemoryPolicy | quote }}
+          {{- end }}
           {{- if or .Values.redis.statefulSet.extraEnv .Values.commonEnv  }}
           env:
             {{- with $envVars }}
