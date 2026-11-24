@@ -1,0 +1,31 @@
+charts/langsmith/Chart.yaml
+  s_860d40f561fd12::t_a6bbeab3e845a7 8
+charts/langsmith/tests/recovery_admin_test.yaml
+  s_860d40f561fd12::t_d97273bf3dd929 1-118
+charts/langsmith/templates/validate.yaml
+  s_860d40f561fd12::t_359ab85fed4914 205-222
+charts/langsmith/values.yaml
+  s_860d40f561fd12::t_672b99e7a660a2 1185-1193
+charts/langsmith/templates/secrets.yaml
+  s_860d40f561fd12::t_dd8746e74a91e2 21
+charts/langsmith/README.md
+  s_860d40f561fd12::t_d048fef359c71e 1852-1854
+charts/langsmith/templates/_helpers.tpl
+  s_860d40f561fd12::t_8c97ceec1a9a7d 404-415
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f85ac6311e91ffe1562a4ed5a2f57334b30050bd",
+  "prompts": {},
+  "sessions": {
+    "s_860d40f561fd12": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4501cb93-908e-4cfe-81bf-65ab2153d6ab",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Brian Vander Schaaf <brian@langchain.dev>"
+    }
+  }
+}
