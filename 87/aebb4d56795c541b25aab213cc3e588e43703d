@@ -1,0 +1,29 @@
+charts/langsmith/README.md
+  s_7c3dfa82c443fb::t_e2b7f9c7054cef 128
+charts/langsmith/templates/_helpers.tpl
+  s_7c3dfa82c443fb::t_fd9a03f852a668 1981-1984
+charts/langsmith/templates/validate.yaml
+  s_7c3dfa82c443fb::t_74685d1d3127c0 797-801
+charts/langsmith/tests/engine_workload_identity_test.yaml
+  s_7c3dfa82c443fb::t_81af28c2a7111d 58,66,73-77,79,92-96
+charts/langsmith/tests/engine_workload_identity_validation_test.yaml
+  s_7c3dfa82c443fb::t_3682086a6d984c 33-40,43
+charts/langsmith/values.yaml
+  s_7c3dfa82c443fb::t_07a64bef44921d 607-610
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "87aebb4d56795c541b25aab213cc3e588e43703d",
+  "prompts": {},
+  "sessions": {
+    "s_7c3dfa82c443fb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d96e5a2d-25e7-443d-ad63-2e6322d0c7be",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Bagatur Askaryan <baskaryan@gmail.com>"
+    }
+  }
+}
