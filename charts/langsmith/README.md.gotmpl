@@ -106,7 +106,7 @@ By default every `/runs`, `/runs/batch` and `/runs/multipart` write is persisted
 
 **Durability trade-off.** A write is acknowledged once it is in the local WAL, before the batch is in S3. On a clean shutdown the WAL drains (the chart raises `terminationGracePeriodSeconds` to at least 330 and keeps the `preStop` sleep; never lower them while the WAL is on). After a node loss, eviction or `SIGKILL`, batches not yet uploaded are lost with the default `emptyDir`, at most `maxBatchAgeSec` (10 s) of writes per pod. To keep them, point `platformBackend.walBatching.volume.override` at a persistent volume (for example `ephemeral.volumeClaimTemplate`, or `persistentVolumeClaim.claimName` with one replica).
 
-**Requirements** (the chart fails to render otherwise): S3 blob storage (`config.blobStorage.engine: S3`, including S3-compatible storage and the bundled RustFS), SmithDB ingestion on (`smithdb.langsmith.ingestion.enabled`), ClickHouse ingestion off (`clickhouse.enabled: false`), and `ingestQueue.enabled`.
+**Requirements** (the chart fails to render otherwise): S3 or GCS blob storage (`config.blobStorage.engine: S3` or `GCS`; S3-compatible storage and the bundled RustFS are fine; Azure is not supported), SmithDB ingestion on (`smithdb.langsmith.ingestion.enabled`), ClickHouse ingestion off (`clickhouse.enabled: false`), and `ingestQueue.enabled`.
 
 **Rollout order.**
 

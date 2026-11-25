@@ -21,15 +21,24 @@ tests:
       - failedTemplate:
           errorMessage: "platformBackend.walBatching.enabled requires ClickHouse ingestion to be off: set clickhouse.enabled to false."
 
-  - it: requires S3 blob storage
+  - it: accepts GCS blob storage
     set:
       platformBackend.walBatching.enabled: true
       config.blobStorage.external.enabled: true
-      config.blobStorage.engine: "GCS"
+      config.blobStorage.engine: "gcs"
       config.blobStorage.bucketName: "bucket"
     asserts:
+      - notFailedTemplate: {}
+
+  - it: requires S3 or GCS blob storage
+    set:
+      platformBackend.walBatching.enabled: true
+      config.blobStorage.external.enabled: true
+      config.blobStorage.engine: "Azure"
+      config.blobStorage.azureStorageContainerName: "container"
+    asserts:
       - failedTemplate:
-          errorMessage: "platformBackend.walBatching.enabled requires S3 blob storage: set config.blobStorage.engine to S3 (S3-compatible services and the bundled RustFS are fine)."
+          errorMessage: "platformBackend.walBatching.enabled requires S3 or GCS blob storage: set config.blobStorage.engine to S3 or GCS (S3-compatible services and the bundled RustFS are fine)."
 
   - it: requires workers to match the multi-tenant setting
     set:

@@ -983,8 +983,8 @@ template and GitOps renders, so those skip this check. */ -}}
 {{- if not (and (kindIs "slice" $wal.enabledTenants) (kindIs "slice" $wal.disabledTenants)) -}}
 {{- fail "platformBackend.walBatching.enabledTenants and disabledTenants must be lists of tenant ids." -}}
 {{- end -}}
-{{- if ne (lower (.Values.config.blobStorage.engine | default "")) "s3" -}}
-{{- fail "platformBackend.walBatching.enabled requires S3 blob storage: set config.blobStorage.engine to S3 (S3-compatible services and the bundled RustFS are fine)." -}}
+{{- if not (has (lower (.Values.config.blobStorage.engine | default "")) (list "s3" "gcs")) -}}
+{{- fail "platformBackend.walBatching.enabled requires S3 or GCS blob storage: set config.blobStorage.engine to S3 or GCS (S3-compatible services and the bundled RustFS are fine)." -}}
 {{- end -}}
 {{- if not .Values.smithdb.langsmith.ingestion.enabled -}}
 {{- fail "platformBackend.walBatching.enabled requires SmithDB ingestion: set smithdb.langsmith.ingestion.enabled to true." -}}

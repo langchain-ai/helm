@@ -3339,7 +3339,7 @@ platformBackend:
   # -- Opt-in WAL batching for the /runs, /runs/batch and /runs/multipart write path, served by this deployment.
   # With it on, the platform backend appends runs to a local disk write-ahead log, uploads one S3 object per batch
   # and enqueues a pointer task that the ingest queue workers persist. Everything is off by default.
-  # Needs S3 blob storage, SmithDB ingestion and ClickHouse ingestion off (enforced by the chart).
+  # Needs S3 or GCS blob storage, SmithDB ingestion and ClickHouse ingestion off (enforced by the chart).
   # Durability trade-off: a run is acknowledged once it is in the local WAL, before it is in S3. On a clean shutdown
   # the WAL drains; on a node loss, eviction or SIGKILL the batches not yet uploaded (up to maxBatchAgeSec of writes
   # per pod) are lost unless `volume.override` points at persistent storage.
