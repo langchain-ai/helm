@@ -1,0 +1,25 @@
+charts/langsmith/examples/langsmith-observability/datadog-dashboard.json
+  s_bbe696691e8303::t_946ff08f6bd1c0 137,180,260,266,272,278,326,332,380,439,492,498,557,563,622,812,855,904,1018,1071,1099,1104,1158,1224,1270,1427,1449,1498,1503,1508,1513,1574,1579,1584,1589,1594,1599,1604,1609,1677,1725,1827,1891,1896,1959,1964,2015,2068,2073,2155,2160,2188,2193,2253,2275,2298,2320,2368,2373,2401,2406,2434,2439,2462,2467,2578,2583,2621,2681,2686,2770,2775,2835,2857,2905,2910,2938,2943,3054,3118,3123,3187,3192,3197,3252,3298,3371,3376,3404,3409,3437,3442,3502,3524,3547,3569,3592,3614,3662,3667,3695,3700,3728,3733,3761,3766,3789,3794,3817,3822,3933,3938,3996,4001,4065,4070,4140,4145,4205,4227,4275,4280,4308,4313,4387,4392,4452,4474,4522,4527,4634,4639,4699,4721,4769,4774,5067,5150,5155,5768,5773,5825
+charts/langsmith/examples/langsmith-observability/README.md
+  s_bbe696691e8303::t_d4404d78f49825 36
+charts/langsmith/examples/langsmith-observability/generate_dashboards.py
+  s_bbe696691e8303::t_07e370f6fa4abf 119-129
+charts/langsmith/examples/langsmith-observability/test_dashboards.py
+  s_bbe696691e8303::t_c095da245e197c 53-54,119,145
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7c249fa35e7a006afa8f0ae93075fbb0a521c84c",
+  "prompts": {},
+  "sessions": {
+    "s_bbe696691e8303": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "90b524c9-b14d-49e2-8249-c4d45c06e7ca",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Steffen Hausmann <steffen@langchain.dev>"
+    }
+  }
+}
