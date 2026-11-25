@@ -1,0 +1,317 @@
+{
+  "Data loss signals (should be 0)": [
+    "The sum of evictions of the Redis that you select with the redis variable (any provider), and ingestion tasks that failed their last attempt, during the selected time range. The last attempt is attempt 12 for run tasks and `persist_batched_feedbacks`, and attempt 25 for the feedback mutation tasks.",
+    "Each count can mean runs or feedback that SmithDB never stores. Users see missing traces or feedback.",
+    "Any value above 0 needs action. The tile shows No data until the LangSmith queue metrics are collected. If no Redis is selected, or its integration does not collect data, the Redis part counts as 0."
+  ],
+  "Oldest waiting ingestion task": [
+    "The age of the oldest task in the ingestion queues that no ingest queue worker has started yet.",
+    "Run data in Redis expires after 6 hours by default (Helm value `config.settings.redisRunsExpirySeconds`). A task that waits longer loses its runs.",
+    "Normal is less than a few seconds, with short peaks of about 30 s. Warning above 10 minutes, critical above 30 minutes: workers cannot process tasks as fast as they arrive. Add ingest queue workers, or examine the SmithDB write latency."
+  ],
+  "Ingestion tasks waiting for retry": [
+    "Ingestion tasks whose write to SmithDB failed and that wait for their next attempt.",
+    "Failed writes are not visible to users until the last retry fails. After 12 retries (13 attempts, about 2.5 hours), the runs are lost.",
+    "Short peaks are normal. A value that stays high means that writes fail. Find the error in the logs of the ingest queue workers."
+  ],
+  "Pending compaction jobs": [
+    "Compaction jobs that wait for a compaction worker.",
+    "Compaction merges small segments. If it is late, queries become slower, and compaction applies deletes and retention late.",
+    "Short peaks are normal, for example after many deletes. A value that stays high for hours means that there are too few compaction workers. Add workers, or let KEDA scale them: set `smithdb.compactionWorker.autoscaling.keda.enabled: true` and `smithdb.compactionWorker.autoscaling.hpa.enabled: false`."
+  ],
+  "Redis evicted keys": [
+    "Keys that the selected Redis removed because its memory reached its limit. There is one line for each provider; only the line of your provider has data.",
+    "Redis keeps run payloads for 6 hours, also after ingestion. An eviction can remove a payload that SmithDB has not stored yet.",
+    "Normal is 0. Any eviction can mean lost runs. Give Redis more memory."
+  ],
+  "Runs dropped by project trace limit": [
+    "Runs that LangSmith dropped because their tracing project exceeded its monthly trace limit.",
+    "This loss comes from configuration, but users see it as missing traces.",
+    "Expected only if you set per-project trace limits. LangSmith drops these runs on purpose. If the values are unexpected, increase or remove the limit."
+  ],
+  "Oldest waiting task by queue": [
+    "The age of the oldest waiting task in each ingestion and feedback queue.",
+    "Run data expires after 6 hours by default. This chart shows how close a queue is to that time.",
+    "Normal is less than a few seconds. The dashed lines are at 10 minutes (warning) and 30 minutes (critical). Above them, workers cannot process tasks as fast as they arrive. The thresholds apply to the ingestion queues."
+  ],
+  "Ingestion queue: pending vs retry": [
+    "Pending: tasks that no worker has started. Retry: tasks whose write failed and that wait for the next attempt.",
+    "A growing backlog shows a problem before latency and data loss increase.",
+    "Pending that grows while traffic is stable: too few workers, or SmithDB is slow. Retry that stays high: writes to SmithDB fail. The dashed lines are at 100 retries (warning) and 1,000 retries (critical, when the value stays above it for 30 minutes)."
+  ],
+  "Feedback queue: pending vs retry": [
+    "Feedback tasks that wait for a worker, and feedback tasks that wait for a retry.",
+    "Feedback retries use the same worker slots as run ingestion. A large feedback backlog makes run ingestion slower.",
+    "If the retry value stays high, set `smithdb.mutations.enabled: true`, so that feedback uses its own query pods."
+  ],
+  "End-to-end ingestion latency p95": [
+    "For each run, the time from receipt by the platform backend to the SmithDB acknowledgement, including the wait in Redis and retries.",
+    "This is the ingestion delay that users see.",
+    "Normal is about 5 s. Short spikes are normal. If the value stays high, compare the oldest waiting task with SmithDB batch latency."
+  ],
+  "Query error rate by pool": [
+    "Server-side failures of the calls to each pool, as a percentage of all calls. Server-side failures are the gRPC codes 2 (unknown), 4 (deadline exceeded), 8 (resource exhausted), 13 (internal), 14 (unavailable), and 15 (data loss), and the SmithDB statuses error and timeout. Client errors and cancellations are not included.",
+    "Users see these failures as errors in the UI and API. The mutations pool also returns code 9 when feedback arrives before its run. That is expected, and LangSmith retries it, so the chart does not count it.",
+    "Warning above 5%, critical above 10%, for 15 minutes. Examine Failed queries by cause, and the Object storage and SmithDB metastore sections."
+  ],
+  "Failed queries by cause": [
+    "Queries that SmithDB stopped: admission queue full, fanout limit exceeded, or an operation over its memory limit.",
+    "Each cause has a different fix.",
+    "Admission queue full: add replicas or memory. Fanout limit: compaction is late. Memory limit: a few are normal; a steady increase means queries need more memory."
+  ],
+  "Admission queue length by pool": [
+    "Requests that wait because the memory of a query pod is at its limit.",
+    "Waiting requests are slow. When the queue is full (100 requests by default, set with `SMITHDB_QUERY__QUERY_ADMISSION_QUEUE_SIZE`), SmithDB rejects new requests.",
+    "Normal is 0. A value above 0 for a long time means that the pool needs more replicas or memory."
+  ],
+  "Scan fanout p99": [
+    "The number of scan partitions that one query must open. A scan partition is approximately one segment or a group of segments. 99% of queries open this number or fewer.",
+    "More scan partitions make queries slower and use more memory. Above 10,000 scan partitions, SmithDB rejects the query.",
+    "A rising trend while traffic is stable means that compaction is behind. Examine the SmithDB compaction section."
+  ],
+  "Compaction jobs: pending vs running": [
+    "Pending: jobs that wait for a compaction worker. Running: jobs that workers run now.",
+    "Running jobs at 0 while jobs are pending means that compaction has stopped.",
+    "Pending that stays high for hours: too few workers. Running at 0 with pending jobs: check that workers can connect to the compaction scheduler. The dashed line is at 1,000 pending jobs (critical, when the value stays above it for 2 hours)."
+  ],
+  "Compaction failure rate by job kind": [
+    "Failed compaction jobs, as a percentage of all completed jobs, for each compaction job kind (`*_compaction`). Data flush and publisher jobs are not included.",
+    "One job kind can break while the others work.",
+    "Normal is well under 2%. Warning above 20%, critical above 50%, over 1 hour. A job kind with failures and no successes does not work. Find the error in the compaction worker logs."
+  ],
+  "Redis CPU": [
+    "CPU use of Redis. Memorystore: percentage of one core. ElastiCache: engine CPU. Memorystore for Redis Cluster: CPU of the busiest node.",
+    "Redis runs commands on one main thread. Above one core, it cannot do more work.",
+    "Warning above 90% of one core (0.9 cores), sustained. All Redis operations then become slower. Use a larger Redis instance."
+  ],
+  "LangSmith Redis client errors": [
+    "Redis errors that LangSmith services see: timeouts, network errors, and server errors.",
+    "This is the Redis health that LangSmith sees.",
+    "More timeouts mean that Redis is overloaded. Examine Redis CPU and memory."
+  ],
+  "Metastore CPU": [
+    "CPU use of the SmithDB metastore instance.",
+    "A busy metastore makes flushes and queries slower.",
+    "Warning above 60%, critical above 80%, for 15 minutes. Look for slow queries, then use a larger instance."
+  ],
+  "Metastore memory": [
+    "Memory of the SmithDB metastore instance. Left axis: free memory (RDS) or available memory (AlloyDB), in bytes. Right axis, orange: used memory, in % (Cloud SQL, Azure).",
+    "Low free memory means fewer cached pages and slower reads and writes.",
+    "Free memory near 0, or used memory near 100%: use an instance with more memory. No alert uses this chart. It helps to explain a slow metastore."
+  ],
+  "Metastore storage": [
+    "Storage of the SmithDB metastore. Left axis: storage used, in % (Cloud SQL, Azure), with the 85% critical line. Right axis, orange: free storage (RDS, Aurora local storage), cluster volume used (Aurora), or storage used (AlloyDB), in bytes.",
+    "Feedback stays in the metastore until compaction moves it. A full disk stops all SmithDB writes.",
+    "Critical: more than 85% used (Cloud SQL, Azure), or less than 10 GiB free (RDS; adjust to your volume). Do not alert on Aurora and AlloyDB if their storage increases automatically. Fast growth: make sure that compaction is not late."
+  ],
+  "Object storage error rate by operation": [
+    "Failed object storage calls, as a percentage of all calls, for each operation.",
+    "Put errors make flushes fail and tasks retry. Get errors make queries fail.",
+    "A low, steady rate of get errors can be normal. Act on an increase, and on any steady rate of put errors."
+  ],
+  "Object storage latency p99 by operation": [
+    "The p99 duration of object storage calls, for each operation.",
+    "Every flush, compaction job, and cache miss waits for object storage. Normal p99 in a large deployment: get about 0.2 s, put about 0.25 s, multipart put about 30 s.",
+    "If flush duration or query latency increases, examine this chart first. Check the bucket region and network."
+  ],
+  "Ingest path: restarts and OOM kills": [
+    "Left axis, orange: container restarts in each interval. Right axis: containers whose most recent stop was an OOM kill.",
+    "A restart stops the tasks in progress. They retry later, which adds delay and load.",
+    "Any restart outside a rollout needs action. Read the logs of the previous container. OOM kills mean that the memory limit is too low."
+  ],
+  "SmithDB ingestion: restarts and OOM kills": [
+    "Left axis, orange: container restarts in each interval. Right axis: containers whose most recent stop was an OOM kill.",
+    "A restart drops the rows that were not flushed. Their tasks retry from Redis, so no data is lost, but ingestion is delayed.",
+    "Any restart outside a rollout needs action. Read the logs of the previous container. OOM kills mean that the memory limit is too low."
+  ],
+  "Query pools: restarts and OOM kills": [
+    "Left axis, orange: container restarts in each interval. Right axis: containers whose most recent stop was an OOM kill.",
+    "A restart fails the queries in progress and empties the pod's memory cache.",
+    "Any restart outside a rollout needs action. OOM kills mean that the pool needs more memory or more replicas."
+  ],
+  "Compaction workers: restarts and OOM kills": [
+    "Left axis, orange: container restarts in each interval. Right axis: containers whose most recent stop was an OOM kill.",
+    "A restart fails the jobs that the worker runs. The scheduler plans them again.",
+    "Any restart outside a rollout needs action. OOM kills mean that jobs are too large for the memory limit."
+  ],
+  "Cluster manager: restarts and OOM kills": [
+    "Left axis, orange: container restarts in each interval. Right axis: containers whose most recent stop was an OOM kill.",
+    "While the cluster manager restarts, requests go to any pod. Ingestion writes smaller segments, and query caches work less well.",
+    "Any restart outside a rollout needs action. Read the logs of the previous container."
+  ],
+  "Cluster manager: replicas": [
+    "Desired and available replicas of the cluster manager.",
+    "Without an available replica, SmithDB routes requests to any pod.",
+    "Available below desired: the pod cannot start; examine the pod events."
+  ],
+  "Runs stored per second": [
+    "Runs that SmithDB stored successfully per second, averaged over the selected time range.",
+    "This is the main load figure. Backlogs and latency only make sense relative to it.",
+    "This tile has no thresholds. A sudden drop while clients still send traces means that ingestion fails; examine the Data loss and LangSmith ingestion sections."
+  ],
+  "Query requests per second": [
+    "Read requests to all SmithDB query pools per second, averaged over the selected time range. Feedback writes and deletes are not included.",
+    "This is the read load from the UI, the API, and automations.",
+    "This tile has no thresholds. If the value increases, examine query latency and failed queries in the SmithDB query section."
+  ],
+  "Feedback writes per second": [
+    "Feedback write requests that SmithDB receives per second.",
+    "Feedback uses the same ingest queue workers as runs, and adds load to the metastore. In some installations, most requests are feedback.",
+    "If feedback increases faster than runs, set `smithdb.mutations.enabled: true`, so that feedback uses its own query pods. Then examine the feedback retry backlog."
+  ],
+  "Query requests per second, by pool": [
+    "Read requests to each SmithDB query pool per second. Feedback writes and deletes are not included.",
+    "Each pool scales independently. This shows which pool needs capacity.",
+    "If one pool increases, examine its latency, errors, and replicas in the SmithDB query section."
+  ],
+  "Ingest path: autoscaler use and unavailable replicas": [
+    "Left axis: current replicas of each autoscaler, as a percentage of its maximum replicas. 100% means that it cannot add more pods. Right axis, orange: replicas that should run but are not available; they stay at 0 when all pods run.",
+    "Ingest queue workers scale independently of SmithDB, with an HPA or KEDA on queue length. At the autoscaler maximum, the queue grows when traffic grows.",
+    "Current replicas at the maximum for a long time: raise the maximum, if SmithDB ingestion has capacity. Available below desired: pods cannot start; examine the pod events."
+  ],
+  "SmithDB ingestion: autoscaler use and unavailable replicas": [
+    "Left axis: current replicas of each autoscaler, as a percentage of its maximum replicas. 100% means that it cannot add more pods. Right axis, orange: replicas that should run but are not available; they stay at 0 when all pods run.",
+    "The ingestion HPA scales on CPU. At the maximum, SmithDB ingestion cannot take more load.",
+    "Current replicas at the maximum for a long time: raise the maximum or set a larger `smithdb.resourceTier`. Available below desired: pods cannot start; run `kubectl describe pod`, and make sure that the cache PersistentVolumeClaim is Bound."
+  ],
+  "Query pools: autoscaler use and unavailable replicas": [
+    "Left axis: current replicas of each autoscaler, as a percentage of its maximum replicas. 100% means that it cannot add more pods. Right axis, orange: replicas that should run but are not available; they stay at 0 when all pods run.",
+    "Each query pool (query, stats-query, run-rules, mutations) has its own autoscaler. At the maximum, a pool cannot add capacity.",
+    "Current replicas at the maximum for a long time: raise the maximum for that pool. Available below desired: pods cannot start; run `kubectl describe pod`, and make sure that the cache PersistentVolumeClaim is Bound."
+  ],
+  "Compaction workers: autoscaler use and unavailable replicas": [
+    "Left axis: current replicas of each autoscaler, as a percentage of its maximum replicas. 100% means that it cannot add more pods. Right axis, orange: replicas that should run but are not available; they stay at 0 when all pods run.",
+    "Compaction workers scale on CPU (HPA) or on pending jobs (KEDA). At the maximum, pending jobs grow.",
+    "Current replicas at the maximum with pending jobs that grow: raise the maximum. Available below desired: pods cannot start; check their cache volumes."
+  ],
+  "SmithDB write error rate": [
+    "Failed write calls to SmithDB ingestion (gRPC status other than 0, including cancellations), as a percentage of all write calls.",
+    "This is the most direct sign that SmithDB rejects writes. Each failed call sends its task back for a retry; after about 2.5 hours of retries, the runs are lost. The retry queue shows the same problem only later.",
+    "Normal is close to 0%. Warning above 1%, critical above 5% with at least 50 failed calls, sustained for 15 minutes. Find the error in the ingest queue and SmithDB ingestion logs; Unavailable errors often come from a proxy or service mesh between the pods."
+  ],
+  "Queue wait vs store write p95": [
+    "Two parts of the end-to-end ingestion latency, for SmithDB. Queue wait: the time from when the platform backend received a run to when an ingest queue worker started its task. Store write: the time of one write call from the worker to SmithDB ingestion.",
+    "When end-to-end latency is high, this shows which step is slow: too few ingest queue workers, or a slow SmithDB.",
+    "Queue wait high while store write is stable: add ingest queue workers. Store write high: examine the SmithDB ingestion section. Normal in a large deployment: queue wait p95 0.2 s (busy hours up to 7 s), store write p95 3.8 s."
+  ],
+  "Container restarts": [
+    "Container restarts of the SmithDB pods (all components except the migration) and the ingest queue workers during the selected time range. OOM kills are included.",
+    "A restart stops the work in progress. Restarts outside a rollout show crash loops, failed probes, or OOM kills.",
+    "Any restart outside a rollout needs action. 3 or more restarts of one pod in 30 minutes means a crash loop. The tile adds up the restarts of all pods during the selected time range. The alert counts each pod over 30 minutes, so a long time range can turn the tile red for restarts that are spread out."
+  ],
+  "Query requests per second, by type (top 10)": [
+    "Requests per second to the SmithDB query pools, for the 10 request types with the most requests. Each label is the gRPC path. The last part is the request type, for example `queryruns` (run lists), `querytrace` (trace view), `querythreads` (threads), `queryrunstats` (run statistics), `queryrunsforrunrulesstream` (automation rules), `ingestfeedback` (feedback writes), and `deleteruns` (deletes).",
+    "This shows which product feature creates the load on the query pools. One new automation rule or a dashboard with many statistics can double the load. Feedback writes and deletes also use these pools.",
+    "If a request type becomes the largest, find the feature that sends it. Many `queryrunsforrunrulesstream` requests come from automation rules. If `ingestfeedback` grows, examine the feedback retry backlog in the LangSmith ingestion section."
+  ],
+  "Runs stored per second, over time": [
+    "Runs that SmithDB stored successfully per second.",
+    "This is the main load figure. Compare it with the tested ingestion rate of your SmithDB tier.",
+    "An increase means more queue length and latency soon. Scale before that happens. A drop while clients still send runs means that ingestion fails."
+  ],
+  "Query latency p95 by pool": [
+    "The p95 duration of requests to each SmithDB query pool. Feedback writes and run deletes are not included.",
+    "This is the read speed that users see in the UI and API. Slow queries usually come before failed queries.",
+    "Warning above 10 s, critical above 20 s, for 15 minutes. Examine the scan fanout, the admission queue, and the pending compaction jobs."
+  ],
+  "SmithDB batch latency and flush failures": [
+    "Left axis: the time that SmithDB ingestion needs to save the runs of one partition (one project on one day) in object storage and the metastore (p50 and p99). Right axis, orange line: flushes to object storage that failed in each interval. The orange line stays at 0 when no flush fails. If it is missing, the metric is not collected.",
+    "This is the time of the store write step of ingestion. If it increases, store write in the LangSmith ingestion section increases too.",
+    "Normal p50 is about 0.5 to 0.7 s. p50 above 1.6 s (warning) or 2 s (critical) for 15 minutes: flushes are slow; examine object storage and metastore latency. Failures at a steady rate: object storage or the metastore returns errors."
+  ],
+  "Fewest available pods in a SmithDB component": [
+    "The lowest number of available pods of any SmithDB Deployment. smithdb-migration is not included, because it normally has no pods.",
+    "A component without pods does not report metrics. Its charts then show no data instead of a problem.",
+    "0 needs action: a component has no available pod. Open the Infrastructure block of each section to find the component, and examine its pod events."
+  ],
+  "Redis memory, % of limit": [
+    "Memory use of the selected Redis, as a percentage of its limit. There is one line for each provider; only the line of your provider has data: the Redis integration (used / maxmemory), ElastiCache, Memorystore, or Memorystore for Redis Cluster (fullest node).",
+    "Redis holds the ingestion queues and 6 hours of run data. With `volatile-lru`, the expected `maxmemory-policy`, Redis evicts keys that have an expiry time at the limit, such as run data, and runs can be lost.",
+    "Warning above 80%, critical above 90%, for 10 minutes. Drain the ingestion backlog, or give Redis more memory. If the Redis integration line is missing, `maxmemory` is not set."
+  ],
+  "Query error rate, worst pool": [
+    "The highest share of failed queries of any SmithDB query pool, over the selected time range. Query error rate by pool shows which pool it is. Failures are the gRPC codes 2, 4, 8 (includes rejections), 13, 14, and 15, and the SmithDB statuses error and timeout. Client errors and cancellations are not included.",
+    "Users see these failures as errors in the UI and API. Each pool scales on its own, so one pool can fail while the others work.",
+    "Warning above 5%, critical above 10%. Open Failed queries by cause in the SmithDB query section: rejections, timeouts, and internal errors need different fixes."
+  ],
+  "tile:SmithDB write error rate": [
+    "Failed write calls to SmithDB ingestion, as a percentage of all write calls, over the selected time range.",
+    "Each failed call sends its task back for a retry. Failures that continue for about 2.5 hours lose runs.",
+    "Warning above 1%, critical above 5% with at least 50 failed calls."
+  ],
+  "tile:Redis memory, % of limit": [
+    "Memory use of the selected Redis, as a percentage of its limit. The tile takes the value of the provider that matches your selection: the Redis integration (used / maxmemory), ElastiCache, Memorystore, or Memorystore for Redis Cluster (fullest node).",
+    "Redis holds the ingestion queues and 6 hours of run data. With `volatile-lru`, the expected `maxmemory-policy`, Redis evicts keys that have an expiry time at the limit, such as run data, and runs can be lost.",
+    "Above 80% means that Redis will soon reach its limit. Drain the ingestion backlog, or give Redis more memory. Size Redis for your peak backlog, including periods when SmithDB writes are slow. No data: no Redis is selected with the redis variable, or its integration does not collect data."
+  ],
+  "Metastore connections, % of max": [
+    "Connections to the SmithDB metastore, as a percentage of max_connections. Select the database with the metastore variable, with the host tag of the Datadog PostgreSQL integration.",
+    "All SmithDB pods use connection pools to the metastore. When no connection is free, SmithDB writes and queries fail.",
+    "Warning above 80%, critical above 90%. Raise max_connections, or use a larger instance."
+  ],
+  "Metastore connections": [
+    "Connections to the SmithDB metastore. Left axis: % of max_connections (PostgreSQL integration). Right axis, orange: the connection count from RDS, Cloud SQL, AlloyDB, or Azure.",
+    "All SmithDB pods use connection pools. When no connection is free, SmithDB writes and queries fail.",
+    "Warning above 80%, critical above 90% of max_connections. Raise max_connections, or use a larger instance."
+  ],
+  "SmithDB panics": [
+    "SmithDB log lines for an unexpected internal error (a panic), during the selected time range. The count leaves out `Runtime dropped task without completing it`, which follows another failure in the same pod.",
+    "A panic is always a defect. A request fails, a background task stops, or the pod restarts. If the pod does not restart, no metric shows the panic.",
+    "Any value above 0 needs attention: open the log lines to see the component and the error. Examine the write errors, query errors, and container restarts of the same component."
+  ],
+  "Run task failures by remaining attempts": [
+    "Failed attempts of run ingestion tasks in each interval, stacked by the number of attempts that are left: 3, 2, 1, or 0. Run tasks have 12 retries, so 0 left is attempt 12. Expected retries, such as rate limits, are not counted.",
+    "A task with attempts left is tried again. A failure with 0 left sends the task to the archive, and its runs are lost.",
+    "A failure with 0 left means data loss. Find the error in the logs of the ingest queue workers."
+  ],
+  "Feedback task failures by remaining attempts": [
+    "Failed attempts of feedback tasks in each interval, stacked by the number of attempts that are left: 3, 2, 1, or 0. `persist_batched_feedbacks` has 12 retries, and the feedback mutation tasks have 25, so 0 left is attempt 12 or attempt 25. Expected retries are not counted. **`persist_batched_feedbacks` never shows 0 left:** it does not count failures while the run is not yet ingested, and reports failures only halfway and at 1 attempt left. If its last attempt fails, the feedback is lost, but this chart does not show it.",
+    "A task with attempts left is tried again. A failure with 0 left means that the feedback is lost.",
+    "A failure with 0 left means data loss. Find the error in the logs of the ingest queue workers. If feedback fails often, set `smithdb.mutations.enabled: true`."
+  ],
+  "Feedback at risk (should be 0)": [
+    "Failures of `persist_batched_feedbacks` at attempt 11, one attempt before its last, during the selected time range.",
+    "This task does not count a failure while the run of its feedback is not ingested yet. If its last attempt fails for this reason, the feedback is lost, but the Data loss tile does not show it. A failure at attempt 11 is often the last signal before the loss.",
+    "Above 0 means that feedback is probably lost. Examine the feedback chart in the Data loss section, and find the error in the logs of the ingest queue workers. If feedback fails often, set `smithdb.mutations.enabled: true`."
+  ],
+  "SmithDB ingestion: memory, % of limit (fullest pod)": [
+    "Memory of the fullest pod of each Deployment, as a percentage of its memory limit: the highest working set of its pods, divided by the memory limit. All pods of a Deployment have the same limit.",
+    "Ingestion pods hold runs in memory until they write them to object storage. A pod that reaches its limit is stopped (OOM kill), and the writes that it holds fail and retry.",
+    "Above 80%, the pod gets near an OOM kill. Examine the batch latency and flush failures, then add replicas or memory."
+  ],
+  "Query pools: memory, % of limit (fullest pod)": [
+    "Memory of the fullest pod of each Deployment, as a percentage of its memory limit: the highest working set of its pods, divided by the memory limit. All pods of a Deployment have the same limit.",
+    "Query pods usually run out of memory before they run out of CPU. Near the limit, requests wait in the admission queue or SmithDB rejects them. An autoscaler that uses CPU does not add replicas in this case.",
+    "Above 80%, add replicas or memory to that pool, or set a minimum replica count that holds your normal load. Examine the admission queue in the SmithDB query section."
+  ],
+  "Compaction workers: memory, % of limit (fullest pod)": [
+    "Memory of the fullest pod of each Deployment, as a percentage of its memory limit: the highest working set of its pods, divided by the memory limit. All pods of a Deployment have the same limit.",
+    "Large compaction jobs need much memory. A worker that reaches its limit is stopped (OOM kill), and its running jobs fail and are planned again.",
+    "Above 80%, give the workers more memory, so that large jobs fit. If one job kind fails again and again, examine the compaction failure rate by job kind."
+  ],
+  "SmithDB ingestion: CPU, % of limit, and throttling": [
+    "Left axis: CPU use of the fullest pod of each Deployment, as a percentage of its CPU limit. Right axis, orange: the share of CPU periods in which the pods were stopped at their CPU limit (throttling), across all pods. There is one line of each for every Deployment. No line means that the pods have no CPU limit.",
+    "Ingestion sorts, encodes, and compresses every segment. Throttling makes flushes slower. Throttling can occur below 100% CPU use, because short bursts hit the limit.",
+    "CPU above 80%, or throttling that increases, while batch latency increases: raise the CPU limit or add replicas."
+  ],
+  "Query pools: CPU, % of limit, and throttling": [
+    "Left axis: CPU use of the fullest pod of each Deployment, as a percentage of its CPU limit. Right axis, orange: the share of CPU periods in which the pods were stopped at their CPU limit (throttling), across all pods. There is one line of each for every Deployment. No line means that the pods have no CPU limit.",
+    "Queries decode, filter, and merge segments. Throttling shows as query latency. Throttling can occur below 100% CPU use, because short bursts hit the limit.",
+    "CPU above 80%, or throttling that increases, while query latency increases: raise the CPU limit or add replicas to that pool."
+  ],
+  "Compaction workers: CPU, % of limit, and throttling": [
+    "Left axis: CPU use of the fullest pod of each Deployment, as a percentage of its CPU limit. Right axis, orange: the share of CPU periods in which the pods were stopped at their CPU limit (throttling), across all pods. There is one line of each for every Deployment. No line means that the pods have no CPU limit.",
+    "Compaction decodes, merges, and encodes segments. Throttled workers finish fewer jobs. Throttling can occur below 100% CPU use, because short bursts hit the limit.",
+    "CPU above 80%, or throttling that increases, while pending jobs grow: raise the CPU limit or add workers."
+  ],
+  "Cluster manager: CPU, % of limit, and throttling": [
+    "Left axis: CPU use of the fullest pod of each Deployment, as a percentage of its CPU limit. Right axis, orange: the share of CPU periods in which the pods were stopped at their CPU limit (throttling), across all pods. There is one line of each for every Deployment. No line means that the pods have no CPU limit.",
+    "The cluster manager recomputes assignments when pods change or load moves. Throttling can occur below 100% CPU use, because short bursts hit the limit.",
+    "CPU above 80%, or throttling that increases, delays the assignments of projects and workspaces to pods. Raise the CPU limit."
+  ],
+  "Ingest path: CPU, % of limit, and throttling": [
+    "Left axis: CPU use of the fullest pod of each Deployment, as a percentage of its CPU limit. Right axis, orange: the share of CPU periods in which the pods were stopped at their CPU limit (throttling), across all pods. There is one line of each for every Deployment. No line means that the pods have no CPU limit.",
+    "The platform backend parses every run. Ingest queue workers decode and send every batch. Throttled pods process fewer tasks, and the queue grows. Throttling can occur below 100% CPU use, because short bursts hit the limit.",
+    "CPU above 80%, or throttling that increases, makes the ingestion queue grow. Add replicas, or raise the CPU limit. Ingest queue workers scale independently of SmithDB."
+  ]
+}

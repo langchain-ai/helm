@@ -12,7 +12,7 @@ Download these files from the repository, not the Helm chart archive. The unifie
 | Grafana | [grafana-dashboard.json](grafana-dashboard.json) | Grafana 13 or later, with a Prometheus data source; V2 dashboard resource format |
 | Grafana (SmithDB only) | [components/smithdb/grafana.json](components/smithdb/grafana.json) | Existing standalone Classic-format dashboard for installations without native tabs |
 
-The SmithDB tab covers ingestion, queries, compaction, storage, memory, and the LangSmith ingestion path. For metric definitions, see the [SmithDB metrics reference](https://docs.langchain.com/langsmith/self-host-smithdb-metrics).
+The Datadog SmithDB tab starts with health tiles that turn yellow or red when an area needs action. Its sections cover data loss, the LangSmith ingestion path, SmithDB ingestion, queries, compaction, the cluster manager, Redis, the metastore, and object storage. Each tile and section links to the matching [recommended SmithDB alerts](https://docs.langchain.com/langsmith/self-host-smithdb-alerts). The Grafana SmithDB tab keeps the earlier layout: ingestion, queries, compaction, storage, memory, and the LangSmith ingestion path. For metric definitions, see the [SmithDB metrics reference](https://docs.langchain.com/langsmith/self-host-smithdb-metrics).
 
 The Datadog Sandboxes tab adds host capacity, lifecycle, execution, resources, networking, health, and optional APM, JuiceFS, and cloud storage panels. Both tabs share `env`, `cluster`, and `namespace`. Cluster queries retain their original tag keys: `cluster_name` for SmithDB and `kube_cluster_name` for Sandbox hosts and JuiceFS. Both use `kube_namespace` for namespace. APM uses only `env` and `api_service`; cloud panels use their bucket selectors.
 
@@ -27,13 +27,13 @@ Apply collection settings only for the components you operate. These examples do
 | SmithDB | [Autodiscovery values](components/smithdb/datadog-values.yaml) | [Scrape annotations](components/smithdb/prometheus-values.yaml) |
 | Sandboxes | [Host values](components/sandboxes/datadog-values.yaml), or [host and JuiceFS values](components/sandboxes/datadog-juicefs-values.yaml) | [Host scrape job](components/sandboxes/prometheus/host-scrape.yaml), plus [optional JuiceFS job](components/sandboxes/prometheus/juicefs-scrape.yaml) |
 
-SmithDB's examples also collect LangSmith ingest-queue metrics on port `1989` and platform-backend queue metrics on port `1986`. Keep metrics listeners private. Prometheus must already discover the supplied annotations and attach the `namespace` label. The Datadog example uses the `smithdb.` metric prefix; the Grafana queries use raw Prometheus names. Datadog's SmithDB error panels additionally require logs matching `service:smithdb*`.
+SmithDB's examples also collect LangSmith ingest-queue metrics on port `1989` and platform-backend queue metrics on port `1986`. Keep metrics listeners private. Prometheus must already discover the supplied annotations and attach the `namespace` label. The Datadog example uses the `smithdb.` metric prefix; the Grafana queries use raw Prometheus names. The Datadog example collects every LangSmith metric that the SmithDB tab uses. Two Datadog widgets also read logs: SmithDB panics from the SmithDB logs, and expired runs from the ingest queue logs. The Redis and metastore charts need the Redis, PostgreSQL, or cloud provider integration, and the infrastructure charts need the Kubernetes integration.
 
 With `smithdb.topology: unified`, the `unified` entry scrapes the SmithDB pod on port `8060`.
 
 ## Import and filter
 
-- **Datadog:** Import the JSON into a new dashboard using its JSON import action. Select `env`, `cluster`, and `namespace`. The cluster picker discovers values from `cluster_name`; queries use `$cluster.value` with their component's explicit tag key. You can change the picker's tag key without retagging metrics or changing those query keys, provided the selected cluster names match. Namespace uses `kube_namespace`. API service and bucket selectors follow the shared filters; Datadog places overflow controls in its additional-variable menu.
+- **Datadog:** Import the JSON into a new dashboard using its JSON import action. Select `env`, `cluster`, and `namespace`. The cluster picker discovers values from `cluster_name`; SmithDB queries use `$cluster`, so Datadog drops the cluster filter when it is `*`; Sandbox queries use `kube_cluster_name:$cluster.value`. If you change the picker's tag key, SmithDB queries follow it, and Sandbox queries keep their explicit key, provided the selected cluster names match. Namespace uses `kube_namespace`. On the SmithDB tab, select your Redis with `redis` and your metastore with `metastore`. Each takes one tag of the resource, for example `cacheclusterid:<node>` or `dbclusteridentifier:<name>`. API service and bucket selectors follow the shared filters; Datadog places overflow controls in its additional-variable menu.
 - **Grafana:** Import the V2 resource JSON into Grafana 13 or later. Select one shared Prometheus Data source and Namespace(s). Select both namespaces if components run in different namespaces. The namespace list includes values from SmithDB and Sandbox metrics. Sandbox cluster does not affect SmithDB; select it to narrow Sandbox pools across clusters.
 
 Select only one Sandbox pool before reading ready/desired pool counts. Selecting a SmithDB namespace alongside one Sandbox namespace is supported; selecting several Sandbox pools does not make leader counts additive.
@@ -63,14 +63,15 @@ The former `smithdb-observability/` directory has been removed. Update bookmarks
 
 ## Maintain the definitions
 
-Edit component sources under `components/`. `generate_dashboards.py` produces only the two unified dashboard JSON files in this directory. Widget and tab identifiers are generated locally and deterministically; they are not copied from a Datadog account. The generator runs offline with Python's standard library and accepts no dashboard export, URL, or credentials.
+Edit component sources under `components/`. The Datadog SmithDB tab is generated: edit `components/smithdb/build_datadog.py` and its tooltips in `components/smithdb/datadog_tooltips.json`, then run the build script to update `components/smithdb/datadog.json`. `generate_dashboards.py` produces only the two unified dashboard JSON files in this directory. Widget and tab identifiers are generated locally and deterministically; they are not copied from a Datadog account. The generator runs offline with Python's standard library and accepts no dashboard export, URL, or credentials.
 
 From the repository root:
 
 ```bash
+python3 charts/langsmith/examples/langsmith-observability/components/smithdb/build_datadog.py
 python3 charts/langsmith/examples/langsmith-observability/generate_dashboards.py
 python3 charts/langsmith/examples/langsmith-observability/generate_dashboards.py --check
 python3 -m unittest discover -s charts/langsmith/examples/langsmith-observability -p 'test_*.py'
 ```
 
-Tests verify metric queries and visualization settings survive composition, tab references resolve, incompatible filter definitions are rejected, and generation is self-contained within the bundle.
+Tests verify that the Datadog SmithDB tab matches its build script, metric queries and visualization settings survive composition, tab references resolve, incompatible filter definitions are rejected, and generation is self-contained within the bundle.
