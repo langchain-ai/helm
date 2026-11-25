@@ -1,0 +1,192 @@
+suite: WAL batching is opt-in
+templates:
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - operator/config-map.yaml
+  - platform-backend/deployment.yaml
+  - ingest-queue/deployment.yaml
+set:
+  config.existingSecretName: "langsmith-secrets"
+  config.oauth.enabled: true
+  config.authType: "oauth"
+tests:
+  - it: renders no WAL volume, mount or env on the platform backend by default
+    template: platform-backend/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_WAL_BATCHING_ENABLED
+            value: "true"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: WAL_DIR
+            value: /var/lib/smith-wal
+      - notExists:
+          path: spec.template.spec.volumes
+      - notExists:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+      - equal:
+          path: spec.template.spec.terminationGracePeriodSeconds
+          value: 60
+
+  - it: renders no WAL env on the ingest queue by default
+    template: ingest-queue/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: WAL_WORKER_MEMORY_MB
+            value: "256"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_WAL_MULTI_TENANT_ENABLED
+            value: "true"
+
+  - it: enables the WAL on the platform backend with an emptyDir and ephemeral-storage request
+    template: platform-backend/deployment.yaml
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      clickhouse.enabled: false
+      platformBackend.walBatching.enabled: true
+      platformBackend.walBatching.enabledTenants: ["tenant-1"]
+      platformBackend.walBatching.maxDiskGB: 20
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_WAL_BATCHING_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_WAL_BATCHING_ENABLED_TENANTS
+            value: '["tenant-1"]'
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: WAL_MAX_DISK_GB
+            value: "20"
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: smith-wal
+            emptyDir:
+              sizeLimit: 22Gi
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: smith-wal
+            mountPath: /var/lib/smith-wal
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: 23Gi
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 2Gi
+      - equal:
+          path: spec.template.spec.terminationGracePeriodSeconds
+          value: 330
+      - equal:
+          path: spec.template.spec.containers[0].lifecycle.preStop.exec.command
+          value:
+            - sleep
+            - "10"
+
+  - it: never lowers a larger terminationGracePeriodSeconds when the WAL is on
+    template: platform-backend/deployment.yaml
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      clickhouse.enabled: false
+      platformBackend.walBatching.enabled: true
+      platformBackend.deployment.terminationGracePeriodSeconds: 600
+    asserts:
+      - equal:
+          path: spec.template.spec.terminationGracePeriodSeconds
+          value: 600
+
+  - it: uses the override volume and adds no ephemeral-storage request
+    template: platform-backend/deployment.yaml
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      clickhouse.enabled: false
+      platformBackend.walBatching.enabled: true
+      platformBackend.walBatching.volume.override:
+        persistentVolumeClaim:
+          claimName: smith-wal
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: smith-wal
+            persistentVolumeClaim:
+              claimName: smith-wal
+      - notExists:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+
+  - it: keeps an ephemeral-storage request the operator already set
+    template: platform-backend/deployment.yaml
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      clickhouse.enabled: false
+      platformBackend.walBatching.enabled: true
+      platformBackend.deployment.resources.requests.ephemeral-storage: 50Gi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: 50Gi
+
+  - it: sets the worker env on the ingest queue when the WAL is enabled
+    template: ingest-queue/deployment.yaml
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      clickhouse.enabled: false
+      platformBackend.walBatching.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: WAL_WORKER_MEMORY_MB
+            value: "256"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: WAL_WORKER_DECODE_CONCURRENCY
+            value: "4"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_WAL_MULTI_TENANT_ENABLED
+            value: "true"
+
+  - it: sets the multi-tenant env on writer and workers
+    template: platform-backend/deployment.yaml
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      clickhouse.enabled: false
+      platformBackend.walBatching.enabled: true
+      platformBackend.walBatching.multiTenant.enabled: true
+      ingestQueue.walWorker.multiTenantEnabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_WAL_MULTI_TENANT_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: WAL_TMP_BATCH_PREFIX
+            value: tmp/batches

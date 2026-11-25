@@ -974,3 +974,40 @@ template and GitOps renders, so those skip this check. */ -}}
 {{- end }}
 {{- end }}
 {{- end }}
+{{- /* WAL batching preconditions. See platformBackend.walBatching in values.yaml. */ -}}
+{{- $wal := .Values.platformBackend.walBatching -}}
+{{- if or (not (kindIs "bool" $wal.enabled)) (not (kindIs "bool" $wal.multiTenant.enabled)) -}}
+{{- fail "platformBackend.walBatching.enabled and platformBackend.walBatching.multiTenant.enabled must be booleans. Do not quote true or false." -}}
+{{- end -}}
+{{- if $wal.enabled -}}
+{{- if not (and (kindIs "slice" $wal.enabledTenants) (kindIs "slice" $wal.disabledTenants)) -}}
+{{- fail "platformBackend.walBatching.enabledTenants and disabledTenants must be lists of tenant ids." -}}
+{{- end -}}
+{{- if ne (lower (.Values.config.blobStorage.engine | default "")) "s3" -}}
+{{- fail "platformBackend.walBatching.enabled requires S3 blob storage: set config.blobStorage.engine to S3 (S3-compatible services and the bundled RustFS are fine)." -}}
+{{- end -}}
+{{- if not .Values.smithdb.langsmith.ingestion.enabled -}}
+{{- fail "platformBackend.walBatching.enabled requires SmithDB ingestion: set smithdb.langsmith.ingestion.enabled to true." -}}
+{{- end -}}
+{{- if .Values.clickhouse.enabled -}}
+{{- fail "platformBackend.walBatching.enabled requires ClickHouse ingestion to be off: set clickhouse.enabled to false." -}}
+{{- end -}}
+{{- if not .Values.ingestQueue.enabled -}}
+{{- fail "platformBackend.walBatching.enabled requires ingestQueue.enabled: the ingest queue workers persist the uploaded batches." -}}
+{{- end -}}
+{{- if and (not $wal.multiTenant.enabled) (or $wal.zone $wal.zonalBucket) -}}
+{{- fail "platformBackend.walBatching.zone and zonalBucket require platformBackend.walBatching.multiTenant.enabled." -}}
+{{- end -}}
+{{- if and $wal.zonalBucket (not $wal.zone) -}}
+{{- fail "platformBackend.walBatching.zonalBucket requires platformBackend.walBatching.zone." -}}
+{{- end -}}
+{{- if not (and (kindIs "string" $wal.dir) (hasPrefix "/" $wal.dir)) -}}
+{{- fail "platformBackend.walBatching.dir must be an absolute path." -}}
+{{- end -}}
+{{- if and (empty $wal.volume.override) (lt (int $wal.volume.sizeLimitBufferGB) 1) -}}
+{{- fail "platformBackend.walBatching.volume.sizeLimitBufferGB must be at least 1 so the app backs off before the kubelet evicts the pod." -}}
+{{- end -}}
+{{- if ne (toString .Values.ingestQueue.walWorker.multiTenantEnabled) (toString $wal.multiTenant.enabled) -}}
+{{- fail "ingestQueue.walWorker.multiTenantEnabled must equal platformBackend.walBatching.multiTenant.enabled: the workers need the plan_s3_batch handler for multi-tenant batches." -}}
+{{- end -}}
+{{- end -}}

@@ -3336,6 +3336,64 @@ platformBackend:
     volumes: []
     volumeMounts: []
     terminationGracePeriodSeconds: 60
+  # -- Opt-in WAL batching for the /runs, /runs/batch and /runs/multipart write path, served by this deployment.
+  # With it on, the platform backend appends runs to a local disk write-ahead log, uploads one S3 object per batch
+  # and enqueues a pointer task that the ingest queue workers persist. Everything is off by default.
+  # Needs S3 blob storage, SmithDB ingestion and ClickHouse ingestion off (enforced by the chart).
+  # Durability trade-off: a run is acknowledged once it is in the local WAL, before it is in S3. On a clean shutdown
+  # the WAL drains; on a node loss, eviction or SIGKILL the batches not yet uploaded (up to maxBatchAgeSec of writes
+  # per pod) are lost unless `volume.override` points at persistent storage.
+  # Rollout order: 1) upgrade the ingest queue workers to an image with the `persist_s3_batch` handler (plus
+  # `plan_s3_batch` and the group tasks if multiTenant is on); 2) set enabled=true with enabledTenants set to one
+  # tenant; 3) widen enabledTenants. To turn it off, set enabled=false (or add the tenant to disabledTenants);
+  # keep the pods and workers running until the WAL has drained.
+  walBatching:
+    # -- Master switch (FF_WAL_BATCHING_ENABLED). Also mounts the WAL volume and raises terminationGracePeriodSeconds.
+    enabled: false
+    # -- Tenant ids that use the WAL (FF_WAL_BATCHING_ENABLED_TENANTS). `["*"]` matches every tenant.
+    # With enabled=true and an empty list no tenant uses the WAL.
+    enabledTenants: []
+    # -- Tenant ids that never use the WAL (FF_WAL_BATCHING_DISABLED_TENANTS); wins over enabledTenants.
+    disabledTenants: []
+    # -- WAL_BACKEND
+    backend: disk
+    # -- WAL_DIR: mount path of the WAL volume.
+    dir: /var/lib/smith-wal
+    # -- WAL_MAX_DISK_GB: the app stops buffering and backs off above this much WAL on disk.
+    maxDiskGB: 10
+    # -- WAL_MAX_BATCH_MB: a batch is uploaded once it reaches this size.
+    maxBatchMB: 64
+    # -- WAL_MAX_BATCH_AGE_SEC: a batch is uploaded once it reaches this age.
+    maxBatchAgeSec: 10
+    # -- WAL_FSYNC_INTERVAL_MS (unset keeps the application default of 5).
+    fsyncIntervalMs: null
+    # -- terminationGracePeriodSeconds applied when the WAL is enabled. The WAL drains on SIGTERM (60s app budget
+    # after the preStop sleep), so a larger deployment.terminationGracePeriodSeconds is kept, never a smaller one.
+    terminationGracePeriodSeconds: 330
+    multiTenant:
+      # -- FF_WAL_MULTI_TENANT_ENABLED: one WAL per pod for all tenants. Batches are written under tmpBatchPrefix,
+      # which needs a bucket lifecycle rule expiring it. Requires the queue workers to run `plan_s3_batch`.
+      enabled: false
+      # -- WAL_TMP_BATCH_PREFIX. The lifecycle rule must keep objects LONGER than the Redis run-state expiry,
+      # or a batch can be deleted before its runs are persisted.
+      tmpBatchPrefix: tmp/batches
+      # -- WAL_GROUP_MB (unset keeps the application default of 64).
+      groupMB: null
+    # -- WAL_ZONE: availability zone of this stack, for zonal multi-tenant batching. Needs multiTenant.enabled.
+    zone: ""
+    # -- WAL_ZONAL_BUCKET: zonal bucket (S3 Express One Zone / GCS Rapid) holding this zone's batches. Needs zone.
+    # Its lifecycle rule has the same retention requirement as tmpBatchPrefix.
+    zonalBucket: ""
+    volume:
+      # -- Extra GB above maxDiskGB in the default emptyDir sizeLimit, so the app backs off before the kubelet evicts.
+      sizeLimitBufferGB: 2
+      # -- GB added to the emptyDir limit for the ephemeral-storage request (container logs).
+      logsBufferGB: 1
+      # -- Replaces the default emptyDir with any Kubernetes volume source, e.g. a generic ephemeral volume
+      # (`ephemeral.volumeClaimTemplate`) or `persistentVolumeClaim.claimName` for a single replica.
+      # An emptyDir loses unuploaded batches when the pod is evicted or the node is lost.
+      # When set, no ephemeral-storage request is added.
+      override: {}
   # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
   autoscaling:
     # HPA-specific configuration
@@ -3987,6 +4045,27 @@ ingestQueue:
     volumes: []
     volumeMounts: []
     terminationGracePeriodSeconds: 30
+  # -- Worker-side settings for WAL batching. Rolled out BEFORE platformBackend.walBatching.enabled: the workers
+  # must run an image with the `persist_s3_batch` handler (plus `plan_s3_batch` and group tasks for multiTenant).
+  # These only set env vars with defaults, so they change nothing until batches are enqueued.
+  walWorker:
+    # -- Render the worker env vars below. Always rendered when platformBackend.walBatching.enabled is true; set this
+    # only to tune the workers before that, or when the writer runs elsewhere.
+    enabled: false
+    # -- WAL_WORKER_MEMORY_MB: decoded bytes one persist_s3_batch task may hold. Keep well under the memory limit.
+    memoryMB: 256
+    # -- WAL_WORKER_DECODE_CONCURRENCY: runs one task decodes in parallel.
+    decodeConcurrency: 4
+    # -- FF_WAL_MULTI_TENANT_ENABLED on the workers; keep equal to platformBackend.walBatching.multiTenant.enabled.
+    multiTenantEnabled: false
+    # -- WAL_TMP_BATCH_PREFIX; keep equal to platformBackend.walBatching.multiTenant.tmpBatchPrefix.
+    tmpBatchPrefix: tmp/batches
+    # -- WAL_GROUP_MB (unset keeps the application default of 64).
+    groupMB: null
+    # -- WAL_ZONE, WAL_ZONE_WORKER_ONLY and WAL_ZONAL_BUCKET: zonal workers consume only their zone's queue.
+    zone: ""
+    zoneWorkerOnly: false
+    zonalBucket: ""
   pdb:
     enabled: false
     minAvailable: 1
