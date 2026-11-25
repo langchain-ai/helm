@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.19.0-rc.9](https://img.shields.io/badge/Version-0.19.0--rc.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.19.3rc1](https://img.shields.io/badge/AppVersion-0.19.3rc1-informational?style=flat-square)
+![Version: 0.19.0-rc.11](https://img.shields.io/badge/Version-0.19.0--rc.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.19.3rc1](https://img.shields.io/badge/AppVersion-0.19.3rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -728,7 +728,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.66"` |  |
+| images.operatorImage.tag | string | `"0.1.67"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
 | images.pollyAgentImage.tag | string | `"0.19.3rc1"` |  |
