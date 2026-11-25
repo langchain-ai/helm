@@ -1,0 +1,31 @@
+charts/langsmith/examples/langsmith-observability/components/smithdb/build_datadog.py
+  s_bbe696691e8303::t_1f3e53ec431b89 107-109,111-115
+  s_bbe696691e8303::t_82ba2ff1cc2002 149,436
+charts/langsmith/examples/langsmith-observability/datadog-dashboard.json
+  s_bbe696691e8303::t_2821bccbcaea9b 2291,4992
+  s_bbe696691e8303::t_1f3e53ec431b89 2138,2149-2214,2232,2243,2246-2247,2266,2277,2280-2281,2286,2288,2821,2832-2864,2882,2893,2896-2897,2902,2904,2907,3502,3521,3532-3630,3648,3659,3662-3663,3682,3693,3696-3697,3716,3727,3730-3731,3736,3738,3741,4504,4523,4534-4566,4584,4595,4598-4599,4604,4606,4609,4887,4906,4917-4949,4967,4978,4981-4982,4987,4989
+  s_bbe696691e8303::t_9d609ffbc8e976 2119,2802
+charts/langsmith/examples/langsmith-observability/components/smithdb/datadog.json
+  s_bbe696691e8303::t_1f3e53ec431b89 2076,2087-2152,2170,2181,2184-2185,2204,2215,2218-2219,2224,2226,2750,2761-2793,2811,2822,2825-2826,2831,2833,2836,3419,3437,3448-3546,3564,3575,3578-3579,3598,3609,3612-3613,3632,3643,3646-3647,3652,3654,3657,4410,4428,4439-4471,4489,4500,4503-4504,4509,4511,4514,4786,4804,4815-4847,4865,4876,4879-4880,4885,4887
+  s_bbe696691e8303::t_2821bccbcaea9b 2229,4890
+  s_bbe696691e8303::t_ccba74ee83b714 2058,2732
+charts/langsmith/examples/langsmith-observability/components/smithdb/datadog_tooltips.json
+  s_bbe696691e8303::t_1f3e53ec431b89 316-334,336-339
+  s_bbe696691e8303::t_2821bccbcaea9b 335,340
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0cb3a864b32dd376a4405fe04cf8f9d551552505",
+  "prompts": {},
+  "sessions": {
+    "s_bbe696691e8303": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "90b524c9-b14d-49e2-8249-c4d45c06e7ca",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Steffen Hausmann <steffen@langchain.dev>"
+    }
+  }
+}
