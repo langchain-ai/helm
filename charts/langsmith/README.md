@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.19.0-rc.9](https://img.shields.io/badge/Version-0.19.0--rc.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.19.3rc1](https://img.shields.io/badge/AppVersion-0.19.3rc1-informational?style=flat-square)
+![Version: 0.19.0-rc.10](https://img.shields.io/badge/Version-0.19.0--rc.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.19.3rc1](https://img.shields.io/badge/AppVersion-0.19.3rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -121,7 +121,7 @@ By default every `/runs`, `/runs/batch` and `/runs/multipart` write is persisted
 
 **Disk sizing.** The default volume is an `emptyDir` whose `sizeLimit` is `maxDiskGB` + `volume.sizeLimitBufferGB` (2), so the app backs off before the kubelet evicts the pod. The chart adds an `ephemeral-storage` request for that limit plus `volume.logsBufferGB` (1) to the platform backend `resources.requests`, unless you set one yourself.
 
-**Multi-tenant and zonal batching (optional).** `multiTenant.enabled` keeps one WAL per pod for all tenants and uploads batches under `multiTenant.tmpBatchPrefix` (`tmp/batches`); set `ingestQueue.walWorker.multiTenantEnabled` to the same value. Add a bucket lifecycle rule that expires that prefix, with a retention longer than the Redis run-state expiry; otherwise a batch can be deleted before its runs are persisted. The same applies to `zonalBucket`. `zone`, `zonalBucket` and `zoneWorkerOnly` are set on the writer and, where needed, on the workers (`ingestQueue.walWorker`).
+**Multi-tenant batching (optional).** `multiTenant.enabled` keeps one WAL per pod for all tenants and uploads batches under `multiTenant.tmpBatchPrefix` (`tmp/batches`); set `ingestQueue.walWorker.multiTenantEnabled` to the same value. Add a bucket lifecycle rule that expires that prefix, with a retention longer than the Redis run-state expiry; otherwise a batch can be deleted before its runs are persisted. Zonal batching (`WAL_ZONE`) needs a separate zone-worker deployment that this chart does not render, so it is not exposed and the chart rejects those settings.
 
 ## Extra manifests
 

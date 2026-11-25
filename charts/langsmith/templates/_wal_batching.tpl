@@ -50,14 +50,6 @@ worker env only, ingestQueue.walWorker.enabled) is true.
 - name: WAL_GROUP_MB
   value: {{ $w.multiTenant.groupMB | int | quote }}
 {{- end }}
-{{- with $w.zone }}
-- name: WAL_ZONE
-  value: {{ . | quote }}
-{{- end }}
-{{- with $w.zonalBucket }}
-- name: WAL_ZONAL_BUCKET
-  value: {{ . | quote }}
-{{- end }}
 {{- end }}
 {{- end -}}
 
@@ -76,18 +68,6 @@ worker env only, ingestQueue.walWorker.enabled) is true.
 {{- if not (kindIs "invalid" $w.groupMB) }}
 - name: WAL_GROUP_MB
   value: {{ $w.groupMB | int | quote }}
-{{- end }}
-{{- with $w.zone }}
-- name: WAL_ZONE
-  value: {{ . | quote }}
-{{- end }}
-{{- if $w.zoneWorkerOnly }}
-- name: WAL_ZONE_WORKER_ONLY
-  value: "true"
-{{- end }}
-{{- with $w.zonalBucket }}
-- name: WAL_ZONAL_BUCKET
-  value: {{ . | quote }}
 {{- end }}
 {{- end }}
 {{- end -}}

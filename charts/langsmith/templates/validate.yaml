@@ -995,11 +995,9 @@ template and GitOps renders, so those skip this check. */ -}}
 {{- if not .Values.ingestQueue.enabled -}}
 {{- fail "platformBackend.walBatching.enabled requires ingestQueue.enabled: the ingest queue workers persist the uploaded batches." -}}
 {{- end -}}
-{{- if and (not $wal.multiTenant.enabled) (or $wal.zone $wal.zonalBucket) -}}
-{{- fail "platformBackend.walBatching.zone and zonalBucket require platformBackend.walBatching.multiTenant.enabled." -}}
-{{- end -}}
-{{- if and $wal.zonalBucket (not $wal.zone) -}}
-{{- fail "platformBackend.walBatching.zonalBucket requires platformBackend.walBatching.zone." -}}
+{{- /* Zonal batching (WAL_ZONE and friends) needs a separate zone-worker deployment, which this chart does not render. */ -}}
+{{- if or $wal.zone $wal.zonalBucket .Values.ingestQueue.walWorker.zone .Values.ingestQueue.walWorker.zoneWorkerOnly .Values.ingestQueue.walWorker.zonalBucket -}}
+{{- fail "Zonal WAL batching is not supported by this chart: remove platformBackend.walBatching.zone/zonalBucket and ingestQueue.walWorker.zone/zoneWorkerOnly/zonalBucket." -}}
 {{- end -}}
 {{- if not (and (kindIs "string" $wal.dir) (hasPrefix "/" $wal.dir)) -}}
 {{- fail "platformBackend.walBatching.dir must be an absolute path." -}}

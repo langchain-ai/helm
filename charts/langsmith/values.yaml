@@ -3379,11 +3379,6 @@ platformBackend:
       tmpBatchPrefix: tmp/batches
       # -- WAL_GROUP_MB (unset keeps the application default of 64).
       groupMB: null
-    # -- WAL_ZONE: availability zone of this stack, for zonal multi-tenant batching. Needs multiTenant.enabled.
-    zone: ""
-    # -- WAL_ZONAL_BUCKET: zonal bucket (S3 Express One Zone / GCS Rapid) holding this zone's batches. Needs zone.
-    # Its lifecycle rule has the same retention requirement as tmpBatchPrefix.
-    zonalBucket: ""
     volume:
       # -- Extra GB above maxDiskGB in the default emptyDir sizeLimit, so the app backs off before the kubelet evicts.
       sizeLimitBufferGB: 2
@@ -4062,10 +4057,6 @@ ingestQueue:
     tmpBatchPrefix: tmp/batches
     # -- WAL_GROUP_MB (unset keeps the application default of 64).
     groupMB: null
-    # -- WAL_ZONE, WAL_ZONE_WORKER_ONLY and WAL_ZONAL_BUCKET: zonal workers consume only their zone's queue.
-    zone: ""
-    zoneWorkerOnly: false
-    zonalBucket: ""
   pdb:
     enabled: false
     minAvailable: 1

@@ -39,13 +39,13 @@ tests:
       - failedTemplate:
           errorMessage: "ingestQueue.walWorker.multiTenantEnabled must equal platformBackend.walBatching.multiTenant.enabled: the workers need the plan_s3_batch handler for multi-tenant batches."
 
-  - it: requires multi-tenant batching for a zone
+  - it: rejects zonal batching, which needs a separate zone-worker deployment
     set:
       platformBackend.walBatching.enabled: true
       platformBackend.walBatching.zone: "us-east-1a"
     asserts:
       - failedTemplate:
-          errorMessage: "platformBackend.walBatching.zone and zonalBucket require platformBackend.walBatching.multiTenant.enabled."
+          errorMessage: "Zonal WAL batching is not supported by this chart: remove platformBackend.walBatching.zone/zonalBucket and ingestQueue.walWorker.zone/zoneWorkerOnly/zonalBucket."
 
   - it: does not validate WAL settings while the WAL is off
     set:
