@@ -3174,7 +3174,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | redis.statefulSet.livenessProbe.failureThreshold | int | `6` |  |
 | redis.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
 | redis.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
-| redis.statefulSet.maxmemoryPolicy | string | `"volatile-lru"` | Eviction policy for the in-chart Redis (`--maxmemory-policy`). Only takes effect once a memory limit is reached. Ignored when `command` is set; set it to "" to use the Redis image default. |
+| redis.statefulSet.maxmemoryPolicy | string | `"noeviction"` | Eviction policy for the in-chart Redis (`--maxmemory-policy`). Only takes effect once a memory limit is reached. Ignored when `command` is set; set it to "" to use the Redis image default. |
 | redis.statefulSet.nodeSelector | object | `{}` |  |
 | redis.statefulSet.persistence.enabled | bool | `true` |  |
 | redis.statefulSet.persistence.size | string | `"8Gi"` |  |

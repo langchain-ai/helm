@@ -4094,7 +4094,7 @@ redis:
     command: []
     # -- Eviction policy for the in-chart Redis (`--maxmemory-policy`). Only takes effect once a memory limit is reached.
     # Ignored when `command` is set; set it to "" to use the Redis image default.
-    maxmemoryPolicy: "volatile-lru"
+    maxmemoryPolicy: "noeviction"
     startupProbe:
       exec:
         command:

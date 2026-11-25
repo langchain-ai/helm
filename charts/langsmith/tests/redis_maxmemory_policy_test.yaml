@@ -2,19 +2,19 @@ suite: in-chart Redis maxmemory-policy
 templates:
   - redis/stateful-set.yaml
 tests:
-  - it: defaults to volatile-lru
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[0].args
-          value: ["--maxmemory-policy", "volatile-lru"]
-
-  - it: renders a configured policy
-    set:
-      redis.statefulSet.maxmemoryPolicy: noeviction
+  - it: defaults to noeviction
     asserts:
       - equal:
           path: spec.template.spec.containers[0].args
           value: ["--maxmemory-policy", "noeviction"]
+
+  - it: renders a configured policy
+    set:
+      redis.statefulSet.maxmemoryPolicy: volatile-lru
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].args
+          value: ["--maxmemory-policy", "volatile-lru"]
 
   - it: omits args when the policy is empty
     set:
