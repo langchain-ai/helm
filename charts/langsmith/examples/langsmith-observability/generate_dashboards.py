@@ -56,17 +56,15 @@ def smithdb_datadog(metrics_prefix="smithdb."):
                         query["query"],
                     )
     note = source["widgets"][0]["definition"]
+    default = "SmithDB metrics are queried under the `smithdb.` prefix."
+    if default not in note.get("content", ""):
+        raise ValueError("The SmithDB header note must state the default metric prefix")
     scope = (
         f"SmithDB metrics are queried under the `{prefix}` prefix."
         if prefix
         else "SmithDB metrics are queried without a prefix."
     )
-    note["content"] = (
-        note["content"].split("\n", 1)[0]
-        + "\n"
-        + scope
-        + " Configure your collector to match. `langsmith_*` metrics are emitted by LangSmith and carry no prefix."
-    )
+    note["content"] = note["content"].replace(default, scope)
     return source
 
 
@@ -117,14 +115,18 @@ def datadog_dashboard(components):
                 r"[a-zA-Z_][a-zA-Z0-9_.-]*", prefix
             ):
                 raise ValueError("Cluster requires an explicit tag key")
-            widgets = json.loads(
-                re.sub(
-                    r"\$cluster(?![\w.])",
-                    prefix + ":$cluster.value",
-                    json.dumps(widgets),
-                )
-            )
             cluster_picker = cluster_picker or prefix
+            # Keep $cluster when it already resolves to this tag key: Datadog drops
+            # it at "*", while "key:$cluster.value" stays a key:* filter that
+            # Metrics without Limits rejects unless the key is queryable.
+            if prefix != cluster_picker:
+                widgets = json.loads(
+                    re.sub(
+                        r"\$cluster(?![\w.])",
+                        prefix + ":$cluster.value",
+                        json.dumps(widgets),
+                    )
+                )
             variable["prefix"] = cluster_picker
         assign_widget_ids(widgets, itertools.count((index + 1) * 10000))
         merge_variables(dashboard["template_variables"], variables)
