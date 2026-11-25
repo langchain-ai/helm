@@ -1,0 +1,23 @@
+charts/langsmith/tests/redis_maxmemory_policy_test.yaml
+  s_4856707eb46e86::t_5fd9813ba3ed48 5,9,13,17
+charts/langsmith/README.md
+  s_4856707eb46e86::t_3029150d3d7e62 3177
+charts/langsmith/values.yaml
+  s_4856707eb46e86::t_9d568cd512561f 4097
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "40140a85ff88d8e739e66e12efdb1f7f282bcc5f",
+  "prompts": {},
+  "sessions": {
+    "s_4856707eb46e86": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de708ad8-8c85-48be-94d0-cbcee585e0d9",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Kiewan Villatel <kiewan@langchain.dev>"
+    }
+  }
+}
