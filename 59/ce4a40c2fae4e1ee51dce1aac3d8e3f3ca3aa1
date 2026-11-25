@@ -1,0 +1,27 @@
+charts/langsmith/tests/wal_batching_validation_test.yaml
+  s_aed69e61711750::t_5a01d004f6933c 24,28,30-38,41
+charts/langsmith/templates/validate.yaml
+  s_aed69e61711750::t_0b8d6d3f16604f 986-987
+charts/langsmith/values.yaml
+  s_aed69e61711750::t_db82b48bc26eee 3342
+charts/langsmith/README.md
+  s_aed69e61711750::t_2362b8035b70f8 112
+charts/langsmith/README.md.gotmpl
+  s_aed69e61711750::t_03aff3ae155cf6 109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "59ce4a40c2fae4e1ee51dce1aac3d8e3f3ca3aa1",
+  "prompts": {},
+  "sessions": {
+    "s_aed69e61711750": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "867ebd73-1e11-4130-bd94-37bf81be397d",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Kiewan Villatel <kiewan@langchain.dev>"
+    }
+  }
+}
