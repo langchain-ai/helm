@@ -486,6 +486,33 @@ tests:
           path: spec.template.spec.volumes
           count: 1
 
+  - it: should add extra volumes to the formatter Job
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefsFormatJob.volumes:
+        - name: juicefs-redis-ca
+          secret:
+            secretName: juicefs-redis-ca
+      sandboxes.juicefsFormatJob.volumeMounts:
+        - name: juicefs-redis-ca
+          mountPath: /etc/juicefs-redis-ca
+          readOnly: true
+    template: sandboxes/juicefs-format-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: juicefs-redis-ca
+            secret:
+              secretName: juicefs-redis-ca
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: juicefs-redis-ca
+            mountPath: /etc/juicefs-redis-ca
+            readOnly: true
+
   - it: should not set the JuiceFS Redis IAM auth provider env by default
     values:
       - ./values/sandboxes-enabled.yaml

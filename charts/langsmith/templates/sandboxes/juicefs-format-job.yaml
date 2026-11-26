@@ -15,8 +15,8 @@
   "pullPolicy" .Values.images.sandboxHostImage.pullPolicy
   "pullSecrets" .Values.images.imagePullSecrets
   "env" (include "langsmith.sandboxes.juicefsFormatJobEnv" .)
-  "extraVolumeMounts" (include "langsmith.tlsVolumeMounts" . | fromYamlArray)
-  "extraVolumes" (include "langsmith.tlsVolumes" . | fromYamlArray)
+  "extraVolumeMounts" (concat (include "langsmith.tlsVolumeMounts" . | fromYamlArray) (default list $juicefsFormatJob.volumeMounts))
+  "extraVolumes" (concat (include "langsmith.tlsVolumes" . | fromYamlArray) (default list $juicefsFormatJob.volumes))
   "juicefsConfigSecretName" (include "langsmith.sandboxes.juicefsConfigSecretName" .)
   "job" $juicefsFormatJob
   "sandboxHost" .Values.sandboxes.sandboxHost) }}
