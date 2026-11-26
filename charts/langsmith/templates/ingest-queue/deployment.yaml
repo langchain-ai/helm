@@ -19,7 +19,8 @@
 {{- end }}
 {{- end -}}
 {{- if .Values.ingestQueue.enabled }}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "ingestQueueEnvVars" . | fromYamlArray) .Values.ingestQueue.deployment.extraEnv -}}
+{{- $walEnv := ternary (include "langsmith.walBatching.workerEnv" . | fromYamlArray) (list) (or .Values.ingestQueue.walWorker.enabled .Values.platformBackend.walBatching.enabled) -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "ingestQueueEnvVars" . | fromYamlArray) $walEnv .Values.ingestQueue.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.ingestQueue.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray)  -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.ingestQueue.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}

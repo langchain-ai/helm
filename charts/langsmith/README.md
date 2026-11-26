@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.19.0-rc.11](https://img.shields.io/badge/Version-0.19.0--rc.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.19.3rc1](https://img.shields.io/badge/AppVersion-0.19.3rc1-informational?style=flat-square)
+![Version: 0.19.0-rc.12](https://img.shields.io/badge/Version-0.19.0--rc.12-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.19.3rc1](https://img.shields.io/badge/AppVersion-0.19.3rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -102,6 +102,26 @@ The query disk cache limit is set automatically from the PVC storage request or,
 Online evaluations on trajectories use an internal gRPC listener in `platformBackend` on port `8086`, enabled when both `smithdb.enabled` and `smithdb.langsmith.query.enabled` are true. Otherwise, no trajectory listener, Service, or endpoint is configured. It shares the HTTP backend's SmithDB routing, resources, and scaling; readiness uses `/ready` while active.
 
 The trajectory Service is cluster-internal; no public route is added. Trajectory processing can be memory intensive, consider setting [GOMEMLIMIT](https://pkg.go.dev/runtime#hdr-Environment_Variables) relative to your memory limit to mitigate OOMKilled errors for this service. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
+
+## WAL batching (opt-in)
+
+By default every `/runs`, `/runs/batch` and `/runs/multipart` write is persisted individually. With WAL batching the platform backend (`platformBackend`, which serves those routes) instead appends runs to a write-ahead log on local disk, uploads one S3 object per batch, and enqueues a small pointer task that the ingest queue workers (`ingestQueue`) turn into persisted runs. This cuts S3 requests and queue traffic at high ingest rates. Everything is off by default; upgrading the chart changes nothing until you set `platformBackend.walBatching.enabled`.
+
+**Durability trade-off.** A write is acknowledged once it is in the local WAL, before the batch is in S3. On a clean shutdown the WAL drains (the chart raises `terminationGracePeriodSeconds` to at least 330 and keeps the `preStop` sleep; never lower them while the WAL is on). After a node loss, eviction or `SIGKILL`, batches not yet uploaded are lost with the default `emptyDir`, at most `maxBatchAgeSec` (10 s) of writes per pod. To keep them, point `platformBackend.walBatching.volume.override` at a persistent volume (for example `ephemeral.volumeClaimTemplate`, or `persistentVolumeClaim.claimName` with one replica).
+
+**Requirements** (the chart fails to render otherwise): S3 or GCS blob storage (`config.blobStorage.engine: S3` or `GCS`; S3-compatible storage and the bundled RustFS are fine; Azure is not supported), SmithDB ingestion on (`smithdb.langsmith.ingestion.enabled`), ClickHouse ingestion off (`clickhouse.enabled: false`), and `ingestQueue.enabled`.
+
+**Rollout order.**
+
+1. Upgrade the ingest queue workers to an image that has the `persist_s3_batch` handler (also `plan_s3_batch` and the group tasks if you plan to use `multiTenant`). Old workers cannot process the pointer tasks.
+2. Set `platformBackend.walBatching.enabled: true` with `enabledTenants` listing a single tenant id. The chart then mounts the WAL volume, sets the `FF_WAL_BATCHING_*` and `WAL_*` env vars, and raises the grace period. Use `["*"]` for all tenants and `disabledTenants` to exclude some.
+3. Widen `enabledTenants` once the first tenant looks healthy.
+
+**Turning it off.** Add the tenant to `disabledTenants` or set `enabled: false`. New writes go back to the direct path; leave the workers on a WAL-capable image until the WAL has drained and queued tasks are done.
+
+**Disk sizing.** The default volume is an `emptyDir` whose `sizeLimit` is `maxDiskGB` + `volume.sizeLimitBufferGB` (2), so the app backs off before the kubelet evicts the pod. The chart adds an `ephemeral-storage` request for that limit plus `volume.logsBufferGB` (1) to the platform backend `resources.requests`, unless you set one yourself.
+
+**Multi-tenant batching (optional).** `multiTenant.enabled` keeps one WAL per pod for all tenants and uploads batches under `multiTenant.tmpBatchPrefix` (`tmp/batches`); set `ingestQueue.walWorker.multiTenantEnabled` to the same value. Add a bucket lifecycle rule that expires that prefix, with a retention longer than the Redis run-state expiry; otherwise a batch can be deleted before its runs are persisted. Zonal batching (`WAL_ZONE`) needs a separate zone-worker deployment that this chart does not render, so it is not exposed and the chart rejects those settings.
 
 ## Extra manifests
 
