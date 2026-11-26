@@ -323,7 +323,8 @@ class DashboardTests(unittest.TestCase):
     def test_sandbox_filters_do_not_change_smithdb_scope(self):
         actual = build_dashboards()["datadog-dashboard.json"]
         self.assertEqual(
-            [tab["name"] for tab in actual["tabs"]], ["SmithDB", "Sandboxes"]
+            [tab["name"] for tab in actual["tabs"]],
+            ["SmithDB", "Sandboxes", "Engine"],
         )
         variables = {
             item["name"]: item["prefix"] for item in actual["template_variables"]

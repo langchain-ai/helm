@@ -406,6 +406,12 @@ def sandbox_datadog():
     return build_dashboard()
 
 
+def engine_datadog():
+    from components.engine.datadog import build_dashboard
+
+    return build_dashboard()
+
+
 def build_dashboards(smithdb_metrics_prefix="smithdb."):
     from components.sandboxes.grafana import build_dashboard as sandbox_grafana
 
@@ -426,6 +432,7 @@ def build_dashboards(smithdb_metrics_prefix="smithdb."):
             [
                 ("SmithDB", smithdb_datadog(smithdb_metrics_prefix)),
                 ("Sandboxes", sandbox_datadog()),
+                ("Engine", engine_datadog()),
             ]
         ),
         "grafana-dashboard.json": grafana_dashboard(
