@@ -1949,6 +1949,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | config.observability.tracing.exporter | string | `"http"` |  |
 | config.observability.tracing.useTls | bool | `true` | Use TLS for OTLP export. |
 | config.orgAdminsInstallationUsageExportEnabled | bool | `false` | When true, any org admin can use the usage backfill export. |
+| config.personalOrgMaxMonthlyTraces | int | `-1` | Deployment-wide cap on monthly traces for every personal org. -1 disables the cap. |
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
 | config.recoveryAdmin.email | string | `""` | Email of the existing, enabled organization admin this credential authenticates as. Must match a user already provisioned via SSO. |
 | config.recoveryAdmin.enabled | bool | `false` |  |
