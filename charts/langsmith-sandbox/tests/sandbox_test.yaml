@@ -242,6 +242,33 @@ tests:
             - name: LANGCHAIN_ENV
               value: local_kubernetes
 
+  - it: should add extra volumes to the formatter
+    values:
+      - ./values/enabled.yaml
+    set:
+      juicefsFormatJob.volumes:
+        - name: juicefs-redis-ca
+          secret:
+            secretName: juicefs-redis-ca
+      juicefsFormatJob.volumeMounts:
+        - name: juicefs-redis-ca
+          mountPath: /etc/juicefs-redis-ca
+          readOnly: true
+    template: juicefs-format-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: juicefs-redis-ca
+            secret:
+              secretName: juicefs-redis-ca
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: juicefs-redis-ca
+            mountPath: /etc/juicefs-redis-ca
+            readOnly: true
+
   - it: should require a minimal existing service-auth Secret
     values:
       - ./values/enabled.yaml

@@ -28,8 +28,8 @@
   "pullPolicy" .Values.images.sandboxHostImage.pullPolicy
   "pullSecrets" .Values.images.imagePullSecrets
   "env" (toYaml $env)
-  "extraVolumeMounts" $mounts
-  "extraVolumes" $volumes
+  "extraVolumeMounts" (concat $mounts (default list $job.volumeMounts))
+  "extraVolumes" (concat $volumes (default list $job.volumes))
   "juicefsConfigSecretName" (include "langsmithSandbox.juicefsConfigSecretName" .)
   "job" $job
   "sandboxHost" .Values.sandboxHost) }}

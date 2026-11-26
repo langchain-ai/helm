@@ -137,6 +137,8 @@ juicefsFormatJob:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  volumes: []
+  volumeMounts: []
 
 sandboxHost:
   # -- Deploy the sandbox-host runtime and supporting resources.

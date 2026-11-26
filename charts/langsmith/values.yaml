@@ -258,6 +258,10 @@ sandboxes:
     tolerations: []
     # -- Affinity rules for the JuiceFS formatter pod.
     affinity: {}
+    # -- Additional volumes for the JuiceFS formatter pod, for example a Secret holding the Redis CA that `tls-ca-cert-file` in the metadata URL points to.
+    volumes: []
+    # -- Additional volume mounts for the JuiceFS formatter container. Mount the same files as sandbox-host, so both read the metadata URL the same way.
+    volumeMounts: []
   sandboxHost:
     # -- Component name for sandbox-host. Resources are named `<release-fullname>-<name>`, which the chart passes to the host as SANDBOX_HOST_DEPLOYMENT_NAME.
     name: "sandbox-host"
