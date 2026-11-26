@@ -122,7 +122,7 @@ ingestQueue:
             "instances": [
               {
                 "openmetrics_endpoint": "http://%%host%%:1989/metrics",
-                "metrics": ["langsmith_ingestion_.*_latency_seconds"],
+                "metrics": ["langsmith_ingestion_.*_latency_seconds", "langsmith_ingest_task_failures.*", "langsmith_redis_errors.*"],
                 "histogram_buckets_as_distributions": true,
                 "collect_counters_with_distributions": true
               }
@@ -140,7 +140,7 @@ platformBackend:
             "instances": [
               {
                 "openmetrics_endpoint": "http://%%host%%:1986/metrics",
-                "metrics": ["langsmith_asynq_ingestion_queue_pending"]
+                "metrics": ["langsmith_asynq_.*", "langsmith_runs_dropped_per_project_limit.*", "langsmith_redis_errors.*"]
               }
             ]
           }
