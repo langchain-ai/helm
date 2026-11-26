@@ -20,6 +20,7 @@
 {{- end -}}
 {{- if and .Values.clickhouse.enabled (not .Values.clickhouse.external.enabled) }}
 {{- $envVars := concat .Values.commonEnv (include "clickhouseEnvVars" . | fromYamlArray) .Values.clickhouse.statefulSet.extraEnv -}}
+{{- $envVars := include "langsmith.filterSecretEnv" (dict "root" . "env" $envVars) | fromYamlArray -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.clickhouse.statefulSet.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.clickhouse.statefulSet.volumeMounts -}}

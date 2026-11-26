@@ -1,5 +1,6 @@
 {{- if .Values.backend.backfillCheck.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.backend.backfillCheck.extraEnv -}}
+{{- $envVars := include "langsmith.filterSecretEnv" (dict "root" . "env" $envVars) | fromYamlArray -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.backend.backfillCheck.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.backend.backfillCheck.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
