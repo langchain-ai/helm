@@ -1889,7 +1889,7 @@ To rotate the RSA key, append the new key after the old one and upgrade: it is p
 | config.agentBuilder.oauth.slackOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackSigningSecret | string | `""` |  |
 | config.agentBuilder.oauthProviderOrgId | string | `""` |  |
-| config.agentMigration.enabled | bool | `true` | Migrate existing tracing projects and experiments to Agent Platform agents after upgrade. Runs on the existing ingest queue workers; installs with `authType` `none` skip it. Once it has run, do not downgrade to an app version from before the migration. |
+| config.agentMigration.enabled | bool | `true` | Migrate existing tracing projects to agents after upgrade. Experiments are classified as experiments and are not converted to agents. Runs on the existing ingest queue workers; installs with `authType` `none` skip it. Once it has run, do not downgrade to an app version from before the migration. |
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
 | config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
 | config.basePath | string | `""` | Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith. WARNING: Changing basePath after LangSmith Deployments have been created will break existing deployments. Existing deployments will need to be recreated for the new basePath to take effect. |
