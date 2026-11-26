@@ -1,0 +1,21 @@
+charts/langsmith/README.md
+  s_aed69e61711750::t_f08aefe0ac1869 3
+charts/langsmith/Chart.yaml
+  s_aed69e61711750::t_4355c60b0f6a75 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b44aeb2b385550a0918bf3995b0731bed253f2cc",
+  "prompts": {},
+  "sessions": {
+    "s_aed69e61711750": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "867ebd73-1e11-4130-bd94-37bf81be397d",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Kiewan Villatel <kiewan@langchain.dev>"
+    }
+  }
+}
