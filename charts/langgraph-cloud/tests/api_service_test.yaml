@@ -1,0 +1,34 @@
+suite: API Service exposure
+templates:
+  - api-server/service.yaml
+tests:
+  - it: keeps the API internal by default
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - notExists:
+          path: spec.loadBalancerSourceRanges
+
+  - it: supports an explicit load balancer with source restrictions
+    set:
+      apiServer.service.type: LoadBalancer
+      apiServer.service.loadBalancerSourceRanges:
+        - 192.0.2.0/24
+    asserts:
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+      - equal:
+          path: spec.loadBalancerSourceRanges
+          value:
+            - 192.0.2.0/24
+
+  - it: keeps the default API Service internal when using an Ingress
+    set:
+      ingress.enabled: true
+      ingress.hostname: api.example.com
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
