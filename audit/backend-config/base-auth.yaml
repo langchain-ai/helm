@@ -1,0 +1,19 @@
+# Minimum required auth/license to satisfy validate.yaml, so we can render.
+config:
+  langsmithLicenseKey: "AUDIT_LICENSE"
+  apiKeySalt: "AUDIT_SALT"
+  authType: "mixed"
+  basicAuth:
+    enabled: true
+    initialOrgAdminEmail: "audit@corp.dev"
+    initialOrgAdminPassword: "TestLangSmith123!"
+    jwtSecret: "AUDIT_JWT_SECRET"
+
+insights:
+  encryptionKey: "AUDIT_INSIGHTS_KEY"
+
+fleet:
+  encryptionKey: "rQ3qW2rSXP6YZF9N_O0Nga4GkQcW9a9tzFXAtJDVEJo="
+
+polly:
+  encryptionKey: "AUDIT_POLLY_KEY"
