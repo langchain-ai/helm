@@ -15,6 +15,7 @@
 - name: SANDBOX_HOST_INGRESS_ENDPOINT
   value: {{ . | quote }}
 {{- end }}
+{{- include "langsmith.sandboxes.ownClusterEnv" . }}
 {{- end }}
 {{- end -}}
 {{- if .Values.ingestQueue.enabled }}
