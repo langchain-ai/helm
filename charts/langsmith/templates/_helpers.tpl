@@ -1085,10 +1085,12 @@ SmithDB OTEL resource attributes.
 {{/*
 SmithDB OTLP endpoint. The chart models TLS separately, while the standard
 OTEL_EXPORTER_OTLP_ENDPOINT consumed by SmithDB requires a URI scheme.
+A scheme already on the endpoint is replaced by the one useTls selects.
 */}}
 {{- define "langsmith.smithdb.otelEndpoint" -}}
 {{- $tracing := .Values.config.observability.tracing -}}
-{{- printf "%s://%s" (ternary "https" "http" $tracing.useTls) $tracing.endpoint -}}
+{{- $endpoint := $tracing.endpoint | trimPrefix "http://" | trimPrefix "https://" -}}
+{{- printf "%s://%s" (ternary "https" "http" $tracing.useTls) $endpoint -}}
 {{- end }}
 
 {{/*
