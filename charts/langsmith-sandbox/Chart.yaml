@@ -5,5 +5,5 @@ maintainers:
     email: ankush@langchain.dev
 description: Helm chart to deploy the LangSmith sandbox runtime in a dedicated Kubernetes cluster.
 type: application
-version: 0.18.4
-appVersion: "0.18.2026112600"
+version: 0.18.5
+appVersion: "0.18.2026112700"
